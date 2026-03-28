@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:54322/course_db
+    username: postgres
+    password: password
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000/realms/amatum
+
+mux:
+  api:
+    base-url: https://api.mux.com
+    token-id: ${MUX_TOKEN_ID}
+    token-secret: ${MUX_TOKEN_SECRET}
+
+app:
+  lumina-client-url: http://localhost:4200
+
+storage:
+  rustfs:
+    endpoint: ${RUSTFS_ENDPOINT:http://localhost:9010}
+    region: ${RUSTFS_REGION:us-east-1}
+    bucket: ${RUSTFS_BUCKET:amatum}
+    access-key: ${RUSTFS_ACCESS_KEY}
+    secret-key: ${RUSTFS_SECRET_KEY}
+
+keycloak:
+  clients:
+    lumina-client-id: lms-ui

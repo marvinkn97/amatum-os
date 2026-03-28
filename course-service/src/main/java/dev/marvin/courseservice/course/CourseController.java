@@ -1,0 +1,124 @@
+package dev.marvin.courseservice.course;
+
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/courses")
+@RequiredArgsConstructor
+@Tag(name = "Courses", description = "Courses API")
+public class CourseController {
+    private final CourseService courseService;
+    private final PagedResourcesAssembler<CourseResponse> pagedResourcesAssembler;
+
+    @Operation(summary = "Create a new course")
+    @PostMapping
+    public ResponseEntity<CourseResponse> create(@Valid @RequestBody CourseRequest request) {
+        CourseResponse courseResponse = courseService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseResponse);
+    }
+
+    @Operation(summary = "Update an existing course")
+    @PutMapping("/{id}")
+    public ResponseEntity<CourseResponse> update(@PathVariable("id") UUID courseId, @Valid @RequestBody CourseRequest request) {
+        courseService.update(courseId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Get a course by ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<CourseResponse> getCourseById(@PathVariable("id") UUID courseId) {
+        return ResponseEntity.ok(courseService.getCourseById(courseId));
+    }
+
+    @Operation(summary = "Get all active courses")
+    @GetMapping("/all/active")
+    public ResponseEntity<PagedModel<EntityModel<CourseResponse>>> getAllActiveCourses(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        // 1. Get the Page from your service
+        Page<CourseResponse> courseResponsePage = courseService.getAllActiveCourses(PageRequest.of(page, size));
+
+        // 2. Convert to PagedModel (CollectionModel) using an inline lambda
+        // This adds the "self", "next", "prev" links and the "page" metadata automatically
+        PagedModel<EntityModel<CourseResponse>> pagedModel =
+                pagedResourcesAssembler.toModel(courseResponsePage, EntityModel::of);
+
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @Operation(summary = "Get all archived courses")
+    @GetMapping("/all/archived")
+    public ResponseEntity<PagedModel<EntityModel<CourseResponse>>> getAllArchivedCourses(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        // 1. Get the Page from your service
+        Page<CourseResponse> courseResponsePage = courseService.getAllArchivedCourses(PageRequest.of(page, size));
+
+        // 2. Convert to PagedModel (CollectionModel) using an inline lambda
+        // This adds the "self", "next", "prev" links and the "page" metadata automatically
+        PagedModel<EntityModel<CourseResponse>> pagedModel =
+                pagedResourcesAssembler.toModel(courseResponsePage, EntityModel::of);
+
+        return ResponseEntity.ok(pagedModel);
+    }
+
+
+    @Operation(summary = "Search for active courses by name and category")
+    @GetMapping("/search/active")
+    public ResponseEntity<PagedModel<EntityModel<CourseResponse>>> searchActiveCourses(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "categoryId", required = false) UUID categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Page<CourseResponse> coursePage =
+                courseService.searchActiveCourses(name, categoryId, PageRequest.of(page, size));
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(coursePage, EntityModel::of));
+    }
+
+    @Operation(summary = "Search for archived courses by name and category")
+    @GetMapping("/search/archived")
+    public ResponseEntity<PagedModel<EntityModel<CourseResponse>>> searchArchivedCourses(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "categoryId", required = false) UUID categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Page<CourseResponse> coursePage =
+                courseService.searchArchivedCourses(name, categoryId, PageRequest.of(page, size));
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(coursePage, EntityModel::of));
+    }
+
+    @Operation(summary = "Delete a course by ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID courseId) {
+        courseService.delete(courseId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Restore a course by ID")
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<Void> restore(@PathVariable("id") UUID courseId) {
+        courseService.restore(courseId);
+        return ResponseEntity.ok().build();
+    }
+
+}

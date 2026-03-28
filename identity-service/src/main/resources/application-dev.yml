@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:54321/identity_db
+    username: postgres
+    password: password
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000/realms/amatum
+
+keycloak:
+  realm: amatum
+  auth-server-url: http://localhost:9000/
+  backend-client-id: identity-client
+  backend-client-secret: cPm7PFr6nfwqWyjZEHfyPhmi5Yov2NOQ
+  clients:
+    lumina-client-id: lms-ui
+    opus-client-id: opus-ui
+  groups:
+    learner-id: 125a155e-75d0-47fa-aebb-5dc062201e4d
+    manager-id: 5695695a-829e-490a-a466-457dd94e14fa

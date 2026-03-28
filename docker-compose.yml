@@ -1,0 +1,136 @@
+services:
+  #  KEYCLOAK:
+  amatum-postgres-keycloak:
+    image: postgres:latest
+    container_name: amatum-postgres-keycloak
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres-keycloak-data:/var/lib/postgresql/data
+    networks:
+      - amatum-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keycloak -d keycloak_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    pull_policy: always
+    container_name: amatum-keycloak
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: password
+      KC_DB: postgres
+      KC_DB_URL_HOST: amatum-postgres-keycloak
+      KC_DB_URL_DATABASE: keycloak_db
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_HEALTH_ENABLED: "true"
+      # FIX 1: Force health endpoints to port 8080 instead of 9000
+      KC_HTTP_MANAGEMENT_HEALTH_ENABLED: "false"
+    command: start-dev
+    ports:
+      - "9000:8080" # Host 9000 -> Container 8080 (UI & Health)
+    depends_on:
+      amatum-postgres-keycloak:
+        condition: service_healthy
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+    networks:
+      - amatum-network
+    healthcheck:
+      # FIX 2: Use a TCP socket check (no curl/wget required)
+      # FIX 3: Check port 8080
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080; echo -e 'GET /health/live HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n' >&3; grep 'HTTP/1.1 200 OK' <&3" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  identity-db:
+    image: postgres:latest
+    container_name: identity-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: identity_db
+    ports:
+      - "54321:5432" # maps local 5433 -> container 5432
+    volumes:
+      - identity-db-data:/var/lib/postgresql/data
+    networks:
+      - amatum-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d identity_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  course-db:
+    image: postgres:latest
+    container_name: course-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: course_db
+    ports:
+      - "54322:5432"
+    networks:
+      - amatum-network
+    volumes:
+      - course-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d course_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  pgadmin:
+    image: dpage/pgadmin4:7
+    container_name: amatum-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@amatum.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "5050:80"
+    networks:
+      - amatum-network
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    restart: unless-stopped
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: amatum-rustfs
+    ports:
+      - "9010:9000" # API
+      - "9011:9001" # Console
+    environment:
+      - RUSTFS_ROOT_USER=admin
+      - RUSTFS_ROOT_PASSWORD=password
+    networks:
+      - amatum-network
+    volumes:
+      - rustfs-data:/data # This is the ONLY volume you need
+
+volumes:
+  keycloak-data:
+  postgres-keycloak-data:
+  identity-db-data:
+  course-db-data:
+  pgadmin-data:
+  rustfs-data:
+
+
+networks:
+  amatum-network:
+    driver: bridge

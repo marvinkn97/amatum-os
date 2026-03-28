@@ -1,0 +1,16 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: course-service
+
+  profiles:
+    active: dev
+
+logging:
+  level:
+    root: info
+    dev.marvin.courseservice: debug
+
+
