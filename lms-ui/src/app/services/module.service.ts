@@ -32,7 +32,7 @@ export interface ModuleResponse {
   id: string;
   sequence: number;
   title: string;
-  steps: LearningStepResponse[];
+  learningSteps: LearningStepResponse[];
 }
 
 @Injectable({

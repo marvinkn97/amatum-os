@@ -22,4 +22,11 @@ public class S3UploadController {
         S3Service.PresignedUrlResponse response = s3Service.generateUploadUrl(request);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<Void> removeFile(@RequestParam String objectKey) {
+        log.info("Request to remove file with key: {}", objectKey);
+        s3Service.deleteFile(objectKey);
+        return ResponseEntity.ok().build();
+    }
 }

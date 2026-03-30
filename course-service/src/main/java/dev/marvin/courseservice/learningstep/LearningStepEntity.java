@@ -52,6 +52,9 @@ public class LearningStepEntity {
     @Builder.Default
     private Status status = Status.DRAFT;
 
+    private boolean videoEnabled;
+    private boolean contentEnabled;
+    private boolean materialsEnabled;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

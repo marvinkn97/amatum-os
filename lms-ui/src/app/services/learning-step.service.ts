@@ -28,6 +28,13 @@ export interface LearningStepResponse {
   type: 'LESSON' | 'QUIZ';
   content?: string;
   moduleId: string;
+
+  vidoeEnabled?: boolean;
+  contentEnabled?: boolean;
+  materialsEnabled?: boolean;
+
+  lesson: any; // Placeholder for lesson-specific data
+  quiz: any; // Placeholder for quiz-specific data
 }
 
 export interface LearningStepRequest {
@@ -36,14 +43,14 @@ export interface LearningStepRequest {
   sequence: number;
   content: string;
   type: 'LESSON' | 'QUIZ'; // Matches LessonType enum
-  resources: LearningStepResourceRequest[];
+  resources?: LearningStepResourceRequest[];
 
-  videoEnabled: boolean;
-  contentEnabled: boolean;
-  materialsEnabled: boolean;
+  videoEnabled?: boolean;
+  contentEnabled?: boolean;
+  materialsEnabled?: boolean;
 
   videoUploadId?: string | null;
-  questions: [];
+  questions?: [];
 }
 
 export interface LearningStepResourceRequest {
@@ -70,14 +77,37 @@ export class LearningStepService {
     formData.append('content', request.content);
     formData.append('type', request.type);
 
+    if (request.type === 'LESSON') {
+      formData.append('videoEnabled', request.videoEnabled ? 'true' : 'false');
+      formData.append('contentEnabled', request.contentEnabled ? 'true' : 'false');
+      formData.append('materialsEnabled', request.materialsEnabled ? 'true' : 'false');
+      formData.append('videoUploadId', request.videoUploadId ?? '');
+    }
+
+    if (request.type === 'QUIZ') {
+      formData.append('questions', JSON.stringify(request.questions ?? []));
+    }
+
     // Append Attachments
-    request.resources.forEach((resource, index) => {
-      // Append the metadata
-      formData.append(`resources[${index}].type`, resource.name);
-      formData.append(`resources[${index}].name`, resource.objectKey);
-      formData.append(`resources[${index}].contentType`, resource.contentType);
-      formData.append(`resources[${index}].size`, resource.size.toString());
-    });
+    if (request.resources) {
+      request.resources.forEach((resource, index) => {
+        // Append the metadata
+        formData.append(`resources[${index}].name`, resource.name);
+        formData.append(`resources[${index}].objectKey`, resource.objectKey);
+        formData.append(`resources[${index}].contentType`, resource.contentType);
+        formData.append(`resources[${index}].size`, resource.size.toString());
+      });
+    }
+
+    let totalSize = 0;
+formData.forEach((value, key) => {
+  if (typeof value === 'string') {
+    totalSize += new Blob([value]).size;
+  } else if (value instanceof File) {
+    totalSize += value.size;
+  }
+});
+console.log('Total FormData size (bytes):', totalSize);
 
     return this.http.post<LearningStepResponse>(this.API_URL, formData);
   }

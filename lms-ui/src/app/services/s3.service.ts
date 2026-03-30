@@ -9,12 +9,12 @@ export interface PresignedUrlResponse {
 }
 
 export interface S3UploadRequest {
-  fileName: string; 
+  fileName: string;
   contentType: string;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class S3Service {
   private http = inject(HttpClient);
@@ -23,7 +23,7 @@ export class S3Service {
   /**
    * Step 1: Get the 'permission' from Spring Boot
    */
- getPresignedUrl(fileName: string, contentType: string): Observable<PresignedUrlResponse> {
+  getPresignedUrl(fileName: string, contentType: string): Observable<PresignedUrlResponse> {
     const body: S3UploadRequest = { fileName, contentType };
     return this.http.post<PresignedUrlResponse>(`${this.API_URL}/upload-url`, body);
   }
@@ -35,9 +35,16 @@ export class S3Service {
    */
   uploadToStorage(file: File, uploadUrl: string): Promise<any> {
     const headers = new HttpHeaders({ 'Content-Type': file.type });
-    
-    return firstValueFrom(
-      this.http.put(uploadUrl, file, { headers, responseType: 'text' })
-    );
+
+    return firstValueFrom(this.http.put(uploadUrl, file, { headers, responseType: 'text' }));
+  }
+
+  /**
+   * Step 3: Remove the file from RustFS
+   */
+  deleteFile(objectKey: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/remove`, {
+      params: { objectKey },
+    });
   }
 }

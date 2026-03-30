@@ -1,6 +1,16 @@
 package dev.marvin.courseservice.learningstep;
 
-public record LearningStepResourceRequest(
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
+public record LearningStepResourceRequest(
+        @NotBlank
+        String name,
+        @NotBlank
+        String objectKey,
+        @NotBlank
+        String contentType,
+        @NotNull
+        Long size
 ) {
 }

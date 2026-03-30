@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +19,9 @@ public class LearningStepService {
     private final LearningStepRepository learningStepRepository;
     private final LessonRepository lessonRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final LearningStepResourceRepository learningStepResourceRepository;
 
+    @Transactional
     public LearningStepResponse create(LearningStepRequest request) {
         validateStep(request);
         ModuleEntity module = moduleRepository.findById(request.moduleId())
@@ -29,27 +32,43 @@ public class LearningStepService {
                 .title(request.title())
                 .type(request.type())
                 .sequence(request.sequence())
+                .videoEnabled(request.videoEnabled())
+                .contentEnabled(request.contentEnabled())
+                .materialsEnabled(request.materialsEnabled())
                 .build();
 
-        if (request.attachments() != null && !request.attachments().isEmpty()) {
-            request.attachments().forEach(attachment -> {
-                log.info("Attachment: {}", attachment);
-            });
-        }
+        // Persist parent to generate ID
+        learningStepEntity = learningStepRepository.save(learningStepEntity);
 
+        // 3. Handle Resources
+        if (request.materialsEnabled() && request.resources() != null) {
+            for (var resourceReq : request.resources()) {
+                LearningStepResourceEntity resource = LearningStepResourceEntity.builder()
+                        .learningStepEntity(learningStepEntity) // Linked to saved parent
+                        .name(resourceReq.name())
+                        .objectKey(resourceReq.objectKey())
+                        .contentType(resourceReq.contentType())
+                        .size(resourceReq.size())
+                        .build();
+                learningStepResourceRepository.save(resource);
+            }
+        }
 
         if (request.type().equals(LearningStepType.LESSON)) {
             LessonEntity lessonEntity = LessonEntity.builder()
                     .content(request.content())
                     .learningStepEntity(learningStepEntity)
+                    .videoUploadId(request.videoUploadId())
+                    .videoStatus("PROCESSING") // Default status when a video is uploaded, can be updated later based on Mux webhook events
                     .build();
             lessonRepository.save(lessonEntity);
+
         }
 
         if (request.type().equals(LearningStepType.QUIZ)) {
         }
 
-        return null;
+        return LearningStepMapper.mapToResponse(learningStepEntity);
     }
 
 
@@ -67,7 +86,7 @@ public class LearningStepService {
             }
 
             // 3. If Materials Toggle is ON, the list must not be empty
-            if (request.materialsEnabled() && (request.attachments() == null || request.attachments().isEmpty())) {
+            if (request.materialsEnabled() && (request.resources() == null || request.resources().isEmpty())) {
                 throw new BadRequestException("Materials are enabled but no files were attached.");
             }
 

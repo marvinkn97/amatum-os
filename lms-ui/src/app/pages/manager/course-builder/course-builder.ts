@@ -16,15 +16,9 @@ import {
 } from '../../../services/learning-step.service';
 import { MuxService } from '../../../services/mux.service';
 import { S3Service } from '../../../services/s3.service';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QUIZ_EDITOR';
-
-interface Lesson {
-  id: string;
-  title: string;
-  type: 'LESSON' | 'QUIZ';
-  content?: string;
-}
 
 interface StudioNotification {
   message: string;
@@ -40,6 +34,45 @@ interface StudioNotification {
     <div
       class="flex flex-col w-full h-full bg-[#030712] text-slate-200 overflow-hidden font-sans selection:bg-indigo-500/30"
     >
+      @if (isLoading()) {
+        <div class="fixed inset-0 z-110 bg-[#030712] flex flex-col items-center justify-center">
+          <div class="flex flex-col items-center gap-6">
+            <div class="relative flex items-center justify-center">
+              <div
+                class="size-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 animate-pulse"
+              ></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="size-8 text-indigo-500 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <span
+                class="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500 animate-pulse"
+              >
+                Synchronizing Studio
+              </span>
+              <span class="text-[9px] text-slate-500 italic tracking-widest">
+                Building curriculum architecture...
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+
       @if (notification().visible) {
         <div class="fixed top-6 right-6 z-100 animate-in fade-in slide-in-from-top-4 duration-300">
           <div
@@ -189,12 +222,16 @@ interface StudioNotification {
                     class="w-full flex items-center justify-between p-4 hover:bg-white/3 transition-colors cursor-pointer text-left"
                   >
                     <span
-                      class="text-xs font-bold truncate max-w-40"
+                      class="text-xs font-bold truncate max-w-75"
                       [class.text-indigo-400]="selectedId() === module.id"
-                      >{{ module.title }}</span
                     >
+                      {{ module.title }}
+                    </span>
+
                     <svg
-                      class="size-3 text-slate-600"
+                      (click)="toggleModuleStructure(module.id, $event)"
+                      class="size-3.5 text-slate-600 transition-transform duration-200"
+                      [class.rotate-180]="expandedModuleIds().has(module.id)"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -203,23 +240,26 @@ interface StudioNotification {
                     </svg>
                   </button>
 
-                  <div class="bg-black/20 px-2 pb-2 space-y-1">
-                    @for (step of module.steps; track step.id) {
-                      <button
-                        (click)="selectStep(step); isSidebarOpen.set(false)"
-                        [class.bg-indigo-500/10]="selectedId() === step.id"
-                        [class.text-white]="selectedId() === step.id"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:text-white transition-all text-[11px] font-semibold flex items-center gap-3 cursor-pointer"
-                      >
-                        <div
-                          class="size-1.5 rounded-full"
-                          [class.bg-amber-500]="step.type === 'QUIZ'"
-                          [class.bg-indigo-500]="step.type === 'LESSON'"
-                        ></div>
-                        <span class="truncate">{{ step.title }}</span>
-                      </button>
-                    }
-                  </div>
+                  @if (expandedModuleIds().has(module.id)) {
+                    <div class="bg-black/20 px-2 pb-2 space-y-1">
+                      @for (step of module.learningSteps; track step.id) {
+                        <button
+                          (click)="selectStep(step); isSidebarOpen.set(false)"
+                          [class.bg-indigo-500/10]="selectedStepId() === step.id"
+                          class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:text-white transition-all text-[11px] font-semibold flex items-center gap-3 cursor-pointer"
+                        >
+                          <div
+                            class="size-1.5 rounded-full"
+                            [class.bg-amber-500]="step.type === 'QUIZ'"
+                            [class.bg-indigo-500]="step.type === 'LESSON'"
+                          ></div>
+                          <span class="truncate">{{ step.title }}</span>
+                        </button>
+                      } @empty {
+                        <p class="text-[10px] text-slate-500 px-3 py-2 italic">No steps yet</p>
+                      }
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -270,267 +310,476 @@ interface StudioNotification {
           </div>
           <div class="max-w-4xl mx-auto py-8 lg:py-16 px-4 md:px-12 pb-32 lg:pb-16">
             @if (activeView() === 'COURSE_IDENTITY') {
-              <div class="space-y-12 lg:space-y-16">
-                <header>
-                  <h2 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-2">
-                    Course Outline
-                  </h2>
-                  <p class="text-slate-500 text-sm font-medium mt-2">
-                    Provide the general info and pricing.
-                  </p>
-                </header>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
-                  <div class="space-y-3 col-span-1 md:col-span-2">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >Course title</label
-                    >
-
-                    <input
-                      type="text"
-                      [(ngModel)]="courseData().title"
-                      (ngModelChange)="updateSlug()"
-                      placeholder="What is this course about?"
-                      [class.border-rose-500/40]="showValidationErrors && !courseData().title"
-                      class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 lg:p-5 text-md lg:text-md text-white outline-none focus:border-indigo-500/50 transition-all font-bold placeholder:text-slate-800"
-                    />
-                    @if (showValidationErrors && !courseData().title) {
-                      <span
-                        class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
-                        >Title is required</span
-                      >
-                    }
-                  </div>
-
-                  <div class="space-y-3">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >Slug</label
-                    >
-                    <input
-                      type="text"
-                      [(ngModel)]="courseData().slug"
-                      readonly
-                      class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 lg:p-5 text-indigo-400 outline-none font-mono text-xs cursor-default"
-                    />
-                  </div>
-
-                  <div class="space-y-3">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >Category</label
-                    >
-                    <div class="relative">
-                      <div
-                        (click)="toggleDropdown($event)"
-                        [class.border-rose-500/40]="
-                          showValidationErrors && !courseData().categoryId
-                        "
-                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 lg:p-5 text-sm font-bold text-white cursor-pointer flex items-center justify-between hover:bg-white/10 transition-all"
-                      >
-                        <span>{{ selectedCategoryName() || 'Select category' }}</span>
-                        <svg
-                          class="size-4 text-slate-500"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="3"
-                        >
-                          <path d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                      @if (showValidationErrors && !courseData().categoryId) {
-                        <span
-                          class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
-                          >Category selection is required</span
-                        >
-                      }
-                      @if (isDropdownOpen()) {
-                        <div
-                          class="absolute top-full left-0 w-full mt-2 bg-[#0b0f1a] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                        >
-                          @for (cat of categories(); track cat.id) {
-                            <div
-                              (click)="selectCategory(cat)"
-                              class="px-5 py-4 text-sm font-bold text-slate-300 hover:bg-indigo-600 hover:text-white cursor-pointer transition-colors border-b border-white/5 last:border-0"
-                            >
-                              {{ cat.name }}
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="space-y-3">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >Access Type</label
-                    >
-                    <div
-                      class="grid grid-cols-2 gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 h-15 lg:h-17.5"
-                    >
-                      <button
-                        (click)="setTier('FREE')"
-                        [class.bg-indigo-600]="courseData().tier === 'FREE'"
-                        class="rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                      >
-                        Free
-                      </button>
-                      <button
-                        (click)="setTier('PREMIUM')"
-                        [class.bg-indigo-600]="courseData().tier === 'PREMIUM'"
-                        class="rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                      >
-                        Paid
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="space-y-3">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >Course Price</label
-                    >
-                    <div
-                      [class.border-rose-500/40]="
-                        showValidationErrors &&
-                        courseData().tier === 'PREMIUM' &&
-                        (!courseData().price || courseData().price <= 0)
+              <div class="space-y-8 lg:space-y-10 pb-32">
+                <div class="flex justify-center mb-12">
+                  <div
+                    class="inline-flex p-1.5 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-md"
+                  >
+                    <button
+                      (click)="identityTab.set('DETAILS')"
+                      [class]="
+                        identityTab() === 'DETAILS'
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                          : 'text-slate-500 hover:text-slate-200'
                       "
-                      class="flex items-center bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:border-indigo-500/50 transition-all h-15 lg:h-17.5"
+                      class="flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer"
                     >
-                      <span class="pl-5 text-slate-500 text-lg font-bold select-none">$</span>
-                      <input
-                        type="number"
-                        [(ngModel)]="courseData().price"
-                        [readonly]="courseData().tier === 'FREE'"
-                        class="w-full bg-transparent px-4 text-lg text-white outline-none font-bold disabled:opacity-20"
-                      />
-                    </div>
-                    @if (
-                      showValidationErrors &&
-                      courseData().tier === 'PREMIUM' &&
-                      (!courseData().price || courseData().price <= 0)
-                    ) {
-                      <span
-                        class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
-                        >Paid courses require price > 0</span
+                      <svg
+                        class="size-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
                       >
-                    }
-                  </div>
+                        <path d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                      Course Details
+                    </button>
 
-                  <div class="col-span-1 md:col-span-2 space-y-3">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >#Tags</label
-                    >
-                    <div
-                      [class.border-rose-500/40]="
-                        showValidationErrors && courseData().tags.length === 0
+                    <button
+                      (click)="identityTab.set('STRUCTURE')"
+                      [class]="
+                        identityTab() === 'STRUCTURE'
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                          : 'text-slate-500 hover:text-slate-200'
                       "
-                      class="w-full bg-white/5 border border-white/10 rounded-2xl p-3 min-h-15 flex flex-wrap gap-2 focus-within:border-indigo-500/50 transition-all"
+                      class="flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer"
                     >
-                      @for (tag of courseData().tags; track tag) {
-                        <span
-                          class="flex items-center gap-2 bg-indigo-500/10 text-indigo-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-indigo-500/20"
+                      <svg
+                        class="size-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <path
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                      Curriculum Structure
+                    </button>
+                  </div>
+                </div>
+
+                @if (identityTab() === 'DETAILS') {
+                  <div
+                    class="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-12 lg:space-y-16"
+                  >
+                    <header>
+                      <h2
+                        class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-2"
+                      >
+                        Course Details
+                      </h2>
+                      <p class="text-slate-500 text-sm font-medium mt-2">
+                        Provide the general info and pricing.
+                      </p>
+                    </header>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+                      <div class="space-y-3 col-span-1 md:col-span-2">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >Course title</label
                         >
-                          {{ tag }}
-                          <button
-                            (click)="removeTag(tag)"
-                            class="hover:text-white transition-colors"
+                        <input
+                          type="text"
+                          [(ngModel)]="courseData().title"
+                          (ngModelChange)="updateSlug()"
+                          placeholder="What is this course about?"
+                          [class.border-rose-500/40]="showValidationErrors && !courseData().title"
+                          class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 lg:p-5 text-md lg:text-md text-white outline-none focus:border-indigo-500/50 transition-all font-bold placeholder:text-slate-800"
+                        />
+                        @if (showValidationErrors && !courseData().title) {
+                          <span
+                            class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
+                            >Title is required</span
                           >
+                        }
+                      </div>
+
+                      <div class="space-y-3">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >Slug</label
+                        >
+                        <input
+                          type="text"
+                          [(ngModel)]="courseData().slug"
+                          readonly
+                          class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 lg:p-5 text-indigo-400 outline-none font-mono text-xs cursor-default"
+                        />
+                      </div>
+
+                      <div class="space-y-3">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >Category</label
+                        >
+                        <div class="relative">
+                          <div
+                            (click)="toggleDropdown($event)"
+                            [class.border-rose-500/40]="
+                              showValidationErrors && !courseData().categoryId
+                            "
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 lg:p-5 text-sm font-bold text-white cursor-pointer flex items-center justify-between hover:bg-white/10 transition-all"
+                          >
+                            <span>{{ selectedCategoryName() || 'Select category' }}</span>
                             <svg
-                              class="size-3"
+                              class="size-4 text-slate-500"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
                               stroke-width="3"
                             >
-                              <path d="M6 18L18 6M6 6l12 12" />
+                              <path d="M19 9l-7 7-7-7" />
                             </svg>
+                          </div>
+                          @if (showValidationErrors && !courseData().categoryId) {
+                            <span
+                              class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
+                              >Category selection is required</span
+                            >
+                          }
+                          @if (isDropdownOpen()) {
+                            <div
+                              class="absolute top-full left-0 w-full mt-2 bg-[#0b0f1a] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                            >
+                              @for (cat of categories(); track cat.id) {
+                                <div
+                                  (click)="selectCategory(cat)"
+                                  class="px-5 py-4 text-sm font-bold text-slate-300 hover:bg-indigo-600 hover:text-white cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                                >
+                                  {{ cat.name }}
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="space-y-3">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >Access Type</label
+                        >
+                        <div
+                          class="grid grid-cols-2 gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 h-15 lg:h-17.5"
+                        >
+                          <button
+                            (click)="setTier('FREE')"
+                            [class.bg-indigo-600]="courseData().tier === 'FREE'"
+                            class="rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                          >
+                            Free
                           </button>
-                        </span>
-                      }
-                      <input
-                        type="text"
-                        [(ngModel)]="tagInput"
-                        (keydown.enter)="addTag($event)"
-                        (keydown.comma)="addTag($event)"
-                        placeholder="Add tags (Enter or Comma)..."
-                        class="flex-1 min-w-30 bg-transparent border-none outline-none text-sm font-bold text-white placeholder:text-slate-800"
-                      />
-                    </div>
-                    @if (showValidationErrors && courseData().tags.length === 0) {
-                      <span
-                        class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
-                        >At least one tag is required</span
-                      >
-                    }
-                  </div>
+                          <button
+                            (click)="setTier('PREMIUM')"
+                            [class.bg-indigo-600]="courseData().tier === 'PREMIUM'"
+                            class="rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                          >
+                            Paid
+                          </button>
+                        </div>
+                      </div>
 
-                  <div
-                    class="col-span-1 md:col-span-2 p-5 bg-indigo-600/5 border border-indigo-500/10 rounded-3xl flex items-center justify-between mt-4"
-                  >
-                    <div>
-                      <h4
-                        class="text-xs font-black uppercase tracking-widest text-indigo-100 italic"
-                      >
-                        Promote to public view
-                      </h4>
-                      <p class="text-[10px] text-slate-500 font-medium">
-                        Pin this course to the front page featured section.
-                      </p>
-                    </div>
-                    <button
-                      (click)="courseData().featured = !courseData().featured"
-                      [class.bg-indigo-600]="courseData().featured"
-                      class="w-14 h-7 rounded-full border border-white/10 transition-all relative p-1 cursor-pointer"
-                    >
+                      <div class="space-y-3">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >Course Price</label
+                        >
+                        <div
+                          [class.border-rose-500/40]="
+                            showValidationErrors &&
+                            courseData().tier === 'PREMIUM' &&
+                            (!courseData().price || courseData().price <= 0)
+                          "
+                          class="flex items-center bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:border-indigo-500/50 transition-all h-15 lg:h-17.5"
+                        >
+                          <span class="pl-5 text-slate-500 text-lg font-bold select-none">$</span>
+                          <input
+                            type="number"
+                            [(ngModel)]="courseData().price"
+                            [readonly]="courseData().tier === 'FREE'"
+                            class="w-full bg-transparent px-4 text-lg text-white outline-none font-bold disabled:opacity-20"
+                          />
+                        </div>
+                        @if (
+                          showValidationErrors &&
+                          courseData().tier === 'PREMIUM' &&
+                          (!courseData().price || courseData().price <= 0)
+                        ) {
+                          <span
+                            class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
+                            >Paid courses require price > 0</span
+                          >
+                        }
+                      </div>
+
+                      <div class="col-span-1 md:col-span-2 space-y-3">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >#Tags</label
+                        >
+                        <div
+                          [class.border-rose-500/40]="
+                            showValidationErrors && courseData().tags.length === 0
+                          "
+                          class="w-full bg-white/5 border border-white/10 rounded-2xl p-3 min-h-15 flex flex-wrap gap-2 focus-within:border-indigo-500/50 transition-all"
+                        >
+                          @for (tag of courseData().tags; track tag) {
+                            <span
+                              class="flex items-center gap-2 bg-indigo-500/10 text-indigo-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-indigo-500/20"
+                            >
+                              {{ tag }}
+                              <button
+                                (click)="removeTag(tag)"
+                                class="hover:text-white transition-colors"
+                              >
+                                <svg
+                                  class="size-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                >
+                                  <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </span>
+                          }
+                          <input
+                            type="text"
+                            [(ngModel)]="tagInput"
+                            (keydown.enter)="addTag($event)"
+                            (keydown.comma)="addTag($event)"
+                            placeholder="Add tags (Enter or Comma)..."
+                            class="flex-1 min-w-30 bg-transparent border-none outline-none text-sm font-bold text-white placeholder:text-slate-800"
+                          />
+                        </div>
+                        @if (showValidationErrors && courseData().tags.length === 0) {
+                          <span
+                            class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
+                            >At least one tag is required</span
+                          >
+                        }
+                      </div>
+
                       <div
-                        class="size-5 bg-white rounded-full transition-all shadow-lg"
-                        [class.translate-x-7]="courseData().featured"
-                      ></div>
-                    </button>
-                  </div>
-
-                  <div class="col-span-1 md:col-span-2 space-y-4 pt-6">
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
-                      >Course description</label
-                    >
-                    <div
-                      [class.border-rose-500/40]="
-                        showValidationErrors &&
-                        (!courseData().description || courseData().description.length < 20)
-                      "
-                      class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden min-h-100"
-                    >
-                      <quill-editor
-                        [(ngModel)]="courseData().description"
-                        [modules]="quillConfig"
-                        theme="snow"
-                        class="lumina-editor"
-                      ></quill-editor>
-                    </div>
-                    @if (
-                      showValidationErrors &&
-                      (!courseData().description || courseData().description.length < 20)
-                    ) {
-                      <span
-                        class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
-                        >Description must be at least 20 characters</span
+                        class="col-span-1 md:col-span-2 p-5 bg-indigo-600/5 border border-indigo-500/10 rounded-3xl flex items-center justify-between mt-4"
                       >
-                    }
-                  </div>
-                </div>
+                        <div>
+                          <h4
+                            class="text-xs font-black uppercase tracking-widest text-indigo-100 italic"
+                          >
+                            Promote to public view
+                          </h4>
+                          <p class="text-[10px] text-slate-500 font-medium">
+                            Pin this course to the front page featured section.
+                          </p>
+                        </div>
+                        <button
+                          (click)="courseData().featured = !courseData().featured"
+                          [class.bg-indigo-600]="courseData().featured"
+                          class="w-14 h-7 rounded-full border border-white/10 transition-all relative p-1 cursor-pointer"
+                        >
+                          <div
+                            class="size-5 bg-white rounded-full transition-all shadow-lg"
+                            [class.translate-x-7]="courseData().featured"
+                          ></div>
+                        </button>
+                      </div>
 
-                <div
-                  class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
-                >
-                  <div class="max-w-4xl mx-auto flex items-center justify-end">
-                    <button
-                      (click)="saveCourse()"
-                      class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                      <div class="col-span-1 md:col-span-2 space-y-4 pt-6">
+                        <label
+                          class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]"
+                          >Course description</label
+                        >
+                        <div
+                          [class.border-rose-500/40]="
+                            showValidationErrors &&
+                            (!courseData().description || courseData().description.length < 20)
+                          "
+                          class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden min-h-100"
+                        >
+                          <quill-editor
+                            [(ngModel)]="courseData().description"
+                            [modules]="quillConfig"
+                            theme="snow"
+                            class="lumina-editor"
+                          ></quill-editor>
+                        </div>
+                        @if (
+                          showValidationErrors &&
+                          (!courseData().description || courseData().description.length < 20)
+                        ) {
+                          <span
+                            class="text-[11px] text-rose-500 font-black uppercase tracking-widest ml-1 italic"
+                            >Description must be at least 20 characters</span
+                          >
+                        }
+                      </div>
+                    </div>
+                    <div
+                      class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
                     >
-                      Save Changes
-                    </button>
+                      <div class="max-w-4xl mx-auto flex items-center justify-end">
+                        <button
+                          (click)="saveCourse()"
+                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                }
+
+                @if (identityTab() === 'STRUCTURE') {
+                  <div class="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-8">
+                    <header>
+                      <h2
+                        class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-2"
+                      >
+                        Curriculum Structure
+                      </h2>
+                      <p class="text-slate-500 text-sm font-medium mt-2">
+                        Organize modules using drag and drop.
+                      </p>
+                    </header>
+
+                    <div
+                      cdkDropList
+                      [cdkDropListData]="modules()"
+                      (cdkDropListDropped)="onModuleDrop($event)"
+                      class="space-y-4"
+                    >
+                      @for (module of modules(); track module.id; let modIdx = $index) {
+                        <div
+                          cdkDrag
+                          class="group/mod bg-white/2 border border-white/5 rounded-4xl overflow-hidden transition-all hover:border-white/10"
+                        >
+                          <div class="flex items-center gap-4 p-5 bg-white/2">
+                            <div
+                              cdkDragHandle
+                              class="cursor-grab active:cursor-grabbing p-2 text-slate-700 hover:text-indigo-500 transition-colors"
+                            >
+                              <svg
+                                class="size-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                              >
+                                <path d="M8 9h8" />
+                                <path d="M8 12h8" />
+                                <path d="M8 15h8" />
+                              </svg>
+                            </div>
+
+                            <div class="flex-1 flex items-center gap-3">
+                              <span class="text-slate-700 font-black italic text-sm"
+                                >0{{ modIdx + 1 }}</span
+                              >
+                              <input
+                                [(ngModel)]="module.title"
+                                class="bg-transparent border-none outline-none text-sm font-black text-white w-full focus:text-indigo-400 transition-colors"
+                                placeholder="Module Title"
+                              />
+                            </div>
+
+                            <button
+                              (click)="toggleModuleStructure(module.id, $event)"
+                              class="p-2 hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                            >
+                              <svg
+                                class="size-4 text-slate-600 transition-transform duration-300"
+                                [class.rotate-180]="expandedModuleIds().has(module.id)"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="3"
+                              >
+                                <path d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          @if (expandedModuleIds().has(module.id)) {
+                            <div
+                              cdkDropList
+                              [cdkDropListData]="module.learningSteps"
+                              (cdkDropListDropped)="onStepDrop($event)"
+                              class="px-6 pb-6 space-y-2 bg-black/20 pt-4"
+                            >
+                              @for (
+                                step of module.learningSteps;
+                                track step.id;
+                                let stepIdx = $index
+                              ) {
+                                <div
+                                  class="flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-white/2 border border-white/5 rounded-xl group hover:border-white/10 transition-all"
+                                >
+                                  <div
+                                    class="cursor-grab active:cursor-grabbing text-slate-800 group-hover/step:text-indigo-500/50 transition-colors"
+                                  ></div>
+
+                                  <span class="text-slate-700 font-black italic text-sm"
+                                    >0{{ stepIdx + 1 }}</span
+                                  >
+
+                                  <div class="flex-1 flex items-center gap-3">
+                                    <div
+                                      class="size-1.5 rounded-full shrink-0"
+                                      [class.bg-amber-500]="step.type === 'QUIZ'"
+                                      [class.bg-indigo-500]="step.type === 'LESSON'"
+                                    ></div>
+                                    <input
+                                      [(ngModel)]="step.title"
+                                      readonly
+                                      class="bg-transparent border-none outline-none text-xs font-bold text-slate-300 w-full focus:text-white"
+                                    />
+                                  </div>
+
+                                  <button
+                                    (click)="selectStep(step)"
+                                    class="px-3 py-1.5 text-[9px] font-black uppercase text-indigo-400 bg-indigo-500/10 rounded-lg opacity-0 group-hover/step:opacity-100 transition-opacity cursor-pointer"
+                                  >
+                                    Details
+                                  </button>
+                                </div>
+                              } @empty {
+                                <div
+                                  class="py-10 border border-dashed border-white/5 rounded-2xl text-center"
+                                >
+                                  <p
+                                    class="text-[10px] text-slate-600 font-black uppercase tracking-widest"
+                                  >
+                                    No steps in this module
+                                  </p>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div
+                      class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
+                    >
+                      <div class="max-w-4xl mx-auto flex items-center justify-end">
+                        <button
+                          (click)="saveCourse()"
+                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
               </div>
             }
 
@@ -573,27 +822,81 @@ interface StudioNotification {
                       </div>
                     </div>
                   } @else {
-                    @for (step of getSelectedModule()?.steps; track step.id; let i = $index) {
-                      <div
-                        class="flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-white/2 border border-white/5 rounded-2xl group hover:border-white/10 transition-all"
-                      >
-                        <div class="flex items-center gap-4 flex-1">
-                          <span class="text-slate-700 font-black italic text-lg">0{{ i + 1 }}</span>
-                          <div class="flex-1">
-                            <input
-                              [(ngModel)]="step.title"
-                              class="bg-transparent border-none outline-none text-sm font-bold text-white w-full"
-                            />
+                    <div
+                      cdkDropList
+                      [cdkDropListData]="getSelectedModule()?.learningSteps"
+                      ||
+                      []
+                      (cdkDropListDropped)="onStepDrop($event)"
+                      class="space-y-3"
+                    >
+                      @for (
+                        step of getSelectedModule()?.learningSteps;
+                        track step.id;
+                        let i = $index
+                      ) {
+                        <div
+                          cdkDrag
+                          class="flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-white/2 border border-white/5 rounded-2xl group hover:border-white/10 transition-all"
+                        >
+                          <div
+                            cdkDragHandle
+                            class="cursor-grab active:cursor-grabbing p-1 text-slate-700 hover:text-indigo-500 transition-colors shrink-0"
+                          >
+                            <svg
+                              class="size-5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2.5"
+                              stroke-linecap="round"
+                            >
+                              <path d="M8 9h8" />
+                              <path d="M8 12h8" />
+                              <path d="M8 15h8" />
+                            </svg>
+                          </div>
+
+                          <div class="flex items-center gap-4 flex-1">
+                            <span class="text-slate-700 font-black italic text-sm"
+                              >0{{ i + 1 }}</span
+                            >
+
+                            <div class="flex-1 flex items-center gap-3">
+                              <div
+                                class="size-1.5 rounded-full shrink-0"
+                                [class.bg-amber-500]="step.type === 'QUIZ'"
+                                [class.bg-indigo-500]="step.type === 'LESSON'"
+                              ></div>
+
+                              <input
+                                [(ngModel)]="step.title"
+                                class="bg-transparent border-none outline-none text-sm font-bold text-white w-full focus:text-indigo-400 transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div class="flex items-center gap-3">
+                            <button
+                              (click)="selectStep(step)"
+                              class="w-full sm:w-auto px-4 py-2.5 text-[10px] font-black uppercase text-indigo-400 bg-indigo-500/10 rounded-lg sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-indigo-500 hover:text-white"
+                            >
+                              Edit Content
+                            </button>
                           </div>
                         </div>
-                        <button
-                          (click)="selectStep(step)"
-                          class="w-full sm:w-auto px-4 py-2.5 text-[10px] font-black uppercase text-indigo-400 bg-indigo-500/10 rounded-lg sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      } @empty {
+                        <div
+                          class="py-12 border-2 border-dashed border-white/5 rounded-3xl text-center"
                         >
-                          Edit Content
-                        </button>
-                      </div>
-                    }
+                          <p
+                            class="text-[10px] text-slate-600 font-black uppercase tracking-widest"
+                          >
+                            No steps found in this module
+                          </p>
+                        </div>
+                      }
+                    </div>
                     <div class="grid grid-cols-2 gap-4 mt-8">
                       <button
                         (click)="addStep(selectedId()!, 'LESSON')"
@@ -671,7 +974,7 @@ interface StudioNotification {
                 >
                   <div class="space-y-1">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">
-                      Video Lesson
+                      Video Content
                     </h3>
                     <p class="text-[9px] text-slate-500 uppercase font-bold italic tracking-wider">
                       Enable high-performance video streaming for this lesson
@@ -911,7 +1214,7 @@ interface StudioNotification {
                 >
                   <div class="space-y-1">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">
-                      Resource Materials
+                      Resource Content
                     </h3>
                     <p class="text-[9px] text-slate-500 uppercase font-bold italic tracking-wider">
                       Enable file attachments and downloadable assets
@@ -1024,7 +1327,14 @@ interface StudioNotification {
                                 (click)="removeAttachment($index)"
                                 class="px-8 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 text-rose-500 bg-rose-500/5 hover:bg-rose-500/10"
                               >
-                                <span>Remove & Delete from Cloud</span>
+                                @if (deletingStates.has(file)) {
+                                  <div
+                                    class="size-3 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"
+                                  ></div>
+                                  <span>Clearing Cloud...</span>
+                                } @else {
+                                  <span>Remove & Delete from Cloud</span>
+                                }
                               </button>
                             </div>
                           } @else if (!$any(file).tempFile) {
@@ -1383,7 +1693,6 @@ export class CourseBuilder implements OnInit {
   s3Service = inject(S3Service);
 
   activeView = signal<StudioView>('COURSE_IDENTITY');
-  selectedModuleId: string | null = null;
 
   isSidebarOpen = signal(false);
   isDropdownOpen = signal(false);
@@ -1432,14 +1741,21 @@ export class CourseBuilder implements OnInit {
   isLoading = signal<boolean>(false);
 
   ngOnInit() {
+    // 1. Drop the curtain immediately
+    this.isLoading.set(true);
+
+    // 2. Start loading global data
     this.loadCategories();
 
     const idFromUrl = this.route.snapshot.paramMap.get('id');
 
     if (idFromUrl) {
+      // 3a. Edit mode stays behind the curtain until the API responds
       this.enterEditMode(idFromUrl);
     } else {
+      // 3b. Create mode is instant, so we can lift the curtain immediately
       this.enterCreateMode();
+      this.isLoading.set(false);
     }
   }
 
@@ -1464,6 +1780,9 @@ export class CourseBuilder implements OnInit {
     this.courseId.set(id);
     this.loadExistingCourse(id);
   }
+
+  // Add this to your component
+  identityTab = signal<'DETAILS' | 'STRUCTURE'>('DETAILS');
 
   private loadExistingCourse(id: string) {
     this.isLoading.set(true);
@@ -1501,9 +1820,16 @@ export class CourseBuilder implements OnInit {
     // 2. Sync the Modules & Lessons
     // This is the "Magic" that makes the modules appear after refresh
     if (response.modules) {
-      // Sort by sequence to ensure "The Leadership Foundation" stays as #1
-      const sortedModules = [...response.modules].sort((a, b) => a.sequence - b.sequence);
-      this.modules.set(sortedModules);
+      const processedModules = response.modules
+        .map((mod) => ({
+          ...mod,
+          // Ensure steps are sorted by sequence so UI order is consistent
+          steps: mod.learningSteps
+            ? [...mod.learningSteps].sort((a, b) => a.sequence - b.sequence)
+            : [],
+        }))
+        .sort((a, b) => a.sequence - b.sequence);
+      this.modules.set(processedModules);
     } else {
       this.modules.set([]);
     }
@@ -1678,7 +2004,12 @@ export class CourseBuilder implements OnInit {
 
   setView(view: StudioView, id: string | null = null) {
     this.activeView.set(view);
-    this.selectedId.set(id);
+
+    // Only overwrite the ID if we are actually switching to a different record.
+    // If id is null, we "stay" on the current Module UUID.
+    if (id !== null) {
+      this.selectedId.set(id);
+    }
   }
 
   editingModuleTitle = 'Untitled Module';
@@ -1747,38 +2078,41 @@ export class CourseBuilder implements OnInit {
   editingResources = signal<LearningStepResourceRequest[]>([]);
   isCreatingStep = false;
   selectedStepId = signal<string | null>(null);
+  selectedModuleId = signal<string | null>(null);
 
   // UI-Specific state (only used when type === 'QUIZ')
   quizQuestions = signal<any[]>([]);
 
   addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
     this.isCreatingStep = true;
-    this.selectedId.set(moduleId); // Parent Module
-    this.editingStepType.set(type);
 
-    // Defaults
+    // Set the Parent Anchor
+    this.selectedModuleId.set(moduleId);
+
+    // Set the Child Placeholder
+    this.selectedStepId.set('NEW');
+
+    this.editingStepType.set(type);
     this.editingStepTitle.set(type === 'QUIZ' ? 'Untitled Quiz' : 'Untitled Lesson');
     this.editingStepContent.set('');
     this.editingResources.set([]);
 
     if (type === 'QUIZ') {
       this.quizQuestions.set([]);
-      this.addQuestion(); // Start with one blank question
-      this.setView('QUIZ_EDITOR', 'NEW');
-    } else {
-      this.setView('LESSON_EDITOR', 'NEW');
+      this.addQuestion();
     }
+
+    this.setView(type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
   }
 
   getSelectedStep() {
     const modules = this.modules();
-    const selectedId = this.selectedId();
+    const stepId = this.selectedStepId();
 
-    if (!modules || !selectedId) return null;
+    if (!modules || !stepId || stepId === 'NEW') return null;
 
     for (const m of modules) {
-      // Use optional chaining (?.) and provide a fallback empty array ([])
-      const found = (m.steps || []).find((s) => s.id === selectedId);
+      const found = (m.learningSteps || []).find((s) => s.id === stepId);
       if (found) return found;
     }
     return null;
@@ -1786,17 +2120,17 @@ export class CourseBuilder implements OnInit {
 
   selectStep(step: LearningStepResponse) {
     this.isCreatingStep = false;
+    this.selectedId.set(step.moduleId);
     this.selectedStepId.set(step.id);
 
-    // Direct assignment - no more searching the modules array!
-    this.selectedId.set(step.moduleId);
-
-    // Sync draft variables
     this.editingStepTitle.set(step.title);
-    this.editingStepContent.set(step.content || '');
     this.editingStepType.set(step.type as 'LESSON' | 'QUIZ');
 
-    this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR', step.id);
+    if (step.type === 'LESSON' && step.lesson) {
+      this.editingStepContent.set(step.lesson.content || '');
+    }
+
+    this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
   }
 
   addQuestion() {
@@ -1842,64 +2176,18 @@ export class CourseBuilder implements OnInit {
 
     // 2. If it's an existing step, find its current sequence
     if (currentStepId !== 'NEW') {
-      const existingStep = parentModule.steps?.find((s) => s.id === currentStepId);
+      const existingStep = parentModule.learningSteps?.find((s) => s.id === currentStepId);
       if (existingStep) return existingStep.sequence;
     }
 
     // 3. If it's a new step, put it at the end (Total steps + 1)
-    const stepCount = parentModule.steps?.length || 0;
+    const stepCount = parentModule.learningSteps?.length || 0;
     return stepCount + 1;
   }
 
   // State tracking signals
   isUploading = signal<boolean>(false);
   contentTouched = false;
-
-  saveStep() {
-    if (this.muxService.isUploading()) {
-      this.showToast('Please wait for the video upload to finish', 'info');
-      return;
-    }
-
-    const request: LearningStepRequest = {
-      moduleId: this.selectedId()!,
-      title: this.editingStepTitle(),
-      type: 'LESSON',
-      sequence: this.calculateDynamicSequence(),
-
-      // Toggles
-      videoEnabled: this.isVideoLesson(),
-      contentEnabled: this.isContentEnabled(),
-      materialsEnabled: this.isMaterialsEnabled(),
-
-      // Data
-      content: this.isContentEnabled() ? this.editingStepContent() : '',
-      videoUploadId: this.isVideoLesson() ? this.mainLessonVideo().uploadId : null,
-      resources: this.isMaterialsEnabled() ? this.editingResources() : [],
-      questions: [],
-    };
-
-    // Validation
-    // if (!request.title || !request.content || !request.resources.every((a) => a.file)) {
-    //   this.showValidationErrors = true;
-    //   this.showToast('Please complete all fields and upload required files.', 'error');
-    //   return;
-    // }
-
-    this.isSaving.set(true);
-
-    this.learningStepService.createLearningStep(request).subscribe({
-      next: (response) => {
-        this.showToast('Lesson created successfully', 'success');
-        this.isSaving.set(false);
-        this.setView('MODULE_STRUCTURE', this.selectedId());
-      },
-      error: (err) => {
-        this.isSaving.set(false);
-        this.showToast('Failed to save lesson', 'error');
-      },
-    });
-  }
 
   // Add this to your component class
   isVideoLesson = signal(false);
@@ -1952,9 +2240,9 @@ export class CourseBuilder implements OnInit {
         throw new Error('Could not retrieve Mux Upload ID');
       }
 
+      console.log('Successfully captured Mux ID:', uploadId);
       // Store it so removeVideo() can find it
       this.currentUploadId.set(uploadId);
-      console.log('Successfully captured Mux ID:', uploadId);
 
       // 2. Upload the bytes
       await this.muxService.uploadToMux(file, uploadUrl);
@@ -1982,6 +2270,7 @@ export class CourseBuilder implements OnInit {
         this.isDeleting.set(true);
         await firstValueFrom(this.muxService.deleteMuxUpload(uploadId));
         console.log('Cloud cleanup successful.');
+        this.showToast('Video purged from cloud', 'info');
       }
     } catch (error) {
       console.error('Cloud cleanup failed, but resetting UI anyway.', error);
@@ -2031,6 +2320,9 @@ export class CourseBuilder implements OnInit {
               contentType: localFile.type,
               size: localFile.size,
             };
+
+            console.log('Resource updated with cloud data:', updated);
+
             // Remove the temporary file trigger
             delete (updated as any).tempFile;
             return updated;
@@ -2071,24 +2363,32 @@ export class CourseBuilder implements OnInit {
       },
     ]);
   }
+  // Add this to your component class
+  deletingStates = new Set<any>();
 
   async removeAttachment(index: number) {
     const resource = this.editingResources()[index];
+    if (!resource) return;
 
-    // 1. If it was already uploaded to RustFS, delete it from the cloud
-    if (resource?.objectKey) {
-      try {
-        // Assuming your S3Service has a delete method
-        // await firstValueFrom(this.s3Service.deleteFile(resource.objectKey));
-        console.log('File deleted from RustFS');
-      } catch (error) {
-        console.error('Failed to delete file from storage', error);
-        // Optional: stop here if you don't want to remove the UI row on failure
+    try {
+      // 1. Mark this specific resource as deleting
+      this.deletingStates.add(resource);
+
+      // 2. Cloud Cleanup (if it exists in RustFS)
+      if (resource.objectKey) {
+        await firstValueFrom(this.s3Service.deleteFile(resource.objectKey));
+        this.showToast('Material purged from cloud', 'info');
       }
-    }
 
-    // 2. Remove the row from the UI signal
-    this.editingResources.update((prev) => prev.filter((_, i) => i !== index));
+      // 3. UI Cleanup
+      this.editingResources.update((prev) => prev.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error('Purge failed', error);
+      this.showToast('Could not clear cloud storage', 'error');
+    } finally {
+      // 4. Always unmark (though if removed from array, the element disappears anyway)
+      this.deletingStates.delete(resource);
+    }
   }
 
   onFileSelected(event: any, attachment: any) {
@@ -2119,4 +2419,225 @@ export class CourseBuilder implements OnInit {
       this.editingResources().some((res) => !!(res as any).tempFile) || this.loadingStates.size > 0
     );
   });
+
+  saveStep() {
+    // 0. RESET UI ERRORS
+    const type = this.editingStepType(); // 'LESSON' | 'QUIZ'
+    const title = this.editingStepTitle()?.trim();
+    const moduleId = this.selectedModuleId(); // Get the ID once
+    const uploadId = this.currentUploadId(); // Get the ID from your signal
+
+    const isVideo = !!this.isVideoLesson();
+    const isContent = !!this.isContentEnabled();
+    const isMaterials = !!this.isMaterialsEnabled();
+
+    if (!moduleId || moduleId === 'NEW') {
+      this.showToast(
+        'Wait! You are trying to add a step to a module that has not been saved yet.',
+        'error',
+      );
+      return; // STOP the execution here
+    }
+
+    // --- 1. COMMON VALIDATION (Guards) ---
+    if (!title) {
+      this.showValidationErrors = true;
+      this.showToast('Title is required.', 'error');
+      return;
+    }
+
+    let request: LearningStepRequest | null = null;
+
+    // --- 2. LESSON LOGIC BLOCK ---
+    if (type === 'LESSON') {
+      // Cloud Sync Guard
+      if (this.muxService.isUploading() || this.loadingStates.size > 0) {
+        this.showToast('Please wait for media uploads to finish.', 'info');
+        return;
+      }
+
+      const rawContent = this.editingStepContent(); // The "Dirty" HTML
+      const currentResources = this.editingResources();
+      const videoData = this.mainLessonVideo();
+
+      // Check for substance without modifying the actual content string
+      const isEditorEmpty = !rawContent || rawContent.replace(/<[^>]*>/g, '').trim().length === 0;
+
+      const hasValidVideo = this.isVideoLesson() && !!videoData?.uploadId;
+      const hasValidContent = this.isContentEnabled() && !isEditorEmpty;
+      const hasValidMaterials = this.isMaterialsEnabled() && currentResources.length > 0;
+
+      if (this.loadingStates.size > 0) {
+        this.showToast('Please wait for all uploads to complete before saving.', 'info');
+        return;
+      }
+
+      if (!hasValidVideo && !hasValidContent && !hasValidMaterials) {
+        this.showToast('A lesson must have at least one content section.', 'error');
+        return;
+      }
+
+      // Material Integrity check
+      if (this.isMaterialsEnabled() && currentResources.some((r) => !r.objectKey)) {
+        this.showToast('Some materials are missing upload data. Please re-upload them.', 'error');
+        return;
+      }
+
+      request = {
+        moduleId: moduleId!,
+        title,
+        type: 'LESSON',
+        sequence: this.calculateDynamicSequence(),
+        videoEnabled: isVideo,
+        contentEnabled: isContent,
+        materialsEnabled: isMaterials,
+        content: hasValidContent ? rawContent : '', // Sent exactly as Quill provided it
+        videoUploadId: uploadId!,
+        resources: hasValidMaterials
+          ? currentResources.map((res) => ({
+              name: res.name,
+              objectKey: res.objectKey!,
+              contentType: res.contentType,
+              size: res.size,
+            }))
+          : [],
+      };
+    }
+
+    console.log('SENDING TO BACKEND:', JSON.stringify(request));
+
+    // --- 3. QUIZ LOGIC BLOCK ---
+    // if (type === 'QUIZ') {
+    //   const questions = this.editingQuestions();
+
+    //   if (!questions || questions.length === 0) {
+    //     this.showToast('A quiz must have at least one question.', 'error');
+    //     return;
+    //   }
+
+    //   request = {
+    //     moduleId: this.selectedId()!,
+    //     title,
+    //     type: 'QUIZ',
+    //     sequence: this.calculateDynamicSequence(),
+    //     questions: questions,
+    //     content: '',
+    //     videoUploadId: null,
+    //     resources: [],
+    //     videoEnabled: false,
+    //     contentEnabled: false,
+    //     materialsEnabled: false
+    //   };
+    // }
+
+    // --- 4. EXECUTION GATE ---
+    if (!request) return;
+
+    this.isSaving.set(true);
+    this.learningStepService.createLearningStep(request).subscribe({
+      next: (res) => {
+        this.showToast(`${type} saved successfully`, 'success');
+        this.isSaving.set(false);
+
+        this.modules.update((mods) =>
+          mods.map((m) => {
+            if (m.id === moduleId) {
+              // 1. Use 'learningSteps' to match your Backend/JSON
+              // 2. Ensure we fallback to an empty array if it's null
+              const currentSteps = m.learningSteps || [];
+
+              return {
+                ...m,
+                learningSteps: [...currentSteps, res],
+              };
+            }
+            return m;
+          }),
+        );
+
+        this.resetForm();
+
+        this.setView('MODULE_STRUCTURE', this.selectedModuleId());
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.showToast(
+          err?.error?.detail || 'Failed to create learning step. Please try again.',
+          'error',
+        );
+        console.error('Error Details:', err.error.errors);
+      },
+    });
+  }
+
+  private resetForm() {
+    // Reset Basic Info
+    this.editingStepTitle.set('');
+    this.editingStepContent.set('');
+    this.showValidationErrors = false;
+
+    // Reset Media/Resource States
+    this.editingResources.set([]);
+    this.currentUploadId.set(null);
+    this.selectedVideoFile.set(null);
+    this.isUploadComplete.set(false);
+
+    // Reset Toggles (Adjust these to your preferred defaults)
+    this.isVideoLesson.set(false);
+    this.isContentEnabled.set(false);
+    this.isMaterialsEnabled.set(false);
+
+    // Reset Loading States
+    this.loadingStates.clear();
+  }
+
+  // Signal to track the IDs of the modules that are currently open
+  // 1. Change to a Set to track multiple open IDs
+  expandedModuleIds = signal<Set<string>>(new Set());
+
+  toggleModuleStructure(moduleId: string, event: Event) {
+    event.stopPropagation();
+
+    this.expandedModuleIds.update((prevSet) => {
+      // We create a new Set to trigger the signal update (immutability)
+      const newSet = new Set(prevSet);
+
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId); // Close it
+      } else {
+        newSet.add(moduleId); // Open it
+      }
+      return newSet;
+    });
+  }
+
+  // Dragging Modules
+  onModuleDrop(event: CdkDragDrop<any[]>) {
+    const currentModules = [...this.modules()];
+    moveItemInArray(currentModules, event.previousIndex, event.currentIndex);
+    this.modules.set(currentModules);
+  }
+
+  // Dragging Steps inside a Module
+  // onStepDrop(event: CdkDragDrop<any[]>) {
+  //   // We move the item within the specific module's array
+  //   moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+
+  //   // Refresh the main signal to ensure UI and Sidebar stay in sync
+  //   this.modules.set([...this.modules()]);
+  // }
+
+  onStepDrop(event: CdkDragDrop<any>) {
+    // 1. Get the current list from the drag event container
+    const list = event.container.data;
+
+    // 2. THE GUARD: If the list doesn't exist, stop immediately
+    if (!list) return;
+
+    // 3. Move the item in the actual array
+    moveItemInArray(list, event.previousIndex, event.currentIndex);
+
+    // 4. Force signal refresh so the Sidebar and UI stay in sync
+    this.modules.set([...this.modules()]);
+  }
 }

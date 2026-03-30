@@ -4,7 +4,9 @@ import dev.marvin.courseservice.category.CategoryEntity;
 import dev.marvin.courseservice.category.CategoryRepository;
 import dev.marvin.courseservice.exception.BadRequestException;
 import dev.marvin.courseservice.exception.ResourceNotFoundException;
-import dev.marvin.courseservice.lesson.LessonRepository;
+import dev.marvin.courseservice.learningstep.LearningStepMapper;
+import dev.marvin.courseservice.learningstep.LearningStepRepository;
+import dev.marvin.courseservice.learningstep.LearningStepResponse;
 import dev.marvin.courseservice.module.ModuleEntity;
 import dev.marvin.courseservice.module.ModuleRepository;
 import dev.marvin.courseservice.module.ModuleResponse;
@@ -17,10 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +29,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CategoryRepository categoryRepository;
     private final ModuleRepository moduleRepository;
-    private final LessonRepository lessonRepository;
+    private final LearningStepRepository learningStepRepository;
 
     @Transactional
     public CourseResponse create(CourseRequest request) {
@@ -143,20 +142,31 @@ public class CourseService {
     @Transactional(readOnly = true)
     public CourseResponse getCourseById(UUID id) {
         log.info("Getting course with id: {}", id);
+
+        // 1. Fetch the main course
         CourseEntity course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
 
+        // 2. Fetch all modules for this course in one go
         List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_IdOrderBySequenceAsc(course.getId());
         List<UUID> moduleIds = moduleEntities.stream().map(ModuleEntity::getId).toList();
 
+        // 3. Fetch ALL steps for ALL modules in one single query (Solves N+1)
+        // We group them by Module ID using a Map for efficient distribution
+        Map<UUID, List<LearningStepResponse>> stepsByModuleId = learningStepRepository.findByModule_IdIn(moduleIds)
+                .stream()
+                .map(LearningStepMapper::mapToResponse)
+                .collect(Collectors.groupingBy(LearningStepResponse::moduleId));
 
+        // 4. Build the ModuleResponses and attach their specific steps from the Map
         List<ModuleResponse> moduleResponses = moduleEntities.stream()
                 .map(m -> new ModuleResponse(
                         m.getId(),
                         m.getTitle(),
                         m.getSequence(),
-                        List.of())
-                )
+                        // Lookup the list of steps for this specific module ID, default to empty list
+                        stepsByModuleId.getOrDefault(m.getId(), List.of())
+                ))
                 .toList();
 
         return CourseMapper.mapToResponseWithModulesAndLessons(course, moduleResponses);
