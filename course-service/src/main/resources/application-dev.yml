@@ -24,6 +24,7 @@ mux:
     base-url: https://api.mux.com
     token-id: ${MUX_TOKEN_ID}
     token-secret: ${MUX_TOKEN_SECRET}
+    webhook-secret: ${MUX_WEBHOOK_SECRET}
 
 app:
   lumina-client-url: http://localhost:4200

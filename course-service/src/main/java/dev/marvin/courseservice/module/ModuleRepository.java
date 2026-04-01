@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface ModuleRepository extends JpaRepository<ModuleEntity, UUID> {
 
     List<ModuleEntity> findByCourse_IdOrderBySequenceAsc(UUID courseId);
+
+    List<ModuleEntity> findByCourse_Id(UUID courseId);
 }

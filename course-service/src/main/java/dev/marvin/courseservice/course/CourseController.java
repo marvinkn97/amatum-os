@@ -1,7 +1,9 @@
 package dev.marvin.courseservice.course;
 
 
+import dev.marvin.courseservice.module.ModuleReOrderRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -118,6 +121,14 @@ public class CourseController {
     @PatchMapping("/{id}/restore")
     public ResponseEntity<Void> restore(@PathVariable("id") UUID courseId) {
         courseService.restore(courseId);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @Operation(summary = "Reorder modules in a course")
+    @PutMapping("/{id}/reorder-modules")
+    public ResponseEntity<Void> reOrderModuleSequence(@Parameter @PathVariable("id") UUID courseId, @Valid @RequestBody List<ModuleReOrderRequest> moduleReOrderRequests) {
+        courseService.reOrderModuleSequence(courseId, moduleReOrderRequests);
         return ResponseEntity.ok().build();
     }
 

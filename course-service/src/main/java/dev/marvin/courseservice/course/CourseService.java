@@ -4,10 +4,11 @@ import dev.marvin.courseservice.category.CategoryEntity;
 import dev.marvin.courseservice.category.CategoryRepository;
 import dev.marvin.courseservice.exception.BadRequestException;
 import dev.marvin.courseservice.exception.ResourceNotFoundException;
-import dev.marvin.courseservice.learningstep.LearningStepMapper;
-import dev.marvin.courseservice.learningstep.LearningStepRepository;
-import dev.marvin.courseservice.learningstep.LearningStepResponse;
+import dev.marvin.courseservice.learningstep.*;
+import dev.marvin.courseservice.lesson.LessonEntity;
+import dev.marvin.courseservice.lesson.LessonRepository;
 import dev.marvin.courseservice.module.ModuleEntity;
+import dev.marvin.courseservice.module.ModuleReOrderRequest;
 import dev.marvin.courseservice.module.ModuleRepository;
 import dev.marvin.courseservice.module.ModuleResponse;
 import dev.marvin.courseservice.security.TenantContext;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +32,7 @@ public class CourseService {
     private final CategoryRepository categoryRepository;
     private final ModuleRepository moduleRepository;
     private final LearningStepRepository learningStepRepository;
+    private final LessonRepository lessonRepository;
 
     @Transactional
     public CourseResponse create(CourseRequest request) {
@@ -67,7 +70,7 @@ public class CourseService {
     public void update(UUID id, CourseRequest update) {
         log.info("Updating course with id: {}", id);
         CourseEntity course = courseRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Course with id [%s] is invalid".formatted(id)));
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] is invalid".formatted(id)));
 
         boolean changes = false;
 
@@ -143,28 +146,48 @@ public class CourseService {
     public CourseResponse getCourseById(UUID id) {
         log.info("Getting course with id: {}", id);
 
-        // 1. Fetch the main course
+        // 1. Fetch Course
         CourseEntity course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
 
-        // 2. Fetch all modules for this course in one go
+        // 2. Fetch Modules
         List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_IdOrderBySequenceAsc(course.getId());
         List<UUID> moduleIds = moduleEntities.stream().map(ModuleEntity::getId).toList();
 
-        // 3. Fetch ALL steps for ALL modules in one single query (Solves N+1)
-        // We group them by Module ID using a Map for efficient distribution
-        Map<UUID, List<LearningStepResponse>> stepsByModuleId = learningStepRepository.findByModule_IdIn(moduleIds)
-                .stream()
-                .map(LearningStepMapper::mapToResponse)
-                .collect(Collectors.groupingBy(LearningStepResponse::moduleId));
+        // 3. Fetch All Steps
+        List<LearningStepEntity> stepEntities = learningStepRepository.findByModule_IdIn(moduleIds);
+        List<UUID> stepIds = stepEntities.stream().map(LearningStepEntity::getId).toList();
 
-        // 4. Build the ModuleResponses and attach their specific steps from the Map
+        // --- NEW: FETCH LESSONS IN BULK (Using Entities) ---
+        Map<UUID, LessonEntity> lessonsByStepId = lessonRepository.findByLearningStepEntity_IdIn(stepIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        lesson -> lesson.getLearningStepEntity().getId(), // Key: The UUID of the Step
+                        Function.identity(),                        // Value: The LessonEntity itself
+                        (existing, replacement) -> existing         // Merge function to prevent duplicates
+                ));
+
+        // 3.5 Group Steps by Module ID and Flatten Lesson Data
+        Map<UUID, List<LearningStepResponse>> stepsByModuleId = stepEntities.stream()
+                .map(entity -> {
+                    if (entity.getType().equals(LearningStepType.LESSON)) {
+                        // Get the lesson entity from the map
+                        LessonEntity lesson = lessonsByStepId.get(entity.getId());
+                        // Use the two-argument mapper to flatten lesson fields
+                        return LearningStepMapper.mapToResponse(entity, lesson);
+                    }
+
+                    // Fallback for QUIZ or other types: use the standard one-argument mapper
+                    return LearningStepMapper.mapToResponse(entity);
+                })
+                .collect(Collectors.groupingBy(LearningStepResponse::getModuleId));
+
+        // 4. Build ModuleResponses
         List<ModuleResponse> moduleResponses = moduleEntities.stream()
                 .map(m -> new ModuleResponse(
                         m.getId(),
                         m.getTitle(),
                         m.getSequence(),
-                        // Lookup the list of steps for this specific module ID, default to empty list
                         stepsByModuleId.getOrDefault(m.getId(), List.of())
                 ))
                 .toList();
@@ -238,7 +261,7 @@ public class CourseService {
     public void delete(UUID id){
         log.info("Deleting course with id: {}", id);
         CourseEntity course = courseRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Course with id [%s] not found".formatted(id)));
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
         course.setIsDeleted(true);
         courseRepository.save(course);
     }
@@ -247,9 +270,41 @@ public class CourseService {
     public void restore(UUID id){
         log.info("Restoring course with id: {}", id);
         CourseEntity course = courseRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Course with id [%s] not found".formatted(id)));
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
         course.setIsDeleted(false);
         courseRepository.save(course);
     }
+
+    @Transactional
+   public void reOrderModuleSequence(UUID courseId, List<ModuleReOrderRequest> moduleReOrderRequestList){
+        log.info("Re-ordering modules for course with id: {}", courseId);
+
+        // 1. Fetch the course to ensure it exists
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(courseId)));
+
+        // 2. Get the current modules from the course
+        List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_Id(course.getId());
+
+        // 3. Map the new sequences from the request
+        // We turn the request list into a Map for O(1) lookup speed
+        Map<UUID, Integer> sequenceMap = moduleReOrderRequestList.stream()
+                .collect(Collectors.toMap(ModuleReOrderRequest::moduleId, ModuleReOrderRequest::sequence));
+
+        // 4. Update the entities in memory
+        moduleEntities.forEach(module -> {
+            Integer newSequence = sequenceMap.get(module.getId());
+            if (newSequence != null) {
+                module.setSequence(newSequence);
+            }
+        });
+
+        // 5. Batch Save
+        // JPA is smart enough to update only the changed 'sequence' columns
+        moduleRepository.saveAll(moduleEntities);
+
+        log.info("Successfully re-ordered {} modules for course {}", moduleEntities.size(), courseId);
+
+   }
 
 }

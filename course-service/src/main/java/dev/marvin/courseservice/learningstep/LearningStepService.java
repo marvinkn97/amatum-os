@@ -59,7 +59,6 @@ public class LearningStepService {
                     .content(request.content())
                     .learningStepEntity(learningStepEntity)
                     .videoUploadId(request.videoUploadId())
-                    .videoStatus("PROCESSING") // Default status when a video is uploaded, can be updated later based on Mux webhook events
                     .build();
             lessonRepository.save(lessonEntity);
 
@@ -96,5 +95,9 @@ public class LearningStepService {
             throw new BadRequestException("Quiz type requires at least one question.");
         }
 
+    }
+
+    @Transactional
+    public void deleteLearningStep() {
     }
 }

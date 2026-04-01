@@ -28,11 +28,20 @@ export interface ModuleRequest {
   title: string;
 }
 
+export interface ModuleDetailsUpdate {
+  title: string;
+}
+
 export interface ModuleResponse {
   id: string;
   sequence: number;
   title: string;
   learningSteps: LearningStepResponse[];
+}
+
+export interface LearningStepReorderRequest {
+  learningStepId: string;
+  sequence: number;
 }
 
 @Injectable({
@@ -44,5 +53,13 @@ export class ModuleService {
 
   createModule(request: ModuleRequest): Observable<ModuleResponse> {
     return this.http.post<ModuleResponse>(this.API_URL, request);
+  }
+
+  updateModuleDetails(moduleId: string, payload: ModuleDetailsUpdate): Observable<ModuleResponse> {
+    return this.http.patch<any>(`${this.API_URL}/${moduleId}`, payload);
+  }
+
+  reOrderStepSequence(moduleId: string, payload: LearningStepReorderRequest[]): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/${moduleId}/reorder-steps`, payload);
   }
 }

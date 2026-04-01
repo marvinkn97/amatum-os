@@ -1,9 +1,6 @@
 package dev.marvin.courseservice.learningstep;
 
-import dev.marvin.courseservice.lesson.LessonResponse;
-import dev.marvin.courseservice.quiz.QuizResponse;
-
-import java.util.List;
+import dev.marvin.courseservice.lesson.LessonEntity;
 
 public class LearningStepMapper {
     private LearningStepMapper(){}
@@ -19,19 +16,17 @@ public class LearningStepMapper {
         );
     }
 
-    public static LearningStepResponse mapToResponse(LearningStepEntity learningStepEntity, List<LearningStepResourceResponse> resourceResponseList, LessonResponse lessonResponse, QuizResponse quizResponse) {
-        return new LearningStepResponse(
-                learningStepEntity.getId(),
-                learningStepEntity.getModule().getId(),
-                learningStepEntity.getTitle(),
-                learningStepEntity.getType(),
-                learningStepEntity.getSequence(),
-                learningStepEntity.isVideoEnabled(),
-                learningStepEntity.isContentEnabled(),
-                learningStepEntity.isMaterialsEnabled(),
-                resourceResponseList,
-                lessonResponse,
-                quizResponse
-        );
+    public static LearningStepResponse mapToResponse(LearningStepEntity entity, LessonEntity lesson) {
+        LearningStepResponse response = mapToResponse(entity); // your existing basic map
+
+        response.setVideoEnabled(entity.isVideoEnabled());
+        response.setContentEnabled(entity.isContentEnabled());
+        response.setMaterialsEnabled(entity.isMaterialsEnabled());
+
+        if (lesson != null && entity.getType().equals(LearningStepType.LESSON)) {
+            response.setContent(lesson.getContent());
+            response.setVideoPlaybackId(lesson.getVideoPlaybackId());
+        }
+        return response;
     }
 }

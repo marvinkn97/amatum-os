@@ -43,15 +43,12 @@ public class LessonEntity {
     @JoinColumn(name = "learning_step_id")
     private LearningStepEntity learningStepEntity;
 
-    // --- MUX VIDEO FIELDS ---
-    // Saved during the initial Angular saveStep()
-    private String videoUploadId;
+    // Internal Mux tracking
+    private String videoAssetId;    // The "id" field in Mux Webhooks
+    private String videoUploadId;   // Optional: useful for debugging failed uploads
 
-    // Filled later by the Spring Boot Webhook
-    private String videoPlaybackId;
-
-    // Helps the UI show "Processing..." vs "Ready"
-    private String videoStatus;
+    // Public Playback
+    private String videoPlaybackId; // Sent to Angular
 
     @CreationTimestamp
     private LocalDateTime createdAt;

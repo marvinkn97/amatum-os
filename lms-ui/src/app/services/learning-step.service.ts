@@ -22,19 +22,27 @@ export interface PagedResponse<T> {
 }
 
 export interface LearningStepResponse {
-  id: string;
+ id: string;
+  moduleId: string;
   title: string;
   sequence: number;
   type: 'LESSON' | 'QUIZ';
+
+  // State Flags
+  videoEnabled: boolean;
+  contentEnabled: boolean;
+  materialsEnabled: boolean;
+
+  // Flattened Lesson Data (Nullable/Optional)
   content?: string;
-  moduleId: string;
+  videoPlaybackId?: string;
+  videoStatus?: 'PROCESSING' | 'READY' | 'ERROR';
 
-  vidoeEnabled?: boolean;
-  contentEnabled?: boolean;
-  materialsEnabled?: boolean;
-
-  lesson: any; // Placeholder for lesson-specific data
-  quiz: any; // Placeholder for quiz-specific data
+  // Future Quiz Data
+  quiz?: any; 
+  
+  // Resources (if applicable)
+  resources?: any[];
 }
 
 export interface LearningStepRequest {

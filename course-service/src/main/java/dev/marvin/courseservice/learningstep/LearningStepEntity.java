@@ -14,17 +14,12 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "learning_steps",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_module_sequence",
-                        columnNames = {"module_id", "sequence"}
+        indexes = {
+                @Index(
+                        name = "idx_module_sequence",
+                        columnList = "module_id,sequence"
                 )
-        }, indexes = {
-        @Index(
-                name = "idx_module_sequence",
-                columnList = "module_id,sequence"
-        )
-})
+        })
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

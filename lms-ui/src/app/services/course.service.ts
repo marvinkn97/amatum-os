@@ -33,6 +33,11 @@ export interface CourseRequest {
   tags: string[];
 }
 
+export interface ModuleReOrderRequest {
+  moduleId: string;
+  sequence: number;
+}
+
 export interface CourseResponse {
   id: string; // UUIDs are handled as strings in JS/TS
   title: string;
@@ -102,5 +107,9 @@ export class CourseService {
     }
 
     return this.http.get<PagedResponse<CourseResponse>>(endpoint, { params });
+  }
+
+  reorderModuleSequence(courseId: string, requests: ModuleReOrderRequest[]): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/${courseId}/reorder-modules`, requests);
   }
 }

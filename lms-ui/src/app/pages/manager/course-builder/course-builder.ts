@@ -1,4 +1,12 @@
-import { Component, signal, inject, OnInit, HostListener, computed } from '@angular/core';
+import {
+  Component,
+  signal,
+  inject,
+  OnInit,
+  HostListener,
+  computed,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
@@ -7,7 +15,12 @@ import { finalize, firstValueFrom, map } from 'rxjs';
 import { CategoryService, CourseCategoryResponse } from '../../../services/category.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { ModuleRequest, ModuleResponse, ModuleService } from '../../../services/module.service';
+import {
+  ModuleDetailsUpdate,
+  ModuleRequest,
+  ModuleResponse,
+  ModuleService,
+} from '../../../services/module.service';
 import {
   LearningStepResourceRequest,
   LearningStepRequest,
@@ -17,6 +30,7 @@ import {
 import { MuxService } from '../../../services/mux.service';
 import { S3Service } from '../../../services/s3.service';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import Keycloak from 'keycloak-js';
 
 type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QUIZ_EDITOR';
 
@@ -30,6 +44,7 @@ interface StudioNotification {
   selector: 'app-course-studio',
   standalone: true,
   imports: [CommonModule, FormsModule, QuillModule, DragDropModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div
       class="flex flex-col w-full h-full bg-[#030712] text-slate-200 overflow-hidden font-sans selection:bg-indigo-500/30"
@@ -626,8 +641,17 @@ interface StudioNotification {
                       <div class="max-w-4xl mx-auto flex items-center justify-end">
                         <button
                           (click)="saveCourse()"
-                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
                         >
+                          <svg
+                            class="size-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="3"
+                          >
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
                           Save Changes
                         </button>
                       </div>
@@ -684,8 +708,8 @@ interface StudioNotification {
                               >
                               <input
                                 [(ngModel)]="module.title"
+                                readonly
                                 class="bg-transparent border-none outline-none text-sm font-black text-white w-full focus:text-indigo-400 transition-colors"
-                                placeholder="Module Title"
                               />
                             </div>
 
@@ -756,7 +780,7 @@ interface StudioNotification {
                                   <p
                                     class="text-[10px] text-slate-600 font-black uppercase tracking-widest"
                                   >
-                                    No steps in this module
+                                    No learning steps in this module
                                   </p>
                                 </div>
                               }
@@ -769,11 +793,38 @@ interface StudioNotification {
                     <div
                       class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
                     >
-                      <div class="max-w-4xl mx-auto flex items-center justify-end">
+                      <div
+                        class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-end gap-6"
+                      >
                         <button
-                          (click)="saveCourse()"
-                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                          (click)="discardModuleReorder()"
+                          class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all cursor-pointer"
                         >
+                          <svg
+                            class="size-4 text-slate-700 group-hover:text-red-500 transition-colors"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                          >
+                            <path d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Discard Changes
+                        </button>
+
+                        <button
+                          (click)="reorderModuleSequence()"
+                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                        >
+                          <svg
+                            class="size-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="3"
+                          >
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
                           Save Changes
                         </button>
                       </div>
@@ -784,99 +835,180 @@ interface StudioNotification {
             }
 
             @if (activeView() === 'MODULE_STRUCTURE') {
-              <div class="space-y-10">
-                <header>
-                  <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest"
-                    >Module Outline</span
+              <div class="space-y-10 animate-in fade-in duration-500">
+                <div class="flex justify-center mb-12">
+                  <div
+                    class="inline-flex p-1.5 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-md"
                   >
-                  <input
-                    type="text"
-                    [(ngModel)]="editingModuleTitle"
-                    (focus)="$any($event.target).select()"
-                    class="bg-transparent border-none outline-none text-2xl lg:text-2xl font-black text-white italic tracking-tighter w-full mt-2"
-                  />
-                </header>
-
-                <div class="space-y-4">
-                  @if (isCreatingNew) {
-                    <div class="w-full py-1.5 animate-in fade-in slide-in-from-top-2 duration-1000">
-                      <div
-                        class="relative p-6 rounded-3xl bg-white/2 border border-white/5 backdrop-blur-md overflow-hidden"
+                    <button
+                      type="button"
+                      (click)="moduleTab.set('DETAILS')"
+                      [class]="
+                        moduleTab() === 'DETAILS'
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                          : 'text-slate-500 hover:text-slate-200'
+                      "
+                      class="flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer"
+                    >
+                      <svg
+                        class="size-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
                       >
-                        <div class="flex flex-col gap-3">
+                        <path d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                      Module Details
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="moduleTab.set('STRUCTURE')"
+                      [class]="
+                        moduleTab() === 'STRUCTURE'
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                          : 'text-slate-500 hover:text-slate-200'
+                      "
+                      class="flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer"
+                    >
+                      <svg
+                        class="size-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <path
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                      Curriculum Structure
+                    </button>
+                  </div>
+                </div>
+
+                @if (moduleTab() === 'DETAILS') {
+                  <div class="space-y-6 animate-in slide-in-from-left-2 duration-300">
+                    <header>
+                      <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest"
+                        >Module Title</span
+                      >
+                      <input
+                        type="text"
+                        [(ngModel)]="editingModuleTitle"
+                        (focus)="$any($event.target).select()"
+                        class="bg-transparent border-none outline-none text-xl font-black text-white italic tracking-tighter w-full mt-2"
+                      />
+                    </header>
+
+                    <div
+                      class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
+                    >
+                      <div
+                        class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-end gap-6"
+                      >
+                        <button
+                          (click)="saveModule()"
+                          class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                        >
+                          <svg
+                            class="size-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="3"
+                          >
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                @if (moduleTab() === 'STRUCTURE') {
+                  <div class="space-y-4 animate-in slide-in-from-right-2 duration-300">
+                    <header>
+                      <h2
+                        class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-2"
+                      >
+                        Curriculum Structure
+                      </h2>
+                      <p class="text-slate-500 text-sm font-medium mt-2">
+                        Organize learning steps using drag and drop.
+                      </p>
+                    </header>
+                    @if (isCreatingNew) {
+                      <div class="w-full py-1.5">
+                        <div
+                          class="relative p-6 rounded-3xl bg-white/2 border border-white/5 backdrop-blur-md overflow-hidden"
+                        >
                           <div class="flex items-center gap-3">
                             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500/40"></div>
                             <span
                               class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500"
                             >
-                              Module Configuration
+                              Module Configuration Required
                             </span>
                           </div>
-
                           <p
-                            class="text-[10px] font-bold tracking-widest text-slate-400/80 leading-relaxed"
+                            class="text-[10px] font-bold tracking-widest text-slate-400/80 leading-relaxed py-2"
                           >
-                            Provide a module title above & save to enable the curriculum builder
+                            Provide a module title & save to enable the curriculum builder
                           </p>
                         </div>
                       </div>
-                    </div>
-                  } @else {
-                    <div
-                      cdkDropList
-                      [cdkDropListData]="getSelectedModule()?.learningSteps"
-                      ||
-                      []
-                      (cdkDropListDropped)="onStepDrop($event)"
-                      class="space-y-3"
-                    >
-                      @for (
-                        step of getSelectedModule()?.learningSteps;
-                        track step.id;
-                        let i = $index
-                      ) {
-                        <div
-                          cdkDrag
-                          class="flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-white/2 border border-white/5 rounded-2xl group hover:border-white/10 transition-all"
-                        >
+                    } @else {
+                      <div
+                        cdkDropList
+                        [cdkDropListData]="getSelectedModule()?.learningSteps || []"
+                        (cdkDropListDropped)="onStepDrop($event)"
+                        class="space-y-3"
+                      >
+                        @for (
+                          step of getSelectedModule()?.learningSteps;
+                          track step.id;
+                          let i = $index
+                        ) {
                           <div
-                            cdkDragHandle
-                            class="cursor-grab active:cursor-grabbing p-1 text-slate-700 hover:text-indigo-500 transition-colors shrink-0"
+                            cdkDrag
+                            class="flex flex-col sm:flex-row sm:items-center gap-4 p-5 bg-white/2 border border-white/5 rounded-2xl group hover:border-white/10 transition-all"
                           >
-                            <svg
-                              class="size-5"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2.5"
-                              stroke-linecap="round"
+                            <div
+                              cdkDragHandle
+                              class="cursor-grab active:cursor-grabbing p-1 text-slate-700 hover:text-indigo-500 transition-colors shrink-0"
                             >
-                              <path d="M8 9h8" />
-                              <path d="M8 12h8" />
-                              <path d="M8 15h8" />
-                            </svg>
-                          </div>
-
-                          <div class="flex items-center gap-4 flex-1">
-                            <span class="text-slate-700 font-black italic text-sm"
-                              >0{{ i + 1 }}</span
-                            >
-
-                            <div class="flex-1 flex items-center gap-3">
-                              <div
-                                class="size-1.5 rounded-full shrink-0"
-                                [class.bg-amber-500]="step.type === 'QUIZ'"
-                                [class.bg-indigo-500]="step.type === 'LESSON'"
-                              ></div>
-
-                              <input
-                                [(ngModel)]="step.title"
-                                class="bg-transparent border-none outline-none text-sm font-bold text-white w-full focus:text-indigo-400 transition-colors"
-                              />
+                              <svg
+                                class="size-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                              >
+                                <path d="M8 9h8M8 12h8M8 15h8" />
+                              </svg>
                             </div>
-                          </div>
 
-                          <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-4 flex-1">
+                              <span class="text-slate-700 font-black italic text-sm"
+                                >0{{ i + 1 }}</span
+                              >
+                              <div class="flex-1 flex items-center gap-3">
+                                <div
+                                  class="size-1.5 rounded-full shrink-0"
+                                  [class.bg-amber-500]="step.type === 'QUIZ'"
+                                  [class.bg-indigo-500]="step.type === 'LESSON'"
+                                ></div>
+                                <input
+                                  [(ngModel)]="step.title"
+                                  readonly
+                                  class="bg-transparent border-none outline-none text-sm font-bold text-white w-full focus:text-indigo-400 transition-colors"
+                                />
+                              </div>
+                            </div>
+
                             <button
                               (click)="selectStep(step)"
                               class="w-full sm:w-auto px-4 py-2.5 text-[10px] font-black uppercase text-indigo-400 bg-indigo-500/10 rounded-lg sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-indigo-500 hover:text-white"
@@ -884,56 +1016,87 @@ interface StudioNotification {
                               Edit Content
                             </button>
                           </div>
-                        </div>
-                      } @empty {
-                        <div
-                          class="py-12 border-2 border-dashed border-white/5 rounded-3xl text-center"
-                        >
-                          <p
-                            class="text-[10px] text-slate-600 font-black uppercase tracking-widest"
+                        } @empty {
+                          <div
+                            class="py-12 border-2 border-dashed border-white/5 rounded-3xl text-center"
                           >
-                            No steps found in this module
-                          </p>
-                        </div>
-                      }
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mt-8">
-                      <button
-                        (click)="addStep(selectedId()!, 'LESSON')"
-                        class="group flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer"
-                      >
-                        <span
-                          class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-400"
-                          >+ Add Lesson</span
-                        >
-                      </button>
+                            <p
+                              class="text-[10px] text-slate-600 font-black uppercase tracking-widest"
+                            >
+                              No steps found in this module
+                            </p>
+                          </div>
+                        }
+                      </div>
 
-                      <button
-                        (click)="addStep(selectedId()!, 'QUIZ')"
-                        class="group flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer"
-                      >
-                        <span
-                          class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-400"
-                          >+ Add Quiz</span
+                      <div class="grid grid-cols-2 gap-4 mt-8">
+                        <button
+                          (click)="addStep(selectedId()!, 'LESSON')"
+                          class="group flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer"
                         >
-                      </button>
-                    </div>
-                  }
-                </div>
-                <div
-                  class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
-                >
-                  <div class="max-w-4xl mx-auto flex items-center justify-end">
-                    <button
-                      (click)="saveModule()"
-                      class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 cursor-pointer"
-                    >
-                      Save Changes
-                    </button>
+                          <span
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-400"
+                          >
+                            + Add Lesson
+                          </span>
+                        </button>
+
+                        <button
+                          (click)="addStep(selectedId()!, 'QUIZ')"
+                          class="group flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer"
+                        >
+                          <span
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-400"
+                          >
+                            + Add Quiz
+                          </span>
+                        </button>
+                      </div>
+                      <div
+                        class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] via-[#030712]/95 to-transparent pt-10 pb-6 lg:pb-0 px-4 lg:px-0 z-30 border-t border-white/5 lg:border-none"
+                      >
+                        <div
+                          class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-end gap-6"
+                        >
+                          <button
+                            (click)="discardStepReorder()"
+                            class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all cursor-pointer"
+                          >
+                            <svg
+                              class="size-4 text-slate-700 group-hover:text-red-500 transition-colors"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              stroke-width="2.5"
+                            >
+                              <path d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Discard Changes
+                          </button>
+
+                          <button
+                            (click)="reOrderStepSequence()"
+                            class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                          >
+                            <svg
+                              class="size-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              stroke-width="3"
+                            >
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    }
                   </div>
-                </div>
+                }
               </div>
             }
+
             @if (activeView() === 'LESSON_EDITOR') {
               <div class="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-500">
                 <header
@@ -949,7 +1112,7 @@ interface StudioNotification {
                       type="text"
                       [(ngModel)]="editingStepTitle"
                       (focus)="$any($event.target).select()"
-                      class="bg-transparent border-none outline-none text-2xl lg:text-2xl font-black text-white italic tracking-tighter w-full placeholder:text-slate-900 focus:placeholder:text-transparent transition-all"
+                      class="bg-transparent border-none outline-none text-xl font-black text-white italic tracking-tighter w-full placeholder:text-slate-900 focus:placeholder:text-transparent transition-all"
                       [class.text-rose-400]="showValidationErrors && !editingStepTitle()"
                     />
                     @if (showValidationErrors && !editingStepTitle()) {
@@ -1044,6 +1207,32 @@ interface StudioNotification {
                         <div
                           class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
                         >
+                          <div
+                            class="w-full aspect-video rounded-3xl overflow-hidden border border-white/5 bg-slate-950"
+                          >
+                            @if (currentPlaybackId()) {
+                              <mux-player
+                                [attr.playback-id]="currentPlaybackId()"
+                                [attr.metadata-viewer-user-id]="currentUserId()"
+                                primary-color="#ffffff"
+                                secondary-color="transparent"
+                                class="w-full h-full block"
+                              ></mux-player>
+                            } @else {
+                              <div
+                                class="flex flex-col items-center justify-center h-full space-y-4 animate-in fade-in"
+                              >
+                                <div
+                                  class="size-8 border-2 border-white/20 border-t-white rounded-full animate-spin"
+                                ></div>
+                                <p
+                                  class="text-[10px] font-black uppercase text-slate-500 tracking-widest"
+                                >
+                                  Preparing your video...
+                                </p>
+                              </div>
+                            }
+                          </div>
                           <div class="flex flex-col items-center space-y-3">
                             <div
                               class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2"
@@ -1058,7 +1247,7 @@ interface StudioNotification {
                               </span>
                               <span
                                 class="text-[9px] font-black text-emerald-500 uppercase tracking-widest"
-                                >Verified at Mux</span
+                                >Verified at MUX</span
                               >
                             </div>
                             <p class="text-sm font-black text-white italic tracking-tight">
@@ -1082,7 +1271,7 @@ interface StudioNotification {
                               ></div>
                               <span>Clearing Cloud...</span>
                             } @else {
-                              <span>Remove & Delete from Cloud</span>
+                              <span>Remove & Delete from MUX</span>
                             }
                           </button>
                         </div>
@@ -1446,8 +1635,17 @@ interface StudioNotification {
                 <div class="flex justify-end pt-12 pb-20 border-t border-white/5">
                   <button
                     (click)="saveStep()"
-                    class="w-full lg:w-auto px-12 py-5 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all active:scale-95 shadow-lg shadow-indigo-600/20"
+                    class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
                   >
+                    <svg
+                      class="size-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
                     {{ isSaving() ? 'Saving Changes...' : 'Save Changes' }}
                   </button>
                 </div>
@@ -1555,7 +1753,7 @@ interface StudioNotification {
 
                   <button
                     (click)="addQuestion()"
-                    class="w-full py-8 border-2 border-dashed border-white/5 rounded-4xl text-slate-600 font-black uppercase text-[10px] tracking-[0.2em] hover:border-indigo-500/20 hover:text-indigo-400 transition-all bg-white/1"
+                    class="w-full py-8 border-2 border-dashed border-white/5 rounded-4xl text-slate-600 font-black uppercase text-[10px] tracking-[0.2em] hover:border-indigo-500/20 hover:text-indigo-400 transition-all bg-white/1 cursor-pointer"
                   >
                     + Add Question to Quiz
                   </button>
@@ -1566,7 +1764,7 @@ interface StudioNotification {
                 >
                   <div class="max-w-4xl mx-auto flex justify-end">
                     <button
-                      class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                      class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 cursor-pointer"
                     >
                       Save Changes
                     </button>
@@ -1691,6 +1889,7 @@ export class CourseBuilder implements OnInit {
   private learningStepService = inject(LearningStepService);
   muxService = inject(MuxService);
   s3Service = inject(S3Service);
+  private readonly keycloak = inject(Keycloak);
 
   activeView = signal<StudioView>('COURSE_IDENTITY');
 
@@ -1710,6 +1909,9 @@ export class CourseBuilder implements OnInit {
     type: 'info',
     visible: false,
   });
+
+  // The raw data from the server (The Backup)
+  private rawCourseResponse = signal<CourseResponse | null>(null);
 
   courseData = signal({
     title: '',
@@ -1757,6 +1959,10 @@ export class CourseBuilder implements OnInit {
       this.enterCreateMode();
       this.isLoading.set(false);
     }
+
+    // Set the current user ID for tracking purposes
+    const sub = this.keycloak?.subject;
+    this.currentUserId.set(sub || 'anonymous-viewer');
   }
 
   enterCreateMode() {
@@ -1806,6 +2012,10 @@ export class CourseBuilder implements OnInit {
       this.showToast('Failed to load course data', 'error');
       return;
     }
+
+    // SAVE THE FULL BACKUP HERE
+    this.rawCourseResponse.set(response);
+
     this.courseData.set({
       title: response.title,
       slug: response.slug,
@@ -2068,6 +2278,34 @@ export class CourseBuilder implements OnInit {
       });
     } else {
       // Logic for updating existing modules (PUT)
+      const moduleId = this.selectedId();
+
+      const titleUpdate: ModuleDetailsUpdate = {
+        title: this.editingModuleTitle,
+      };
+
+      this.moduleService.updateModuleDetails(moduleId!, titleUpdate).subscribe({
+        next: (res) => {
+          // 1. Update the UI Signal
+          // We only change the title of the specific module that matches the ID
+          this.modules.update((list) =>
+            list.map((m) => (m.id === res.id ? { ...m, title: res.title } : m)),
+          );
+
+          // 2. Update the Backup Snapshot
+          // This ensures "Discard" now considers this new title as the "Last Saved" state
+          this.rawCourseResponse.update((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              modules:
+                prev.modules?.map((m) => (m.id === res.id ? { ...m, title: res.title } : m)) || [],
+            };
+          });
+
+          this.showToast('Module details updated', 'success');
+        },
+      });
     }
   }
 
@@ -2126,8 +2364,24 @@ export class CourseBuilder implements OnInit {
     this.editingStepTitle.set(step.title);
     this.editingStepType.set(step.type as 'LESSON' | 'QUIZ');
 
-    if (step.type === 'LESSON' && step.lesson) {
-      this.editingStepContent.set(step.lesson.content || '');
+    if (step.type === 'LESSON' && step.content) {
+      this.editingStepContent.set(step.content || '');
+
+      //  Hydrate Toggle States (Crucial for the UI switches)
+      this.isVideoLesson.set(step.videoEnabled);
+      this.isContentEnabled.set(step.contentEnabled);
+      this.isMaterialsEnabled.set(step.materialsEnabled);
+
+      if (step.videoPlaybackId) {
+        this.currentPlaybackId.set(step.videoPlaybackId);
+        this.isUploadComplete.set(true);
+      } else {
+        this.currentPlaybackId.set(null);
+        this.isUploadComplete.set(false);
+      }
+
+      // Hydrate Resources/Attachments
+      this.editingResources.set(step.resources ? [...step.resources] : []);
     }
 
     this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
@@ -2640,4 +2894,138 @@ export class CourseBuilder implements OnInit {
     // 4. Force signal refresh so the Sidebar and UI stay in sync
     this.modules.set([...this.modules()]);
   }
+
+  reorderModuleSequence() {
+    const courseId = this.courseId(); // Assuming you have this signal/variable
+    const currentDraft = this.modules(); // The new order in the UI
+
+    // Create the payload: Array of { moduleId, sequence }
+    const reorderPayload = this.modules().map((mod, index) => ({
+      moduleId: mod.id,
+      sequence: index + 1, // Starts at 1 for the database
+    }));
+
+    // Call the single API endpoint
+    this.courseService.reorderModuleSequence(courseId!, reorderPayload).subscribe({
+      next: () => {
+        this.showToast('Curriculum structure saved successfully', 'success');
+        // Update local state if the backend returns the new sorted list
+
+        // 2. IMPORTANT: Update the internal sequence property of each module
+        // so the next 'Discard' sort actually works correctly.
+        const updatedModules = currentDraft.map((mod, index) => ({
+          ...mod,
+          sequence: index + 1, // Synchronize the object with its new position
+        }));
+
+        // 3. Update the backup with the modules that now have CORRECT sequences
+        this.rawCourseResponse.update((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            modules: updatedModules,
+          };
+        });
+
+        // Also update the active UI signal to ensure everything is in sync
+        this.modules.set(updatedModules);
+      },
+      error: (err) => {
+        this.showToast('Failed to reorder module sequence', 'error');
+      },
+    });
+  }
+
+  discardModuleReorder() {
+    const backup = this.rawCourseResponse();
+
+    if (backup && backup.modules) {
+      // Just use the array exactly as it was stored in the backup
+      // We sort it just in case, but now the sequences will be correct
+      const restored = [...backup.modules].sort((a, b) => a.sequence - b.sequence);
+
+      this.modules.set(restored);
+      this.showToast('Reverted to last saved order', 'info');
+    }
+  }
+
+  // Component Signal
+  moduleTab = signal<'DETAILS' | 'STRUCTURE'>('DETAILS');
+
+  reOrderStepSequence() {
+    const moduleId = this.selectedId();
+    if (!moduleId) return;
+
+    // 1. Get the current UI state of steps
+    const currentSteps = this.getSelectedModule()?.learningSteps || [];
+
+    // 2. Prepare the payload
+    const payload = currentSteps.map((step, index) => ({
+      learningStepId: step.id,
+      sequence: index + 1,
+    }));
+
+    console.log('Reordering Steps with payload:', payload);
+
+    this.moduleService.reOrderStepSequence(moduleId, payload).subscribe({
+      next: () => {
+        this.showToast('Step sequence updated successfully', 'success');
+
+        // 3. Update the internal .sequence property of each step
+        const updatedSteps = currentSteps.map((step, index) => ({
+          ...step,
+          sequence: index + 1,
+        }));
+
+        // 4. Sync the main modules signal
+        this.modules.update((list) =>
+          list.map((m) => (m.id === moduleId ? { ...m, learningSteps: updatedSteps } : m)),
+        );
+
+        // 5. Sync the Backup Snapshot (rawCourseResponse)
+        // This is vital so 'Discard' doesn't revert to the old step order
+        this.rawCourseResponse.update((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            modules:
+              prev.modules?.map((m) =>
+                m.id === moduleId ? { ...m, learningSteps: updatedSteps } : m,
+              ) || [],
+          };
+        });
+      },
+      error: (err) => {
+        this.showToast(err.error?.detail || 'Failed to reorder steps', 'error');
+      },
+    });
+  }
+
+  discardStepReorder() {
+    const moduleId = this.selectedId();
+    const backup = this.rawCourseResponse();
+
+    if (!moduleId || !backup || !backup.modules) return;
+
+    // 1. Find the module in the backup that matches our current selection
+    const backupModule = backup.modules.find((m) => m.id === moduleId);
+
+    if (backupModule && backupModule.learningSteps) {
+      // 2. Sort the backup steps by their saved sequence
+      const originalStepOrder = [...backupModule.learningSteps].sort(
+        (a, b) => a.sequence - b.sequence,
+      );
+
+      // 3. Update only this module's steps in the main UI signal
+      this.modules.update((list) =>
+        list.map((m) => (m.id === moduleId ? { ...m, learningSteps: originalStepOrder } : m)),
+      );
+
+      this.showToast('Steps reverted to last saved order', 'info');
+    }
+  }
+
+  // Signals for the Player
+  currentPlaybackId = signal<string | null>(null);
+  currentUserId = signal<string>(''); // Keycloak 'sub'
 }
