@@ -30,7 +30,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(c -> c
                         .requestMatchers("/actuator/**",
                                 "/api/categories/all",
-                                "/api/uploads/mux/webhooks")
+                                "/api/mux/webhooks")
                         .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(c -> c.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter())))

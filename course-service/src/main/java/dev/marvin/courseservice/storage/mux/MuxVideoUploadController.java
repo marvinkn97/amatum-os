@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/uploads/mux")
+@RequestMapping("/api/mux")
 @RequiredArgsConstructor
 @Tag(name = "Mux Video Upload", description = "Mux Video Upload API")
 @Slf4j
@@ -27,10 +27,19 @@ public class MuxVideoUploadController {
     }
 
     @Operation(summary = "Delete Mux upload")
-    @DeleteMapping("/{uploadId}")
-    public ResponseEntity<Void> deleteMuxUpload(@PathVariable String uploadId) {
+    @DeleteMapping("/uploads/{id}")
+    public ResponseEntity<Void> deleteMuxUpload(@PathVariable("id") String uploadId) {
         log.info("Deleting Mux upload with ID: {}", uploadId);
         muxVideoUploadService.deleteUpload(uploadId);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @Operation(summary = "Delete Mux Asset")
+    @DeleteMapping("/assets{id}")
+    public ResponseEntity<Void> deleteMuxAsset(@PathVariable("id") String assetId) {
+        log.info("Deleting Mux asset with ID: {}", assetId);
+        muxVideoUploadService.deleteAsset(assetId);
         return ResponseEntity.noContent().build();
     }
 

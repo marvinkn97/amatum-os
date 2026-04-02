@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -39,27 +40,6 @@ public class MuxVideoUploadService {
     @Value("${mux.webhook-secret}")
     private String webhookSecret;
 
-    /**
-     * Helper to configure the Mux API client with your credentials
-     */
-    private DirectUploadsApi getDirectUploadsApi() {
-        // 1. Configure the Shared Client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        // 2. Setup Basic Auth (ID = Username, Secret = Password)
-        HttpBasicAuth accessToken = (HttpBasicAuth) defaultClient.getAuthentication("accessToken");
-        accessToken.setUsername(tokenId);
-        accessToken.setPassword(tokenSecret);
-
-        return new DirectUploadsApi(defaultClient);
-    }
-
-    private AssetsApi getAssetsApi() {
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        HttpBasicAuth accessToken = (HttpBasicAuth) defaultClient.getAuthentication("accessToken");
-        accessToken.setUsername(tokenId);
-        accessToken.setPassword(tokenSecret);
-        return new AssetsApi(defaultClient);
-    }
 
     public UploadResponse createUploadUrl() {
         log.info("Creating Mux upload URL");
@@ -86,8 +66,14 @@ public class MuxVideoUploadService {
     }
 
 
-    public void processWebhook(String payload) {
+    public boolean processWebhook(String payload, String signatureHeader) {
         try {
+            // 🔐 VERIFY FIRST
+            if (!isSignatureValid(payload, signatureHeader)) {
+                log.warn("Invalid Mux signature. Rejecting webhook.");
+                return false;
+            }
+
             JsonNode node = objectMapper.readTree(payload);
             String eventType = node.get("type").asString();
 
@@ -99,11 +85,13 @@ public class MuxVideoUploadService {
 
                 // Mux sends an array of playback IDs; usually we want the first public one
                 String playbackId = data.get("playback_ids").get(0).get("id").asString();
-
-                updateLessonWithPlaybackId(uploadId, playbackId);
+                String assetId = data.get("id").asText(); // ✅ ADD THIS
+                updateLessonData(uploadId, assetId, playbackId); // ✅ USE ONE METHOD
             }
+            return true;
         } catch (Exception e) {
             log.error("Error parsing Mux webhook", e);
+            return false;
         }
     }
 
@@ -153,47 +141,27 @@ public class MuxVideoUploadService {
         }
     }
 
-    private void updateLessonWithPlaybackId(String uploadId, String playbackId) {
-        log.info("Linking Playback ID {} to Mux Upload ID: {}", playbackId, uploadId);
-        lessonRepository.findByVideoUploadId(uploadId).ifPresentOrElse(lesson -> {
-            lesson.setVideoPlaybackId(playbackId);
-            lessonRepository.save(lesson);
-            log.info("Successfully linked Playback ID {} to Lesson {}", playbackId, lesson.getId());
-        }, () -> log.warn("No lesson found for Mux Upload ID: {}", uploadId));
-    }
+    public void deleteAsset(String assetId) {
+        if (assetId == null || assetId.isBlank()) {
+            log.info("Attempted to delete Mux asset with null or blank ID.");
+            return;
+        }
 
+        log.info("Requesting deletion of Mux Asset: {}", assetId);
+        AssetsApi assetsApi = getAssetsApi();
 
-    public boolean processWebhook(String payload, String signatureHeader) {
         try {
-            if (!isSignatureValid(payload, signatureHeader)) {
-                log.error("Invalid Mux signature");
-                throw new SecurityException("Invalid Mux signature");
+            assetsApi.deleteAsset(assetId).execute();
+            log.info("Successfully deleted Mux Asset from cloud: {}", assetId);
+        } catch (ApiException e) {
+            // If it's 404, the asset is already gone, which is our desired state
+            if (e.getCode() == 404) {
+                log.info("Mux Asset {} already deleted or not found.", assetId);
+            } else {
+                log.error("Failed to delete Mux Asset: {} | Error: {}", assetId, e.getResponseBody());
+                // We don't necessarily want to crash the whole transaction if Mux fails,
+                // but we log it heavily so we can manually clean up if needed.
             }
-
-            JsonNode node = objectMapper.readTree(payload);
-            String eventType = node.path("type").asString();
-
-            if ("video.asset.ready".equals(eventType)) {
-                JsonNode data = node.path("data");
-                String uploadId = data.path("upload_id").asString();
-                String assetId = data.path("id").asString();
-                String playbackId = data.path("playback_ids").get(0).path("id").asString();
-
-                // Check if lesson exists
-                var lessonOpt = lessonRepository.findByVideoUploadId(uploadId);
-
-                if (lessonOpt.isEmpty()) {
-                    log.warn("Lesson for Upload ID {} not found yet. Signaling Mux to retry.", uploadId);
-                    return false; // <--- This triggers the 404
-                }
-
-                // Update the lesson since it exists
-                updateLessonData(lessonOpt.get().getVideoUploadId(), assetId, playbackId);
-            }
-            return true; // Return true for all other events so Mux stops sending them
-        } catch (Exception e) {
-            log.error("Webhook error", e);
-            return false;
         }
     }
 
@@ -236,13 +204,38 @@ public class MuxVideoUploadService {
 
     private void updateLessonData(String uploadId, String assetId, String playbackId) {
         lessonRepository.findByVideoUploadId(uploadId).ifPresent(lesson -> {
-            if (!lesson.getVideoAssetId().isBlank() && !lesson.getVideoAssetId().isBlank()) {
+            if (StringUtils.hasText(lesson.getVideoAssetId()) && StringUtils.hasText(lesson.getVideoPlaybackId())) {
                 log.info("Lesson already has Asset ID and Playback ID");
-                return; // No update needed, already has Asset ID and Playback ID
+                return;
             }
+
             lesson.setVideoAssetId(assetId);     // Now we store the Asset ID for future deletes
             lesson.setVideoPlaybackId(playbackId); // For the Angular Player
             lessonRepository.save(lesson);
+            log.info("Lesson updated with Asset ID: {}", assetId);
         });
     }
+
+    /**
+     * Helper to configure the Mux API client with your credentials
+     */
+    private DirectUploadsApi getDirectUploadsApi() {
+        // 1. Configure the Shared Client
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        // 2. Setup Basic Auth (ID = Username, Secret = Password)
+        HttpBasicAuth accessToken = (HttpBasicAuth) defaultClient.getAuthentication("accessToken");
+        accessToken.setUsername(tokenId);
+        accessToken.setPassword(tokenSecret);
+
+        return new DirectUploadsApi(defaultClient);
+    }
+
+    private AssetsApi getAssetsApi() {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        HttpBasicAuth accessToken = (HttpBasicAuth) defaultClient.getAuthentication("accessToken");
+        accessToken.setUsername(tokenId);
+        accessToken.setPassword(tokenSecret);
+        return new AssetsApi(defaultClient);
+    }
+
 }

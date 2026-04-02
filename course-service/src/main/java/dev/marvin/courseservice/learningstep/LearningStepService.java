@@ -1,15 +1,22 @@
 package dev.marvin.courseservice.learningstep;
 
 import dev.marvin.courseservice.exception.BadRequestException;
+import dev.marvin.courseservice.exception.ResourceNotFoundException;
 import dev.marvin.courseservice.lesson.LessonEntity;
 import dev.marvin.courseservice.lesson.LessonRepository;
 import dev.marvin.courseservice.module.ModuleEntity;
 import dev.marvin.courseservice.module.ModuleRepository;
+import dev.marvin.courseservice.storage.mux.MuxVideoUploadService;
+import dev.marvin.courseservice.storage.rustfs.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +27,8 @@ public class LearningStepService {
     private final LessonRepository lessonRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LearningStepResourceRepository learningStepResourceRepository;
+    private final MuxVideoUploadService muxVideoService;
+    private final S3Service s3Service;
 
     @Transactional
     public LearningStepResponse create(LearningStepRequest request) {
@@ -71,7 +80,7 @@ public class LearningStepService {
     }
 
 
-    private void validateStep(LearningStepRequest request) {
+    private void validateStep(BaseLearningStepRequest request) {
         if (request.type().equals(LearningStepType.LESSON)) {
 
             // 1. If Content Toggle is ON, String must not be blank
@@ -98,6 +107,136 @@ public class LearningStepService {
     }
 
     @Transactional
-    public void deleteLearningStep() {
+    public LearningStepResponse update(UUID learningStepId, LearningStepUpdateRequest request) {
+        validateStep(request);
+
+        // 1. Fetch the existing entity
+        LearningStepEntity learningStep = learningStepRepository.findById(learningStepId)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning step with id [%s] not found".formatted(learningStepId)));
+
+        // 2. Update metadata
+        learningStep.setTitle(request.title());
+        learningStep.setVideoEnabled(request.videoEnabled());
+        learningStep.setContentEnabled(request.contentEnabled());
+        learningStep.setMaterialsEnabled(request.materialsEnabled());
+
+
+        // 3. DEFENSIVE LESSON CLEANUP (Mux)
+        if (learningStep.getType().equals(LearningStepType.LESSON)) {
+            lessonRepository.findByLearningStepEntity_Id(learningStep.getId()).ifPresentOrElse(
+                    lessonEntity -> {
+                        lessonEntity.setContent(request.content());
+
+                        // Logic: If (Toggled Off) OR (New Upload ID provided)
+                        boolean toggledOff = !request.videoEnabled();
+                        boolean videoChanged = request.videoUploadId() != null && !request.videoUploadId().equals(lessonEntity.getVideoUploadId());
+
+                        if ((toggledOff || videoChanged) && lessonEntity.getVideoAssetId() != null) {
+                            // Delete from Mux Cloud
+                            muxVideoService.deleteAsset(lessonEntity.getVideoAssetId());
+
+                            // Wipe DB playback info
+                            lessonEntity.setVideoAssetId(null);
+                            lessonEntity.setVideoPlaybackId(null);
+                        }
+
+                        lessonEntity.setVideoUploadId(toggledOff ? null : request.videoUploadId());
+                        lessonRepository.save(lessonEntity);
+
+
+                    }, () -> log.warn("Lesson not found for learning step with id [{}]", learningStepId)
+            );
+        }
+
+
+        // 4. DEFENSIVE RESOURCE CLEANUP (S3)
+        // If toggled off OR the list is empty, delete orphans
+        List<LearningStepResourceEntity> learningStepResourceEntities = learningStepResourceRepository.findByLearningStepEntity_Id(learningStepId);
+        if (!request.materialsEnabled() || request.resources().isEmpty()) {
+            if (learningStepResourceEntities != null && !learningStepResourceEntities.isEmpty()) {
+                for (var resource : learningStepResourceEntities) {
+                    s3Service.deleteFile(resource.getObjectKey()); // Purge S3
+                }
+                learningStepResourceRepository.deleteAll(learningStepResourceEntities);
+            }
+        } else {
+            // SYNC: We need to remove what's no longer in the request
+            // Simplest approach: Delete existing and re-save the current list from the request
+            if (learningStepResourceEntities != null && !learningStepResourceEntities.isEmpty()) {
+                // Optional: Only delete files from S3 that are NOT in the new request
+                for (var existing : learningStepResourceEntities) {
+                    boolean stillExists = request.resources().stream()
+                            .anyMatch(r -> r.objectKey().equals(existing.getObjectKey()));
+
+                    if (!stillExists) {
+                        s3Service.deleteFile(existing.getObjectKey());
+                    }
+                }
+                learningStepResourceRepository.deleteAll(learningStepResourceEntities);
+            }
+
+            // Save the current state from the request
+            for (var resReq : request.resources()) {
+                LearningStepResourceEntity resource = LearningStepResourceEntity.builder()
+                        .learningStepEntity(learningStep)
+                        .name(resReq.name())
+                        .objectKey(resReq.objectKey())
+                        .contentType(resReq.contentType())
+                        .size(resReq.size())
+                        .build();
+                learningStepResourceRepository.save(resource);
+            }
+        }
+
+
+        // 5. Handle Quiz Logic
+        if (learningStep.getType().equals(LearningStepType.QUIZ)) {
+            // Implementation for quiz question updates would go here
+        }
+
+        // Save parent and return
+        LearningStepEntity updatedStep = learningStepRepository.save(learningStep);
+        return LearningStepMapper.mapToResponse(updatedStep);
+    }
+
+    @Transactional
+    public void delete(UUID learningStepId) {
+        // 1. Fetch the entity (Ensures it exists before we try to wipe cloud assets)
+        LearningStepEntity learningStep = learningStepRepository.findById(learningStepId)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning step with id [%s] not found".formatted(learningStepId)));
+
+        // 2. MUX CLEANUP (If it's a Lesson)
+        if (learningStep.getType() == LearningStepType.LESSON) {
+            lessonRepository.findByLearningStepEntity_Id(learningStepId).ifPresent(lesson -> {
+                if (lesson.getVideoAssetId() != null && !lesson.getVideoPlaybackId().isBlank()) {
+                    log.info("Deleting Mux Asset for lesson: {}", lesson.getVideoAssetId());
+                    muxVideoService.deleteAsset(lesson.getVideoAssetId());
+                } else if (!StringUtils.hasText(lesson.getVideoUploadId())) {
+                    log.info("Deleting Mux Upload: {}", lesson.getVideoUploadId());
+                    muxVideoService.deleteUpload(lesson.getVideoUploadId());
+                }
+                lessonRepository.delete(lesson);
+            });
+        }
+
+        // 3. S3 CLEANUP (If it has materials)
+        List<LearningStepResourceEntity> resources = learningStepResourceRepository.findByLearningStepEntity_Id(learningStepId);
+        if (resources != null && !resources.isEmpty()) {
+            log.info("Purging {} S3 resources for step: {}", resources.size(), learningStepId);
+            for (var resource : resources) {
+                s3Service.deleteFile(resource.getObjectKey());
+                resource.setLearningStepEntity(null);
+            }
+            // Use deleteAllInBatch for efficiency
+            learningStepResourceRepository.deleteAllInBatch(resources);
+            learningStepResourceRepository.flush(); // ✅ ADD THIS
+        }
+
+        // 4. DATABASE PURGE
+        // Depending on your JPA Cascade settings, this may also delete the Lesson record
+        learningStepRepository.delete(learningStep);
+
+        log.info("Successfully deleted learning step {} and all associated cloud assets.", learningStepId);
     }
 }
+

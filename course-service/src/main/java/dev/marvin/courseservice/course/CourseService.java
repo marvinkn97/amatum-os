@@ -12,6 +12,7 @@ import dev.marvin.courseservice.module.ModuleReOrderRequest;
 import dev.marvin.courseservice.module.ModuleRepository;
 import dev.marvin.courseservice.module.ModuleResponse;
 import dev.marvin.courseservice.security.TenantContext;
+import dev.marvin.courseservice.storage.rustfs.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,8 @@ public class CourseService {
     private final ModuleRepository moduleRepository;
     private final LearningStepRepository learningStepRepository;
     private final LessonRepository lessonRepository;
+    private final LearningStepResourceRepository learningStepResourceRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public CourseResponse create(CourseRequest request) {
@@ -158,6 +161,27 @@ public class CourseService {
         List<LearningStepEntity> stepEntities = learningStepRepository.findByModule_IdIn(moduleIds);
         List<UUID> stepIds = stepEntities.stream().map(LearningStepEntity::getId).toList();
 
+       // Bulk fetch resources
+        List<LearningStepResourceEntity> resourceEntities =
+                learningStepResourceRepository.findByLearningStepEntity_IdIn(stepIds);
+
+        // Group resources by step ID for easy lookup
+        Map<UUID, List<LearningStepResourceResponse>> resourcesByStepId =
+                resourceEntities.stream()
+                        .collect(Collectors.groupingBy(
+                                r -> r.getLearningStepEntity().getId(),
+                                Collectors.mapping(r ->
+                                                new LearningStepResourceResponse(
+                                                        r.getId(),
+                                                        r.getName(),
+                                                        s3Service.generatePresignedUrl(r.getObjectKey()),
+                                                        r.getContentType(),
+                                                        r.getSize()
+                                                ),
+                                        Collectors.toList()
+                                )
+                        ));
+
         // --- NEW: FETCH LESSONS IN BULK (Using Entities) ---
         Map<UUID, LessonEntity> lessonsByStepId = lessonRepository.findByLearningStepEntity_IdIn(stepIds)
                 .stream()
@@ -174,7 +198,11 @@ public class CourseService {
                         // Get the lesson entity from the map
                         LessonEntity lesson = lessonsByStepId.get(entity.getId());
                         // Use the two-argument mapper to flatten lesson fields
-                        return LearningStepMapper.mapToResponse(entity, lesson);
+
+                        List<LearningStepResourceResponse> resources =
+                                resourcesByStepId.getOrDefault(entity.getId(), List.of());
+
+                        return LearningStepMapper.mapToResponse(entity, lesson, resources);
                     }
 
                     // Fallback for QUIZ or other types: use the standard one-argument mapper

@@ -22,7 +22,7 @@ export class MuxService {
   isUploading = signal(false);
   uploadProgress = signal(0);
 
-  private readonly API_URL = 'http://localhost:8082/api/uploads/mux';
+  private readonly API_URL = 'http://localhost:8082/api/mux';
 
   constructor(private http: HttpClient) {}
 
@@ -64,6 +64,10 @@ export class MuxService {
   }
 
   deleteMuxUpload(uploadId: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/${uploadId}`);
+    return this.http.delete<void>(`${this.API_URL}/uplaods/${uploadId}`);
   }
+
+  deleteMuxAsset(assetId: string) {
+  return this.http.delete(`${this.API_URL}/assets/${assetId}`);
+}
 }

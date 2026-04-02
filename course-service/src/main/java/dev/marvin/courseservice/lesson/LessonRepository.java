@@ -15,4 +15,6 @@ public interface LessonRepository extends JpaRepository<LessonEntity, UUID> {
 
     Optional<LessonEntity> findByVideoAssetId(String videoAssetId);
 
+    Optional<LessonEntity> findByLearningStepEntity_Id(UUID learningStepEntityId);
+
 }

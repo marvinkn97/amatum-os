@@ -29,6 +29,7 @@ public class LearningStepResponse {
 
     private String content;
     private String videoPlaybackId;
+    private String videoAssetId;
 
     private List<LearningStepResourceResponse> resources;
     private QuizResponse quiz;

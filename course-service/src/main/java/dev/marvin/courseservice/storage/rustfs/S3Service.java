@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -47,7 +48,7 @@ public class S3Service {
                     objectKey
             );
 
-        } catch (software.amazon.awssdk.core.exception.SdkException e) {
+        } catch (SdkException e) {
             log.error("SDK Error while generating presigned URL for {}: {}", request.fileName(), e.getMessage());
             throw new RuntimeException("Cloud storage configuration error", e);
         } catch (Exception e) {
@@ -70,6 +71,26 @@ public class S3Service {
         } catch (Exception e) {
             log.error("Failed to delete object from S3: {}", objectKey, e);
             throw new RuntimeException("Cloud storage deletion failed");
+        }
+    }
+
+    public String generatePresignedUrl(String objectKey) {
+        try {
+            return s3Presigner.presignGetObject(p -> p
+                    .signatureDuration(Duration.ofMinutes(15))
+                    .getObjectRequest(g -> g
+                            .bucket(bucketName)
+                            .key(objectKey)
+                    )
+            ).url().toString();
+
+        } catch (software.amazon.awssdk.core.exception.SdkException e) {
+            log.error("SDK Error while generating download URL for {}: {}", objectKey, e.getMessage());
+            throw new RuntimeException("Cloud storage configuration error", e);
+
+        } catch (Exception e) {
+            log.error("Unexpected error while generating download URL: {}", objectKey, e);
+            throw new RuntimeException("Failed to generate download URL", e);
         }
     }
 

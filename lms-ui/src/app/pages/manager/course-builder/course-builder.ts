@@ -22,10 +22,11 @@ import {
   ModuleService,
 } from '../../../services/module.service';
 import {
-  LearningStepResourceRequest,
+  LearningStepResource,
   LearningStepRequest,
   LearningStepResponse,
   LearningStepService,
+  LearningStepUpdateRequest,
 } from '../../../services/learning-step.service';
 import { MuxService } from '../../../services/mux.service';
 import { S3Service } from '../../../services/s3.service';
@@ -238,7 +239,7 @@ interface StudioNotification {
                   >
                     <span
                       class="text-xs font-bold truncate max-w-75"
-                      [class.text-indigo-400]="selectedId() === module.id"
+                      [class.text-indigo-400]="selectedModuleId() === module.id"
                     >
                       {{ module.title }}
                     </span>
@@ -738,7 +739,7 @@ interface StudioNotification {
                               class="px-6 pb-6 space-y-2 bg-black/20 pt-4"
                             >
                               @for (
-                                step of module.learningSteps;
+                                step of module.learningSteps || [];
                                 track step.id;
                                 let stepIdx = $index
                               ) {
@@ -1031,7 +1032,8 @@ interface StudioNotification {
 
                       <div class="grid grid-cols-2 gap-4 mt-8">
                         <button
-                          (click)="addStep(selectedId()!, 'LESSON')"
+                          (click)="addStep(selectedModuleId()!, 'LESSON')"
+                          [disabled]="!selectedModuleId() || selectedModuleId() === 'NEW'"
                           class="group flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer"
                         >
                           <span
@@ -1042,7 +1044,8 @@ interface StudioNotification {
                         </button>
 
                         <button
-                          (click)="addStep(selectedId()!, 'QUIZ')"
+                          (click)="addStep(selectedModuleId()!, 'QUIZ')"
+                          [disabled]="!selectedModuleId() || selectedModuleId() === 'NEW'"
                           class="group flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer"
                         >
                           <span
@@ -1160,7 +1163,7 @@ interface StudioNotification {
                   <section class="space-y-6 animate-in slide-in-from-top-4 duration-500">
                     <div class="px-2">
                       <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">
-                        Video Asset Management
+                        Video Asset
                       </h3>
                     </div>
 
@@ -1168,35 +1171,57 @@ interface StudioNotification {
                       class="group relative p-12 border-2 border-dashed border-indigo-500/20 rounded-[2.5rem] bg-indigo-500/5 hover:bg-indigo-500/10 transition-all text-center"
                     >
                       @if (isSyncingToCloud()) {
-                        <div class="space-y-6 animate-in fade-in duration-500 py-4">
-                          <div class="flex flex-col items-center justify-center space-y-6">
-                            <div class="relative size-16">
-                              <div
-                                class="absolute inset-0 border-4 border-indigo-500/10 rounded-2xl"
-                              ></div>
-                              <div
-                                class="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-2xl animate-spin"
-                              ></div>
-                              <div class="absolute inset-0 flex items-center justify-center">
-                                <svg
-                                  class="size-6 text-indigo-500 animate-pulse"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    stroke-width="2"
-                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                  />
-                                </svg>
-                              </div>
+                        <div
+                          class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
+                        >
+                          <div class="flex flex-col items-center space-y-4 w-full max-w-md">
+                            <div
+                              class="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full flex items-center gap-2"
+                            >
+                              <span class="relative flex h-2 w-2">
+                                <span
+                                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
+                                ></span>
+                                <span
+                                  class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"
+                                ></span>
+                              </span>
+                              <span
+                                class="text-[9px] font-black text-indigo-500 uppercase tracking-widest"
+                              >
+                                Syncing to Cloud
+                              </span>
                             </div>
-                            <div class="space-y-1">
-                              <p class="text-sm font-black text-white italic tracking-tight">
-                                Syncing to Cloud...
+
+                            <div class="relative size-12 flex items-center justify-center">
+                              <div
+                                class="absolute inset-0 border-2 border-indigo-500/10 rounded-2xl"
+                              ></div>
+                              <div
+                                class="absolute inset-0 border-2 border-indigo-500 border-t-transparent rounded-2xl animate-spin"
+                              ></div>
+
+                              <svg
+                                class="size-5 text-indigo-400 animate-pulse"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"
+                                />
+                              </svg>
+                            </div>
+
+                            <div class="w-full space-y-1 text-center">
+                              <p class="text-sm font-black text-white italic tracking-tight px-4">
+                                Uploading Asset...
                               </p>
                               <p
-                                class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+                                class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] animate-pulse"
                               >
                                 Do not refresh this page
                               </p>
@@ -1208,13 +1233,13 @@ interface StudioNotification {
                           class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
                         >
                           <div
-                            class="w-full aspect-video rounded-3xl overflow-hidden border border-white/5 bg-slate-950"
+                            class="w-full aspect-video rounded-3xl overflow-hidden border border-white/5 bg-slate-950 shadow-2xl shadow-black/50"
                           >
                             @if (currentPlaybackId()) {
                               <mux-player
                                 [attr.playback-id]="currentPlaybackId()"
                                 [attr.metadata-viewer-user-id]="currentUserId()"
-                                primary-color="#ffffff"
+                                primary-color="#6366f1"
                                 secondary-color="transparent"
                                 class="w-full h-full block"
                               ></mux-player>
@@ -1222,18 +1247,35 @@ interface StudioNotification {
                               <div
                                 class="flex flex-col items-center justify-center h-full space-y-4 animate-in fade-in"
                               >
-                                <div
-                                  class="size-8 border-2 border-white/20 border-t-white rounded-full animate-spin"
-                                ></div>
+                                <div class="relative size-10 flex items-center justify-center">
+                                  <div
+                                    class="absolute inset-0 border-2 border-white/5 rounded-2xl"
+                                  ></div>
+                                  <div
+                                    class="absolute inset-0 border-2 border-indigo-500 border-t-transparent rounded-2xl animate-spin"
+                                  ></div>
+                                  <svg
+                                    class="size-4 text-indigo-500/50 animate-pulse"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      stroke-width="2.5"
+                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                    />
+                                  </svg>
+                                </div>
                                 <p
-                                  class="text-[10px] font-black uppercase text-slate-500 tracking-widest"
+                                  class="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]"
                                 >
-                                  Preparing your video...
+                                  Preparing Stream...
                                 </p>
                               </div>
                             }
                           </div>
-                          <div class="flex flex-col items-center space-y-3">
+
+                          <div class="flex flex-col items-center space-y-4 w-full max-w-md">
                             <div
                               class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2"
                             >
@@ -1247,98 +1289,206 @@ interface StudioNotification {
                               </span>
                               <span
                                 class="text-[9px] font-black text-emerald-500 uppercase tracking-widest"
-                                >Verified at MUX</span
                               >
+                                Verified at MUX
+                              </span>
                             </div>
-                            <p class="text-sm font-black text-white italic tracking-tight">
-                              {{ selectedVideoFile()?.name }}
-                            </p>
-                          </div>
 
-                          <button
-                            (click)="removeVideo()"
-                            [disabled]="isDeleting()"
-                            class="px-8 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2"
-                            [class.text-rose-500]="!isDeleting()"
-                            [class.bg-rose-500/5]="!isDeleting()"
-                            [class.text-slate-500]="isDeleting()"
-                            [class.cursor-not-allowed]="isDeleting()"
-                            [class.opacity-70]="isDeleting()"
-                          >
-                            @if (isDeleting()) {
-                              <div
-                                class="size-3 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"
-                              ></div>
-                              <span>Clearing Cloud...</span>
-                            } @else {
-                              <span>Remove & Delete from MUX</span>
-                            }
-                          </button>
+                            <div class="flex flex-col items-center space-y-4 w-full">
+                              <div class="text-center px-4">
+                                <p
+                                  class="text-sm font-black text-white italic tracking-tight truncate max-w-xs"
+                                >
+                                  {{ selectedVideoFile()?.name }}
+                                </p>
+                                <p
+                                  class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1"
+                                >
+                                  Cloud Hosted Asset
+                                </p>
+                              </div>
+
+                              <button
+                                (click)="removeVideo()"
+                                [disabled]="isDeleting()"
+                                title="Delete from MUX Permanently"
+                                class="group p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                              >
+                                @if (isDeleting()) {
+                                  <div
+                                    class="size-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"
+                                  ></div>
+                                } @else {
+                                  <div class="flex items-center gap-3 px-2">
+                                    <svg
+                                      class="size-4"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      stroke-width="2.5"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                      />
+                                    </svg>
+                                    <span class="text-[10px] font-black uppercase tracking-widest"
+                                      >Delete from Cloud</span
+                                    >
+                                  </div>
+                                }
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       } @else if (!selectedVideoFile()) {
-                        <input
-                          type="file"
-                          class="absolute inset-0 opacity-0 cursor-pointer"
-                          (change)="onMainVideoSelected($event)"
-                          accept="video/*"
-                        />
-                        <div class="space-y-4">
+                        <div
+                          class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center py-2"
+                        >
                           <div
-                            class="size-12 mx-auto rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-600/20"
+                            class="flex flex-col items-center space-y-4 w-full max-w-sm relative group"
                           >
-                            <svg
-                              class="size-8"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                            <input
+                              type="file"
+                              class="absolute inset-0 opacity-0 z-30 cursor-pointer disabled:cursor-not-allowed"
+                              (change)="onMainVideoSelected($event)"
+                              accept="video/*"
+                              [disabled]="isSystemLocked()"
+                            />
+
+                            <div
+                              class="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full flex items-center gap-2"
                             >
-                              <path
-                                stroke-width="2"
-                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                              />
-                            </svg>
+                              <span class="relative flex h-1.5 w-1.5">
+                                <span
+                                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
+                                ></span>
+                                <span
+                                  class="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"
+                                ></span>
+                              </span>
+                              <span
+                                class="text-[8px] font-black text-indigo-500 uppercase tracking-[0.2em]"
+                              >
+                                Video Upload Ready
+                              </span>
+                            </div>
+
+                            <div
+                              class="size-10 rounded-xl bg-white/2 border border-white/5 flex items-center justify-center text-slate-500 group-hover:scale-105 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300"
+                            >
+                              <svg
+                                class="size-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+
+                            <div class="space-y-1.5 text-center">
+                              <p class="text-sm font-black text-white italic tracking-tight px-4">
+                                Select Master Video File
+                              </p>
+                              <p
+                                class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]"
+                              >
+                                Cloud Sync Active
+                              </p>
+                            </div>
                           </div>
-                          <p class="text-sm font-black text-white italic tracking-tight">
-                            Select Master Video File
-                          </p>
                         </div>
                       } @else {
-                        <div class="space-y-6 animate-in fade-in duration-300">
-                          <div class="space-y-2">
-                            <p class="text-sm font-black text-white italic tracking-tight">
-                              {{ selectedVideoFile()?.name }}
-                            </p>
-                            <p
-                              class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+                        <div
+                          class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
+                        >
+                          <div class="flex flex-col items-center space-y-4 w-full max-w-md">
+                            <div
+                              class="px-4 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2"
                             >
-                              Ready for secure upload
-                            </p>
-                          </div>
-                          <div class="flex items-center justify-center gap-4">
-                            <button
-                              (click)="removeVideo()"
-                              [disabled]="isDeleting()"
-                              class="px-6 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2"
-                              [class.text-slate-500]="!isDeleting()"
-                              [class.hover:text-rose-500]="!isDeleting()"
-                              [class.opacity-50]="isDeleting()"
-                              [class.cursor-not-allowed]="isDeleting()"
-                            >
-                              @if (isDeleting()) {
-                                <div
-                                  class="size-3 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"
-                                ></div>
-                                <span>Resetting...</span>
-                              } @else {
-                                <span>Cancel</span>
-                              }
-                            </button>
-                            <button
-                              (click)="startVideoUpload()"
-                              class="px-6 py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase text-white hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
-                            >
-                              Confirm & Upload
-                            </button>
+                              <span class="relative flex h-1.5 w-1.5">
+                                <span
+                                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"
+                                ></span>
+                                <span
+                                  class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"
+                                ></span>
+                              </span>
+                              <span
+                                class="text-[8px] font-black text-amber-500 uppercase tracking-[0.2em]"
+                              >
+                                Confirm Video Source
+                              </span>
+                            </div>
+
+                            <div class="w-full space-y-1 text-center">
+                              <p
+                                class="text-sm font-black text-white italic tracking-tight px-4 truncate"
+                              >
+                                {{ selectedVideoFile()?.name }}
+                              </p>
+                              <p
+                                class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em]"
+                              >
+                                Staged for secure upload
+                              </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                              <button
+                                (click)="removeVideo()"
+                                [disabled]="isDeleting()"
+                                title="Discard Video"
+                                class="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all active:scale-90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                @if (isDeleting()) {
+                                  <div
+                                    class="size-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"
+                                  ></div>
+                                } @else {
+                                  <svg
+                                    class="size-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                }
+                              </button>
+
+                              <button
+                                (click)="startVideoUpload()"
+                                title="Start Syncing"
+                                class="p-3 bg-indigo-600 border border-indigo-500 rounded-2xl text-white shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:scale-110 transition-all active:scale-90 cursor-pointer"
+                              >
+                                <svg
+                                  class="size-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M4.5 12.75l6 6 9-13.5"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       }
@@ -1485,11 +1635,11 @@ interface StudioNotification {
                                 </div>
                               </div>
                             </div>
-                          } @else if (file.objectKey) {
+                          } @else if (file.objectKey || file.url) {
                             <div
                               class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
                             >
-                              <div class="flex flex-col items-center space-y-3">
+                              <div class="flex flex-col items-center space-y-4 w-full max-w-md">
                                 <div
                                   class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2"
                                 >
@@ -1506,101 +1656,235 @@ interface StudioNotification {
                                     >Verified & Secure</span
                                   >
                                 </div>
+
                                 <input
                                   [(ngModel)]="file.name"
-                                  placeholder="Material Name"
-                                  class="text-sm font-black text-white italic tracking-tight bg-transparent text-center border-none outline-none w-full"
+                                  class="text-sm font-black text-white italic tracking-tight bg-transparent text-center border-none outline-none w-full px-4"
                                 />
+
+                                <div class="flex items-center gap-3">
+                                  @if (file.url) {
+                                    <a
+                                      [href]="file.url"
+                                      target="_blank"
+                                      title="Open Asset"
+                                      class="p-3 bg-white/5 border border-white/10 rounded-2xl text-indigo-400 hover:text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all active:scale-90"
+                                    >
+                                      <svg
+                                        class="size-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                      >
+                                        <path
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                                        />
+                                      </svg>
+                                    </a>
+                                  }
+
+                                  <button
+                                    (click)="removeAttachment($index)"
+                                    [disabled]="deletingStates.has(file)"
+                                    title="Delete Permanently"
+                                    class="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    @if (deletingStates.has(file)) {
+                                      <div
+                                        class="size-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"
+                                      ></div>
+                                    } @else {
+                                      <svg
+                                        class="size-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                      >
+                                        <path
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                        />
+                                      </svg>
+                                    }
+                                  </button>
+                                </div>
                               </div>
-                              <button
-                                (click)="removeAttachment($index)"
-                                class="px-8 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 text-rose-500 bg-rose-500/5 hover:bg-rose-500/10"
-                              >
-                                @if (deletingStates.has(file)) {
-                                  <div
-                                    class="size-3 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"
-                                  ></div>
-                                  <span>Clearing Cloud...</span>
-                                } @else {
-                                  <span>Remove & Delete from Cloud</span>
-                                }
-                              </button>
                             </div>
                           } @else if (!$any(file).tempFile) {
-                            <div class="space-y-3 animate-in fade-in duration-500">
-                              <div class="relative py-0">
+                            <div
+                              class="space-y-2 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
+                            >
+                              <div
+                                class="flex flex-col items-center space-y-2 w-full max-w-md relative group"
+                              >
                                 <input
                                   type="file"
-                                  class="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                  class="absolute inset-0 opacity-0 z-30 cursor-pointer disabled:cursor-not-allowed"
                                   (change)="onFileSelected($event, file)"
                                   accept=".pdf,.doc,.docx,.jpg,.jpeg"
-                                  [class.cursor-pointer]="!isSystemLocked()"
-                                  [class.cursor-not-allowed]="isSystemLocked()"
                                   [disabled]="isSystemLocked()"
                                 />
-                                <div class="space-y-2">
-                                  <div
-                                    class="size-10 mx-auto rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-600/20"
+
+                                <div
+                                  class="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full flex items-center gap-2"
+                                >
+                                  <span class="relative flex h-1.5 w-1.5">
+                                    <span
+                                      class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
+                                    ></span>
+                                    <span
+                                      class="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"
+                                    ></span>
+                                  </span>
+                                  <span
+                                    class="text-[8px] font-black text-indigo-500 uppercase tracking-[0.2em]"
+                                  >
+                                    Ready for Upload
+                                  </span>
+                                </div>
+
+                                <div
+                                  class="size-10 rounded-xl bg-white/2 border border-white/5 flex items-center justify-center text-slate-500 group-hover:scale-105 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300"
+                                >
+                                  <svg
+                                    class="size-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                                    />
+                                  </svg>
+                                </div>
+
+                                <div class="w-full space-y-1.5 text-center">
+                                  <input
+                                    [(ngModel)]="file.name"
+                                    (click)="$event.stopPropagation()"
+                                    class="text-sm font-black text-white italic tracking-tight bg-transparent text-center border-none outline-none w-full px-4 focus:text-indigo-400 transition-colors"
+                                  />
+                                  <p
+                                    class="text-sm font-black text-white italic tracking-tight px-4"
+                                  >
+                                    Select Material File
+                                  </p>
+                                  <p
+                                    class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]"
+                                  >
+                                    Cloud Sync Active
+                                  </p>
+                                </div>
+
+                                <div class="flex items-center gap-3 relative z-40">
+                                  <button
+                                    (click)="removeAttachment($index)"
+                                    [disabled]="isSystemLocked()"
+                                    title="Remove Slot"
+                                    class="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                   >
                                     <svg
-                                      class="size-6"
+                                      class="size-4"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
+                                      stroke-width="2.5"
                                     >
                                       <path
-                                        stroke-width="2"
-                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
                                       />
                                     </svg>
-                                  </div>
-                                  <div class="space-y-1">
-                                    <p class="text-sm font-black text-white italic tracking-tight">
-                                      Select Material File
-                                    </p>
-                                    <input
-                                      [(ngModel)]="file.name"
-                                      (click)="$event.stopPropagation()"
-                                      class="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-transparent text-center border-none outline-none w-full"
-                                    />
-                                  </div>
+                                  </button>
                                 </div>
-                              </div>
-                              <div class="flex justify-center">
-                                <button
-                                  (click)="removeAttachment($index)"
-                                  [disabled]="isSystemLocked()"
-                                  class="relative z-20 px-6 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase transition-all text-slate-500 hover:text-rose-500 hover:bg-rose-500/5 cursor-pointer"
-                                >
-                                  Remove Slot
-                                </button>
                               </div>
                             </div>
                           } @else {
-                            <div class="space-y-5 animate-in fade-in duration-300">
-                              <div class="space-y-2">
-                                <p class="text-sm font-black text-white italic tracking-tight">
-                                  {{ $any(file).tempFile.name }}
-                                </p>
-                                <p
-                                  class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+                            <div
+                              class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
+                            >
+                              <div class="flex flex-col items-center space-y-4 w-full max-w-md">
+                                <div
+                                  class="px-4 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2"
                                 >
-                                  Ready for secure upload
-                                </p>
-                              </div>
-                              <div class="flex items-center justify-center gap-4">
-                                <button
-                                  (click)="$any(file).tempFile = null; file.name = ''"
-                                  class="px-8 py-2.5 border border-white/10 rounded-xl text-[10px] font-black uppercase transition-all text-slate-500 hover:text-rose-500"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  (click)="confirmUpload(file)"
-                                  class="px-8 py-2.5 bg-indigo-600 rounded-xl text-[10px] font-black uppercase text-white hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
-                                >
-                                  Confirm & Upload
-                                </button>
+                                  <span class="relative flex h-2 w-2">
+                                    <span
+                                      class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"
+                                    ></span>
+                                    <span
+                                      class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"
+                                    ></span>
+                                  </span>
+                                  <span
+                                    class="text-[9px] font-black text-amber-500 uppercase tracking-widest leading-none"
+                                  >
+                                    Confirm Selection
+                                  </span>
+                                </div>
+
+                                <div class="w-full space-y-1 text-center">
+                                  <p
+                                    class="text-sm font-black text-white italic tracking-tight px-4 truncate"
+                                  >
+                                    {{ $any(file).tempFile.name }}
+                                  </p>
+                                  <p
+                                    class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-none"
+                                  >
+                                    Ready for secure sync
+                                  </p>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                  <button
+                                    (click)="$any(file).tempFile = null; file.name = ''"
+                                    title="Discard Selection"
+                                    class="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all active:scale-90 cursor-pointer"
+                                  >
+                                    <svg
+                                      class="size-4"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      stroke-width="2.5"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6 18L18 6M6 6l12 12"
+                                      />
+                                    </svg>
+                                  </button>
+
+                                  <button
+                                    (click)="confirmUpload(file)"
+                                    title="Sync to Cloud"
+                                    class="p-3 bg-indigo-600 border border-indigo-500 rounded-2xl text-white shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:scale-110 transition-all active:scale-90 cursor-pointer"
+                                  >
+                                    <svg
+                                      class="size-4"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      stroke-width="3"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M4.5 12.75l6 6 9-13.5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           }
@@ -1632,21 +1916,58 @@ interface StudioNotification {
                     </div>
                   </section>
                 }
-                <div class="flex justify-end pt-12 pb-20 border-t border-white/5">
+                <div
+                  class="flex justify-end items-center gap-4 pt-12 pb-20 border-t border-white/5"
+                >
+                  @if (getSelectedStep() != null) {
+                    <button
+                      type="button"
+                      (click)="getSelectedStep() && confirmDelete(getSelectedStep()!)"
+                      [disabled]="isDeleting()"
+                      class="group px-4 py-2 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5"
+                    >
+                      <svg
+                        class="size-3.5 block opacity-40 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <path
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+
+                      <span class="text-[11px] font-bold uppercase tracking-[0.2em] leading-none">
+                        {{ isDeleting() ? 'Removing...' : 'Delete Lesson' }}
+                      </span>
+                    </button>
+                  }
+
                   <button
                     (click)="saveStep()"
-                    class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                    [disabled]="isSaving()"
+                    class="px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
                   >
-                    <svg
-                      class="size-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="3"
-                    >
-                      <path d="M5 13l4 4L19 7" />
-                    </svg>
-                    {{ isSaving() ? 'Saving Changes...' : 'Save Changes' }}
+                    @if (isSaving()) {
+                      <span
+                        class="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                      ></span>
+                      Saving...
+                    } @else {
+                      <svg
+                        class="size-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      >
+                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      Save Changes
+                    }
                   </button>
                 </div>
               </div>
@@ -1783,6 +2104,59 @@ interface StudioNotification {
         ></div>
       }
     </div>
+
+    @if (stepToDelete(); as step) {
+      <div
+        class="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+        (click)="cancelDelete()"
+      >
+        <div
+          class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 text-center animate-in zoom-in-95 duration-200"
+          (click)="$event.stopPropagation()"
+        >
+          <div
+            class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-4"
+          >
+            <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Delete Step?</h2>
+
+          <p class="text-slate-600 dark:text-slate-400 mb-6">
+            Are you sure you want to delete
+            <span class="font-semibold text-slate-900 dark:text-white">"{{ step.title }}"</span>?
+            This action is permanent and removes all videos and files.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+              [disabled]="isDeleting()"
+              (click)="cancelDelete()"
+            >
+              Keep it
+            </button>
+
+            <button
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex items-center justify-center gap-2"
+              [disabled]="isDeleting()"
+              (click)="executePurge()"
+            >
+              @if (isDeleting()) {
+                <span
+                  class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                ></span>
+                Purging...
+              } @else {
+                Yes, Delete
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [
     `
@@ -2034,7 +2408,7 @@ export class CourseBuilder implements OnInit {
         .map((mod) => ({
           ...mod,
           // Ensure steps are sorted by sequence so UI order is consistent
-          steps: mod.learningSteps
+          learningSteps: mod.learningSteps
             ? [...mod.learningSteps].sort((a, b) => a.sequence - b.sequence)
             : [],
         }))
@@ -2108,10 +2482,18 @@ export class CourseBuilder implements OnInit {
   }
 
   getSelectedModule() {
-    const moduleId = this.selectedId();
+    const moduleId = this.selectedModuleId();
     if (!moduleId || moduleId === 'NEW') return null;
 
-    return this.modules().find((m) => m.id === moduleId) || null;
+    const found = this.modules().find((m) => m.id === moduleId);
+
+    if (!found) return null;
+
+    // Return a fresh object with guaranteed array
+    return {
+      ...found,
+      learningSteps: found.learningSteps ? [...found.learningSteps] : [],
+    };
   }
 
   isReadyToPublish(): boolean {
@@ -2229,12 +2611,13 @@ export class CourseBuilder implements OnInit {
   // Add this to your component
   selectModule(module: ModuleResponse) {
     this.isCreatingNew = false;
-    this.selectedId.set(module.id);
+
+    this.selectedModuleId.set(module.id); // ✅ correct signal
 
     // THIS IS THE FIX: Push the existing title into the input's variable
     this.editingModuleTitle = module.title;
 
-    this.setView('MODULE_STRUCTURE', module.id);
+    this.setView('MODULE_STRUCTURE');
   }
 
   addModule() {
@@ -2245,8 +2628,8 @@ export class CourseBuilder implements OnInit {
 
     this.isCreatingNew = true;
     this.editingModuleTitle = 'Untitled Module';
-    this.selectedId.set('NEW'); // Use a placeholder ID for the view
-    this.setView('MODULE_STRUCTURE', 'NEW');
+    this.selectedId.set(null); // Use a placeholder ID for the view
+    this.setView('MODULE_STRUCTURE');
   }
 
   saveModule() {
@@ -2313,7 +2696,7 @@ export class CourseBuilder implements OnInit {
   editingStepType = signal<'LESSON' | 'QUIZ'>('LESSON');
   editingStepTitle = signal<string>('');
   editingStepContent = signal<string>(''); // The "master" string for the DB
-  editingResources = signal<LearningStepResourceRequest[]>([]);
+  editingResources = signal<LearningStepResource[]>([]);
   isCreatingStep = false;
   selectedStepId = signal<string | null>(null);
   selectedModuleId = signal<string | null>(null);
@@ -2322,13 +2705,20 @@ export class CourseBuilder implements OnInit {
   quizQuestions = signal<any[]>([]);
 
   addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
+    console.log('Module ID:', moduleId);
+
+    if (!moduleId || moduleId === 'NEW') {
+      this.showToast('Please select a valid module', 'info');
+      return;
+    }
+
     this.isCreatingStep = true;
 
     // Set the Parent Anchor
     this.selectedModuleId.set(moduleId);
 
     // Set the Child Placeholder
-    this.selectedStepId.set('NEW');
+    this.selectedStepId.set(null);
 
     this.editingStepType.set(type);
     this.editingStepTitle.set(type === 'QUIZ' ? 'Untitled Quiz' : 'Untitled Lesson');
@@ -2379,6 +2769,8 @@ export class CourseBuilder implements OnInit {
         this.currentPlaybackId.set(null);
         this.isUploadComplete.set(false);
       }
+
+      this.currentAssetId.set(step.videoAssetId || null);
 
       // Hydrate Resources/Attachments
       this.editingResources.set(step.resources ? [...step.resources] : []);
@@ -2512,20 +2904,26 @@ export class CourseBuilder implements OnInit {
 
   isDeleting = signal(false); // Add this signal
 
+  currentAssetId = signal<string | null>(null);
+
   async removeVideo() {
     const uploadId = this.currentUploadId();
+    const assetId = this.currentAssetId();
 
     // 1. Protection against double-clicks
     if (this.isDeleting()) return;
 
     try {
-      // 2. Only hit the backend if there's actually a cloud ID
-      if (uploadId) {
+      if (assetId) {
+        this.isDeleting.set(true);
+        await firstValueFrom(this.muxService.deleteMuxAsset(assetId));
+      } else if (uploadId) {
         this.isDeleting.set(true);
         await firstValueFrom(this.muxService.deleteMuxUpload(uploadId));
-        console.log('Cloud cleanup successful.');
-        this.showToast('Video purged from cloud', 'info');
       }
+
+      console.log('Cloud cleanup successful.');
+      this.showToast('Video purged from cloud', 'info');
     } catch (error) {
       console.error('Cloud cleanup failed, but resetting UI anyway.', error);
     } finally {
@@ -2541,9 +2939,9 @@ export class CourseBuilder implements OnInit {
   }
 
   // A Map where the KEY is the actual Resource object and the VALUE is the loading status
-  loadingStates = new Map<LearningStepResourceRequest, boolean>();
+  loadingStates = new Map<LearningStepResource, boolean>();
 
-  async confirmUpload(resource: LearningStepResourceRequest) {
+  async confirmUpload(resource: LearningStepResource) {
     const localFile = (resource as any).tempFile;
 
     // CONCEPT 1: Functional Guard (Prevents the Loop)
@@ -2675,22 +3073,30 @@ export class CourseBuilder implements OnInit {
   });
 
   saveStep() {
-    // 0. RESET UI ERRORS
+    if (this.isSaving()) return;
+    this.isSaving.set(true);
+
+    // 0. RESET UI ERRORS & PREP DATA
     const type = this.editingStepType(); // 'LESSON' | 'QUIZ'
     const title = this.editingStepTitle()?.trim();
-    const moduleId = this.selectedModuleId(); // Get the ID once
-    const uploadId = this.currentUploadId(); // Get the ID from your signal
+    const moduleId = this.selectedModuleId();
+    const uploadId = this.currentUploadId();
+
+    // Identify if we are Updating ---
+    const stepId = this.selectedStepId();
+    const isEdit = !!stepId;
 
     const isVideo = !!this.isVideoLesson();
     const isContent = !!this.isContentEnabled();
     const isMaterials = !!this.isMaterialsEnabled();
 
+    // --- GUARD: Module Existence ---
     if (!moduleId || moduleId === 'NEW') {
       this.showToast(
         'Wait! You are trying to add a step to a module that has not been saved yet.',
         'error',
       );
-      return; // STOP the execution here
+      return;
     }
 
     // --- 1. COMMON VALIDATION (Guards) ---
@@ -2700,7 +3106,8 @@ export class CourseBuilder implements OnInit {
       return;
     }
 
-    let request: LearningStepRequest | null = null;
+    // We define our request as either a Create or Update type explicitly
+    let request: LearningStepRequest | LearningStepUpdateRequest | null = null;
 
     // --- 2. LESSON LOGIC BLOCK ---
     if (type === 'LESSON') {
@@ -2737,98 +3144,190 @@ export class CourseBuilder implements OnInit {
         return;
       }
 
-      request = {
-        moduleId: moduleId!,
-        title,
-        type: 'LESSON',
-        sequence: this.calculateDynamicSequence(),
-        videoEnabled: isVideo,
-        contentEnabled: isContent,
-        materialsEnabled: isMaterials,
-        content: hasValidContent ? rawContent : '', // Sent exactly as Quill provided it
-        videoUploadId: uploadId!,
-        resources: hasValidMaterials
-          ? currentResources.map((res) => ({
-              name: res.name,
-              objectKey: res.objectKey!,
-              contentType: res.contentType,
-              size: res.size,
-            }))
-          : [],
-      };
-    }
+      // --- MAPPING TO DISTINCT DTOs ---
+      if (isEdit) {
+        // Mapping for LearningStepUpdateRequest (No sequence)
+        request = {
+          title,
+          type: 'LESSON',
+          videoEnabled: isVideo,
+          contentEnabled: isContent,
+          materialsEnabled: isMaterials,
 
-    console.log('SENDING TO BACKEND:', JSON.stringify(request));
+          // DEFENSIVE: If video was toggled OFF, send null to trigger backend cleanup
+          videoUploadId: isVideo ? uploadId : '',
+          content: hasValidContent && isContent ? rawContent : '',
+
+          resources:
+            hasValidMaterials && isMaterials
+              ? currentResources.map((res) => ({
+                  name: res.name,
+                  objectKey: res.objectKey!,
+                  contentType: res.contentType,
+                  size: res.size,
+                }))
+              : [],
+        } as LearningStepUpdateRequest;
+      } else {
+        // Mapping for LearningStepCreateRequest (Includes sequence)
+        request = {
+          moduleId: moduleId!,
+          title,
+          type: 'LESSON',
+          sequence: this.calculateDynamicSequence(),
+          videoEnabled: isVideo,
+          contentEnabled: isContent,
+          materialsEnabled: isMaterials,
+          content: hasValidContent ? rawContent : '',
+          videoUploadId: uploadId!,
+          resources: hasValidMaterials
+            ? currentResources.map((res) => ({
+                name: res.name,
+                objectKey: res.objectKey!,
+                contentType: res.contentType,
+                size: res.size,
+              }))
+            : [],
+        } as LearningStepRequest;
+      }
+    }
 
     // --- 3. QUIZ LOGIC BLOCK ---
     // if (type === 'QUIZ') {
-    //   const questions = this.editingQuestions();
+    //    const questions = this.editingQuestions();
 
-    //   if (!questions || questions.length === 0) {
-    //     this.showToast('A quiz must have at least one question.', 'error');
-    //     return;
-    //   }
+    //    if (!questions || questions.length === 0) {
+    //      this.showToast('A quiz must have at least one question.', 'error');
+    //      return;
+    //    }
 
-    //   request = {
-    //     moduleId: this.selectedId()!,
-    //     title,
-    //     type: 'QUIZ',
-    //     sequence: this.calculateDynamicSequence(),
-    //     questions: questions,
-    //     content: '',
-    //     videoUploadId: null,
-    //     resources: [],
-    //     videoEnabled: false,
-    //     contentEnabled: false,
-    //     materialsEnabled: false
-    //   };
+    //    // For the sake of completion, mapping the Quiz logic
+    //    if (isEdit) {
+    //        request = {
+    //          moduleId: moduleId!,
+    //          title,
+    //          type: 'QUIZ',
+    //          questions: questions,
+    //          content: '',
+    //          videoUploadId: null,
+    //          resources: [],
+    //          videoEnabled: false,
+    //          contentEnabled: false,
+    //          materialsEnabled: false
+    //        } as LearningStepUpdateRequest;
+    //    } else {
+    //        request = {
+    //          moduleId: moduleId!,
+    //          title,
+    //          type: 'QUIZ',
+    //          sequence: this.calculateDynamicSequence(),
+    //          questions: questions,
+    //          content: '',
+    //          videoUploadId: null,
+    //          resources: [],
+    //          videoEnabled: false,
+    //          contentEnabled: false,
+    //          materialsEnabled: false
+    //        } as LearningStepRequest;
+    //    }
     // }
 
     // --- 4. EXECUTION GATE ---
     if (!request) return;
 
     this.isSaving.set(true);
-    this.learningStepService.createLearningStep(request).subscribe({
-      next: (res) => {
-        this.showToast(`${type} saved successfully`, 'success');
-        this.isSaving.set(false);
 
-        this.modules.update((mods) =>
-          mods.map((m) => {
-            if (m.id === moduleId) {
-              // 1. Use 'learningSteps' to match your Backend/JSON
-              // 2. Ensure we fallback to an empty array if it's null
-              const currentSteps = m.learningSteps || [];
+    // Pick the correct API but keep the same subscription logic
+    const operation$ = isEdit
+      ? this.learningStepService.updateLearningStep(stepId!, request as LearningStepUpdateRequest)
+      : this.learningStepService.createLearningStep(request as LearningStepRequest);
 
-              return {
-                ...m,
-                learningSteps: [...currentSteps, res],
-              };
-            }
-            return m;
-          }),
-        );
+    operation$
+      .pipe(
+        finalize(() => this.isSaving.set(false)), // 3. Re-enable after finish/error
+      )
+      .subscribe({
+        next: (res: LearningStepResponse) => {
+          this.showToast(
+            `${this.editingStepType()} ${isEdit ? 'updated' : 'created'} successfully`,
+            'success',
+          );
 
-        this.resetForm();
+          this.modules.update((currentModules) =>
+            currentModules.map((module) => {
+              if (module.id === moduleId) {
+                const currentSteps = module.learningSteps || [];
 
-        this.setView('MODULE_STRUCTURE', this.selectedModuleId());
-      },
-      error: (err) => {
-        this.isSaving.set(false);
-        this.showToast(
-          err?.error?.detail || 'Failed to create learning step. Please try again.',
-          'error',
-        );
-        console.error('Error Details:', err.error.errors);
-      },
-    });
+                let updatedSteps: LearningStepResponse[];
+
+                if (isEdit) {
+                  // Update existing step
+                  updatedSteps = currentSteps.map((step) =>
+                    step.id === res.id ? { ...res } : step,
+                  );
+                } else {
+                  // Add new step at the end
+                  updatedSteps = [...currentSteps, { ...res }];
+                }
+
+                return {
+                  ...module,
+                  learningSteps: updatedSteps,
+                };
+              }
+              return module;
+            }),
+          );
+
+          // Optional: Also update the raw backup
+          this.rawCourseResponse.update((prev) => {
+            if (!prev?.modules) return prev;
+            return {
+              ...prev,
+              modules: prev.modules.map((m) =>
+                m.id === moduleId
+                  ? {
+                      ...m,
+                      learningSteps: isEdit
+                        ? (m.learningSteps || []).map((s) => (s.id === res.id ? res : s))
+                        : [...(m.learningSteps || []), res],
+                    }
+                  : m,
+              ),
+            };
+          });
+
+          this.resetForm();
+          this.setView('MODULE_STRUCTURE', moduleId); // Important: refresh view
+        },
+        error: (err: any) => {
+          this.isSaving.set(false);
+          this.showToast(
+            err?.error?.detail ||
+              `Failed to ${isEdit ? 'update' : 'create'} learning step. Please try again.`,
+            'error',
+          );
+          console.error('Error Details:', err.error.errors);
+        },
+      });
   }
 
   private resetForm() {
-    // Reset Basic Info
+    // --- DIRECT STATE CLEANUP ---
+    // 1. Identifiers
+    this.selectedStepId.set(null);
     this.editingStepTitle.set('');
-    this.editingStepContent.set('');
-    this.showValidationErrors = false;
+
+    // 2. Media & Cloud States
+    this.currentAssetId.set(null);
+    this.currentUploadId.set(null);
+    this.currentPlaybackId.set(null);
+    this.mainLessonVideo.set({
+      file: null,
+      progress: 0,
+      uploadId: null,
+    });
+    this.loadingStates.clear(); // Important to prevent "stuck" uploads
 
     // Reset Media/Resource States
     this.editingResources.set([]);
@@ -2836,13 +3335,15 @@ export class CourseBuilder implements OnInit {
     this.selectedVideoFile.set(null);
     this.isUploadComplete.set(false);
 
-    // Reset Toggles (Adjust these to your preferred defaults)
+    // 3. Content & Materials
+    this.editingStepContent.set('');
+    this.editingResources.set([]);
+
+    // 4. UI Toggles (Reset to clean slate)
     this.isVideoLesson.set(false);
     this.isContentEnabled.set(false);
     this.isMaterialsEnabled.set(false);
-
-    // Reset Loading States
-    this.loadingStates.clear();
+    this.showValidationErrors = false;
   }
 
   // Signal to track the IDs of the modules that are currently open
@@ -2851,6 +3352,10 @@ export class CourseBuilder implements OnInit {
 
   toggleModuleStructure(moduleId: string, event: Event) {
     event.stopPropagation();
+
+    // DEBUG: See if data exists when you click
+    const mod = this.modules().find((m) => m.id === moduleId);
+    console.log('Expanding Module:', moduleId, 'Steps found:', mod?.learningSteps?.length);
 
     this.expandedModuleIds.update((prevSet) => {
       // We create a new Set to trigger the signal update (immutability)
@@ -2867,32 +3372,35 @@ export class CourseBuilder implements OnInit {
 
   // Dragging Modules
   onModuleDrop(event: CdkDragDrop<any[]>) {
-    const currentModules = [...this.modules()];
-    moveItemInArray(currentModules, event.previousIndex, event.currentIndex);
-    this.modules.set(currentModules);
+    this.modules.update((currentModules) => {
+      const newModules = [...currentModules];
+      moveItemInArray(newModules, event.previousIndex, event.currentIndex);
+      return newModules;
+    });
   }
 
-  // Dragging Steps inside a Module
-  // onStepDrop(event: CdkDragDrop<any[]>) {
-  //   // We move the item within the specific module's array
-  //   moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-
-  //   // Refresh the main signal to ensure UI and Sidebar stay in sync
-  //   this.modules.set([...this.modules()]);
-  // }
-
   onStepDrop(event: CdkDragDrop<any>) {
-    // 1. Get the current list from the drag event container
-    const list = event.container.data;
+    const containerData = event.container.data;
+    if (!containerData) return;
 
-    // 2. THE GUARD: If the list doesn't exist, stop immediately
-    if (!list) return;
+    // Find which module this drop happened in
+    const moduleId = this.selectedModuleId(); // or derive it from the container if possible
 
-    // 3. Move the item in the actual array
-    moveItemInArray(list, event.previousIndex, event.currentIndex);
+    this.modules.update((currentModules) => {
+      return currentModules.map((module) => {
+        // Only update the module that contains the dropped steps
+        if (module.id === moduleId && module.learningSteps) {
+          const newSteps = [...module.learningSteps]; // shallow copy
+          moveItemInArray(newSteps, event.previousIndex, event.currentIndex);
 
-    // 4. Force signal refresh so the Sidebar and UI stay in sync
-    this.modules.set([...this.modules()]);
+          return {
+            ...module,
+            learningSteps: newSteps,
+          };
+        }
+        return module;
+      });
+    });
   }
 
   reorderModuleSequence() {
@@ -3028,4 +3536,68 @@ export class CourseBuilder implements OnInit {
   // Signals for the Player
   currentPlaybackId = signal<string | null>(null);
   currentUserId = signal<string>(''); // Keycloak 'sub'
+
+  editingStepId = signal<string | null>(null);
+
+  // editingQuestions = signal<QuizQuestionRequest[]>([]);
+
+  // The State: Holds the step being edited AND the one pending deletion
+  editingStep = signal<LearningStepResponse | null>(null);
+  stepToDelete = signal<LearningStepResponse | null>(null);
+
+  // The Confirmation: Sets the target for the Tailwind modal
+  confirmDelete(step: LearningStepResponse) {
+    this.stepToDelete.set(step);
+  }
+
+  // The Cleanup: Wipes the target if they click "Cancel" or "Keep it"
+  cancelDelete() {
+    this.stepToDelete.set(null);
+  }
+
+  executePurge() {
+    const step = this.stepToDelete();
+    if (!step) return;
+
+    this.isDeleting.set(true);
+
+    this.learningStepService
+      .delete(step.id)
+      .pipe(
+        finalize(() => {
+          this.isDeleting.set(false);
+          this.stepToDelete.set(null);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          // ✅ 1. Update RAW response (source of truth)
+          this.rawCourseResponse.update((course) => {
+            if (!course || !course.modules) return course;
+
+            return {
+              ...course,
+              modules: course.modules.map((m) => ({
+                ...m,
+                learningSteps: m.learningSteps
+                  ? m.learningSteps.filter((s) => s.id !== step.id)
+                  : [],
+              })),
+            };
+          });
+
+          // ✅ 2. Update UI state (what your template uses)
+          this.modules.update((mods) =>
+            mods.map((m) => ({
+              ...m,
+              learningSteps: m.learningSteps.filter((s) => s.id !== step.id),
+            })),
+          );
+
+          this.setView('MODULE_STRUCTURE', this.selectedModuleId()); // Refresh the view to reflect changes
+          this.showToast('Step and cloud assets purged.', 'success');
+        },
+        error: () => this.showToast('Cleanup failed.', 'error'),
+      });
+  }
 }

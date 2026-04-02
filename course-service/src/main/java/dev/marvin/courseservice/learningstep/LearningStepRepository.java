@@ -11,4 +11,5 @@ public interface LearningStepRepository extends JpaRepository<LearningStepEntity
     List<LearningStepEntity> findByModule_IdIn(List<UUID> moduleIds);
 
     List<LearningStepEntity> findByModule_Id(UUID moduleId);
+
 }
