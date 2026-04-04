@@ -64,7 +64,7 @@ export class MuxService {
   }
 
   deleteMuxUpload(uploadId: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/uplaods/${uploadId}`);
+    return this.http.delete<void>(`${this.API_URL}/uploads/${uploadId}`);
   }
 
   deleteMuxAsset(assetId: string) {

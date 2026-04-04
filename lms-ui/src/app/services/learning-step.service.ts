@@ -78,6 +78,7 @@ export interface LearningStepUpdateRequest {
 }
 
 export interface LearningStepResource {
+  id?: string; // For existing resources, this will be the UUID. For new uploads, this can be omitted or null.
   name: string; // "Chapter 1 Notes"
   objectKey?: string; // "materials/uuid-notes.pdf"
   contentType: string; // "application/pdf"
@@ -143,6 +144,8 @@ export class LearningStepService {
     stepId: string,
     request: LearningStepUpdateRequest,
   ): Observable<LearningStepResponse> {
+    console.log('Updating Learning Step with ID:', stepId);
+    
     const formData = new FormData();
 
     // Append basic fields

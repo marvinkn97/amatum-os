@@ -24,6 +24,7 @@ import java.util.List;
 public class MuxVideoUploadService {
     private final LessonRepository lessonRepository;
     private final ObjectMapper objectMapper;
+    private final MuxAssetRepository muxAssetRepository;
 
     @Value("${mux.api.base-url}")
     private String baseUrl;
@@ -203,7 +204,7 @@ public class MuxVideoUploadService {
     }
 
     private void updateLessonData(String uploadId, String assetId, String playbackId) {
-        lessonRepository.findByVideoUploadId(uploadId).ifPresent(lesson -> {
+        lessonRepository.findByVideoUploadId(uploadId).ifPresentOrElse(lesson -> {
             if (StringUtils.hasText(lesson.getVideoAssetId()) && StringUtils.hasText(lesson.getVideoPlaybackId())) {
                 log.info("Lesson already has Asset ID and Playback ID");
                 return;
@@ -213,6 +214,14 @@ public class MuxVideoUploadService {
             lesson.setVideoPlaybackId(playbackId); // For the Angular Player
             lessonRepository.save(lesson);
             log.info("Lesson updated with Asset ID: {}", assetId);
+        }, ()-> {
+            log.info("Lesson not found for upload ID: {}", uploadId);
+            MuxAsset muxAsset = new MuxAsset();
+            muxAsset.setUploadId(uploadId);
+            muxAsset.setAssetId(assetId);
+            muxAsset.setPlaybackId(playbackId);
+            muxAssetRepository.save(muxAsset);
+            log.info("MuxAsset created for upload ID: {}", uploadId);
         });
     }
 

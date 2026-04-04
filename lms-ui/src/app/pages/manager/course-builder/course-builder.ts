@@ -1128,7 +1128,7 @@ interface StudioNotification {
                   </div>
 
                   <button
-                    (click)="setView('MODULE_STRUCTURE', selectedId())"
+                    (click)="setView('MODULE_STRUCTURE', selectedModuleId())"
                     class="px-6 py-3 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
                   >
                     Back to Module
@@ -1973,7 +1973,7 @@ interface StudioNotification {
               </div>
             }
             @if (activeView() === 'QUIZ_EDITOR') {
-              <div class="space-y-10">
+              <div class="space-y-10 animate-in fade-in duration-500">
                 <header
                   class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-8 gap-4"
                 >
@@ -1981,30 +1981,30 @@ interface StudioNotification {
                     <p
                       class="text-indigo-500/60 text-[10px] font-black uppercase tracking-widest mt-2"
                     >
-                      Quiz Designer • Multiple Choice
+                      Quiz Designer • {{ quizQuestions().length }} Questions
                     </p>
                     <input
                       [(ngModel)]="editingStepTitle"
-                      class="bg-transparent border-none outline-none text-xl lg:text-2xl font-black text-white italic tracking-tighter w-full mt-2"
+                      class="bg-transparent border-none outline-none text-xl lg:text-2xl font-black text-white italic tracking-tighter w-full mt-2 placeholder:text-white/20"
                       placeholder="Quiz Title..."
                     />
                   </div>
                   <button
                     (click)="setView('MODULE_STRUCTURE', selectedId())"
-                    class="w-full sm:w-auto px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all"
+                    class="w-full sm:w-auto px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all hover:bg-white/5"
                   >
                     Back to Module
                   </button>
                 </header>
 
                 <div class="space-y-8">
-                  @for (question of quizQuestions(); track question.id; let qIdx = $index) {
+                  @for (question of quizQuestions(); track $index; let qIdx = $index) {
                     <div
                       class="p-8 bg-white/2 border border-white/5 rounded-4xl space-y-6 relative group hover:border-white/10 transition-all"
                     >
                       <button
                         (click)="removeQuestion(qIdx)"
-                        class="absolute top-6 right-6 text-slate-600 hover:text-indigo-400 transition-colors"
+                        class="absolute top-6 right-6 text-slate-600 hover:text-red-400 transition-colors"
                       >
                         <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -2012,62 +2012,113 @@ interface StudioNotification {
                       </button>
 
                       <div class="flex items-start gap-6">
-                        <span class="text-2xl font-black italic text-indigo-500/20 leading-none">{{
-                          qIdx + 1
-                        }}</span>
+                        <span
+                          class="text-2xl font-black italic text-indigo-500/20 leading-none select-none"
+                        >
+                          {{ qIdx + 1 }}
+                        </span>
                         <div class="flex-1 space-y-4">
                           <input
-                            [(ngModel)]="question.text"
+                            [(ngModel)]="question.questionText"
                             placeholder="What is the question?"
                             class="w-full bg-transparent border-none outline-none text-white font-bold text-lg placeholder:text-slate-800"
                           />
 
-                          <label class="flex items-center gap-3 cursor-pointer select-none w-fit">
-                            <input
-                              type="checkbox"
-                              [(ngModel)]="question.multipleCorrect"
-                              (change)="handleOptionToggle(qIdx, -1)"
-                              class="hidden"
-                            />
-                            <div
-                              class="w-10 h-5 bg-slate-800 rounded-full relative transition-colors"
-                              [class.bg-indigo-500]="question.multipleCorrect"
+                          <div class="flex items-center gap-6">
+                            <label
+                              class="flex items-center gap-3 cursor-pointer select-none w-fit group/toggle"
                             >
+                              <input
+                                type="checkbox"
+                                [(ngModel)]="question.hasMultipleAnswers"
+                                (change)="handleOptionToggle(qIdx, -1)"
+                                class="hidden"
+                              />
                               <div
-                                class="absolute top-1 left-1 size-3 bg-white rounded-full transition-transform"
-                                [class.translate-x-5]="question.multipleCorrect"
-                              ></div>
-                            </div>
-                            <span
-                              class="text-[9px] font-black uppercase tracking-widest text-slate-500"
-                              >Allow Multiple Correct Answers</span
-                            >
-                          </label>
+                                class="w-10 h-5 bg-slate-800 rounded-full relative transition-colors"
+                                [class.bg-indigo-500]="question.hasMultipleAnswers"
+                              >
+                                <div
+                                  class="absolute top-1 left-1 size-3 bg-white rounded-full transition-transform"
+                                  [class.translate-x-5]="question.hasMultipleAnswers"
+                                ></div>
+                              </div>
+                              <span
+                                class="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover/toggle:text-slate-300 transition-colors"
+                              >
+                                Allow Multiple Correct Answers
+                              </span>
+                            </label>
+
+                            @if (question.hasMultipleAnswers && getCorrectCount(qIdx) < 2) {
+                              <span
+                                class="text-[8px] font-black text-amber-500 uppercase tracking-widest animate-pulse"
+                              >
+                                ⚠️ Select 2 or more correct answers
+                              </span>
+                            }
+                          </div>
                         </div>
                       </div>
 
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-12">
-                        @for (opt of question.options; track $index; let oIdx = $index) {
+                        @for (opt of question.answerOptions; track $index; let oIdx = $index) {
                           <div
-                            class="flex items-center gap-4 p-4 rounded-2xl border transition-all"
+                            class="flex items-center gap-4 p-4 rounded-2xl border transition-all relative group/opt"
                             [class.bg-emerald-500/5]="opt.isCorrect"
                             [class.border-emerald-500/30]="opt.isCorrect"
                             [class.border-white/5]="!opt.isCorrect"
                           >
                             <input
-                              [type]="question.multipleCorrect ? 'checkbox' : 'radio'"
+                              [type]="question.hasMultipleAnswers ? 'checkbox' : 'radio'"
                               [name]="'q-' + qIdx"
                               [(ngModel)]="opt.isCorrect"
                               (change)="handleOptionToggle(qIdx, oIdx)"
                               class="size-4 accent-emerald-500 cursor-pointer"
                             />
-                            <input
-                              [(ngModel)]="opt.text"
-                              placeholder="Option text..."
-                              class="bg-transparent border-none outline-none text-sm text-slate-300 w-full"
-                            />
+
+                            <div class="flex-1">
+                              <p
+                                class="text-[8px] font-black uppercase tracking-tighter mb-1 transition-colors"
+                                [class.text-emerald-500]="opt.isCorrect"
+                                [class.text-slate-700]="!opt.isCorrect"
+                              >
+                                {{ opt.isCorrect ? 'Correct Answer' : 'Incorrect Option' }}
+                              </p>
+
+                              <input
+                                [(ngModel)]="opt.answerText"
+                                placeholder="Option text..."
+                                class="bg-transparent border-none outline-none text-sm w-full pr-8 transition-colors"
+                                [class.text-white]="opt.isCorrect"
+                                [class.text-slate-400]="!opt.isCorrect"
+                              />
+                            </div>
+
+                            @if (question.answerOptions.length > 2) {
+                              <button
+                                (click)="removeOption(qIdx, oIdx)"
+                                class="absolute right-3 opacity-0 group-hover/opt:opacity-100 text-slate-600 hover:text-red-400 transition-all"
+                              >
+                                <svg
+                                  class="size-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            }
                           </div>
                         }
+
+                        <button
+                          (click)="addOption(qIdx)"
+                          class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/5 text-slate-600 hover:border-indigo-500/20 hover:text-indigo-400 transition-all text-[10px] font-black uppercase tracking-widest bg-white/1"
+                        >
+                          <span class="text-lg leading-none">+</span> Add Option
+                        </button>
                       </div>
                     </div>
                   }
@@ -2087,7 +2138,7 @@ interface StudioNotification {
                     <button
                       class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 cursor-pointer"
                     >
-                      Save Changes
+                      Save Quiz Changes
                     </button>
                   </div>
                 </div>
@@ -2701,134 +2752,15 @@ export class CourseBuilder implements OnInit {
   selectedStepId = signal<string | null>(null);
   selectedModuleId = signal<string | null>(null);
 
-  // UI-Specific state (only used when type === 'QUIZ')
-  quizQuestions = signal<any[]>([]);
-
-  addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
-    console.log('Module ID:', moduleId);
-
-    if (!moduleId || moduleId === 'NEW') {
-      this.showToast('Please select a valid module', 'info');
-      return;
+  private calculateDynamicSequence(moduleId: string): number {
+    const module = this.modules().find((m) => m.id === moduleId);
+    if (!module?.learningSteps?.length) {
+      return 1;
     }
 
-    this.isCreatingStep = true;
-
-    // Set the Parent Anchor
-    this.selectedModuleId.set(moduleId);
-
-    // Set the Child Placeholder
-    this.selectedStepId.set(null);
-
-    this.editingStepType.set(type);
-    this.editingStepTitle.set(type === 'QUIZ' ? 'Untitled Quiz' : 'Untitled Lesson');
-    this.editingStepContent.set('');
-    this.editingResources.set([]);
-
-    if (type === 'QUIZ') {
-      this.quizQuestions.set([]);
-      this.addQuestion();
-    }
-
-    this.setView(type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
-  }
-
-  getSelectedStep() {
-    const modules = this.modules();
-    const stepId = this.selectedStepId();
-
-    if (!modules || !stepId || stepId === 'NEW') return null;
-
-    for (const m of modules) {
-      const found = (m.learningSteps || []).find((s) => s.id === stepId);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  selectStep(step: LearningStepResponse) {
-    this.isCreatingStep = false;
-    this.selectedId.set(step.moduleId);
-    this.selectedStepId.set(step.id);
-
-    this.editingStepTitle.set(step.title);
-    this.editingStepType.set(step.type as 'LESSON' | 'QUIZ');
-
-    if (step.type === 'LESSON' && step.content) {
-      this.editingStepContent.set(step.content || '');
-
-      //  Hydrate Toggle States (Crucial for the UI switches)
-      this.isVideoLesson.set(step.videoEnabled);
-      this.isContentEnabled.set(step.contentEnabled);
-      this.isMaterialsEnabled.set(step.materialsEnabled);
-
-      if (step.videoPlaybackId) {
-        this.currentPlaybackId.set(step.videoPlaybackId);
-        this.isUploadComplete.set(true);
-      } else {
-        this.currentPlaybackId.set(null);
-        this.isUploadComplete.set(false);
-      }
-
-      this.currentAssetId.set(step.videoAssetId || null);
-
-      // Hydrate Resources/Attachments
-      this.editingResources.set(step.resources ? [...step.resources] : []);
-    }
-
-    this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
-  }
-
-  addQuestion() {
-    const newQuestion = {
-      id: crypto.randomUUID(),
-      text: '',
-      multipleCorrect: false, // Toggle between Radio and Checkbox
-      options: [
-        { text: '', isCorrect: false },
-        { text: '', isCorrect: false },
-        { text: '', isCorrect: false },
-        { text: '', isCorrect: false },
-      ],
-    };
-    this.quizQuestions.update((qs) => [...qs, newQuestion]);
-  }
-
-  removeQuestion(index: number) {
-    this.quizQuestions.update((qs) => qs.filter((_, i) => i !== index));
-  }
-
-  // Logic to ensure only one is selected if multipleCorrect is false
-  handleOptionToggle(qIdx: number, oIdx: number) {
-    this.quizQuestions.update((qs) => {
-      const question = qs[qIdx];
-      if (!question.multipleCorrect) {
-        // Uncheck everything else if it's single choice
-        question.options.forEach((opt: any, i: number) => {
-          if (i !== oIdx) opt.isCorrect = false;
-        });
-      }
-      return [...qs];
-    });
-  }
-
-  private calculateDynamicSequence(): number {
-    const currentModuleId = this.selectedId();
-    const currentStepId = this.selectedStepId(); // 'NEW' or a UUID
-
-    // 1. Find the module this step belongs to
-    const parentModule = this.modules().find((m) => m.id === currentModuleId);
-    if (!parentModule) return 1;
-
-    // 2. If it's an existing step, find its current sequence
-    if (currentStepId !== 'NEW') {
-      const existingStep = parentModule.learningSteps?.find((s) => s.id === currentStepId);
-      if (existingStep) return existingStep.sequence;
-    }
-
-    // 3. If it's a new step, put it at the end (Total steps + 1)
-    const stepCount = parentModule.learningSteps?.length || 0;
-    return stepCount + 1;
+    const sequences = module.learningSteps.map((s) => s.sequence || 0);
+    const maxSequence = Math.max(...sequences);
+    return maxSequence + 1;
   }
 
   // State tracking signals
@@ -2908,32 +2840,38 @@ export class CourseBuilder implements OnInit {
 
   async removeVideo() {
     const uploadId = this.currentUploadId();
-    const assetId = this.currentAssetId();
+    const assetId = this.currentAssetId(); // ← you already have this signal
 
-    // 1. Protection against double-clicks
     if (this.isDeleting()) return;
+
+    this.isDeleting.set(true);
 
     try {
       if (assetId) {
-        this.isDeleting.set(true);
+        // Video is already processed → delete the Asset (this is what removes it permanently)
         await firstValueFrom(this.muxService.deleteMuxAsset(assetId));
+        console.log('Deleted Mux Asset:', assetId);
       } else if (uploadId) {
-        this.isDeleting.set(true);
+        // Still in upload state → delete the Upload
         await firstValueFrom(this.muxService.deleteMuxUpload(uploadId));
+        console.log('Deleted Mux Upload:', uploadId);
+      } else {
+        console.log('No assetId or uploadId found to delete.');
       }
 
-      console.log('Cloud cleanup successful.');
-      this.showToast('Video purged from cloud', 'info');
+      this.showToast('Video removed from cloud', 'info');
     } catch (error) {
-      console.error('Cloud cleanup failed, but resetting UI anyway.', error);
+      console.error('Failed to delete from Mux:', error);
+      this.showToast('Failed to delete video from cloud, but UI cleared', 'error');
     } finally {
-      // 3. ALWAYS reset the UI and unlock the button
-      // This runs whether there was an uploadId or not
+      // Always reset UI state even if delete failed
       this.isDeleting.set(false);
       this.selectedVideoFile.set(null);
       this.isUploadComplete.set(false);
-      this.isSyncingToCloud.set(false); // Add this to stop any active spinners
+      this.isSyncingToCloud.set(false);
       this.currentUploadId.set(null);
+      this.currentAssetId.set(null);
+      this.currentPlaybackId.set(null); // ← important: clear player
       this.mainLessonVideo.update((v) => ({ ...v, file: null, uploadId: null }));
     }
   }
@@ -3074,90 +3012,93 @@ export class CourseBuilder implements OnInit {
 
   saveStep() {
     if (this.isSaving()) return;
+
     this.isSaving.set(true);
+    this.showValidationErrors = false;
 
-    // 0. RESET UI ERRORS & PREP DATA
-    const type = this.editingStepType(); // 'LESSON' | 'QUIZ'
+    const type = this.editingStepType();
     const title = this.editingStepTitle()?.trim();
-    const moduleId = this.selectedModuleId();
-    const uploadId = this.currentUploadId();
-
-    // Identify if we are Updating ---
+    const moduleId = this.selectedModuleId(); // ← Get it once
     const stepId = this.selectedStepId();
     const isEdit = !!stepId;
 
-    const isVideo = !!this.isVideoLesson();
-    const isContent = !!this.isContentEnabled();
-    const isMaterials = !!this.isMaterialsEnabled();
+    const isVideo = this.isVideoLesson();
+    const isContent = this.isContentEnabled();
+    const isMaterials = this.isMaterialsEnabled();
 
-    // --- GUARD: Module Existence ---
-    if (!moduleId || moduleId === 'NEW') {
-      this.showToast(
-        'Wait! You are trying to add a step to a module that has not been saved yet.',
-        'error',
-      );
+    // === GUARD: Module Existence ===
+    if (!moduleId) {
+      this.showToast('Please select a module before saving the step.', 'error');
+      this.isSaving.set(false);
       return;
     }
 
-    // --- 1. COMMON VALIDATION (Guards) ---
+    // === COMMON VALIDATION ===
     if (!title) {
       this.showValidationErrors = true;
       this.showToast('Title is required.', 'error');
+      this.isSaving.set(false);
       return;
     }
 
-    // We define our request as either a Create or Update type explicitly
     let request: LearningStepRequest | LearningStepUpdateRequest | null = null;
 
-    // --- 2. LESSON LOGIC BLOCK ---
     if (type === 'LESSON') {
       // Cloud Sync Guard
-      if (this.muxService.isUploading() || this.loadingStates.size > 0) {
+      if (this.muxService.isUploading?.() || this.loadingStates.size > 0) {
         this.showToast('Please wait for media uploads to finish.', 'info');
+        this.isSaving.set(false);
         return;
       }
 
-      const rawContent = this.editingStepContent(); // The "Dirty" HTML
+      const rawContent = this.editingStepContent();
       const currentResources = this.editingResources();
-      const videoData = this.mainLessonVideo();
 
-      // Check for substance without modifying the actual content string
       const isEditorEmpty = !rawContent || rawContent.replace(/<[^>]*>/g, '').trim().length === 0;
 
-      const hasValidVideo = this.isVideoLesson() && !!videoData?.uploadId;
-      const hasValidContent = this.isContentEnabled() && !isEditorEmpty;
-      const hasValidMaterials = this.isMaterialsEnabled() && currentResources.length > 0;
-
-      if (this.loadingStates.size > 0) {
-        this.showToast('Please wait for all uploads to complete before saving.', 'info');
-        return;
-      }
+      const hasValidVideo = isVideo && !!this.currentUploadId();
+      const hasValidContent = isContent && !isEditorEmpty;
+      const hasValidMaterials = isMaterials && currentResources.length > 0;
 
       if (!hasValidVideo && !hasValidContent && !hasValidMaterials) {
         this.showToast('A lesson must have at least one content section.', 'error');
+        this.isSaving.set(false);
         return;
       }
 
-      // Material Integrity check
-      if (this.isMaterialsEnabled() && currentResources.some((r) => !r.objectKey)) {
-        this.showToast('Some materials are missing upload data. Please re-upload them.', 'error');
-        return;
+      if (isMaterials) {
+        const hasInvalid = currentResources.some((r) => !r.objectKey);
+        if (hasInvalid) {
+          this.showToast('Some materials are missing upload data. Please re-upload them.', 'error');
+          this.isSaving.set(false);
+          return;
+        }
       }
 
-      // --- MAPPING TO DISTINCT DTOs ---
       if (isEdit) {
-        // Mapping for LearningStepUpdateRequest (No sequence)
+        // UPDATE existing step
+        let videoUploadIdToSend: string | null | undefined = undefined;
+
+        if (isVideo) {
+          if (this.currentUploadId()) {
+            videoUploadIdToSend = this.currentUploadId()!;
+          } else if (this.selectedVideoFile()) {
+            this.showToast('Please upload the new video first before saving.', 'error');
+            this.isSaving.set(false);
+            return;
+          }
+        } else {
+          videoUploadIdToSend = null; // clear video
+        }
+
         request = {
           title,
           type: 'LESSON',
           videoEnabled: isVideo,
           contentEnabled: isContent,
           materialsEnabled: isMaterials,
-
-          // DEFENSIVE: If video was toggled OFF, send null to trigger backend cleanup
-          videoUploadId: isVideo ? uploadId : '',
+          videoUploadId: videoUploadIdToSend,
           content: hasValidContent && isContent ? rawContent : '',
-
           resources:
             hasValidMaterials && isMaterials
               ? currentResources.map((res) => ({
@@ -3169,17 +3110,17 @@ export class CourseBuilder implements OnInit {
               : [],
         } as LearningStepUpdateRequest;
       } else {
-        // Mapping for LearningStepCreateRequest (Includes sequence)
+        // CREATE new step
         request = {
-          moduleId: moduleId!,
+          moduleId: moduleId!, // ← Now safe
           title,
           type: 'LESSON',
-          sequence: this.calculateDynamicSequence(),
+          sequence: this.calculateDynamicSequence(moduleId!),
           videoEnabled: isVideo,
           contentEnabled: isContent,
           materialsEnabled: isMaterials,
           content: hasValidContent ? rawContent : '',
-          videoUploadId: uploadId!,
+          videoUploadId: this.currentUploadId() || undefined,
           resources: hasValidMaterials
             ? currentResources.map((res) => ({
                 name: res.name,
@@ -3192,158 +3133,67 @@ export class CourseBuilder implements OnInit {
       }
     }
 
-    // --- 3. QUIZ LOGIC BLOCK ---
-    // if (type === 'QUIZ') {
-    //    const questions = this.editingQuestions();
+    // TODO: Add QUIZ handling here when ready
 
-    //    if (!questions || questions.length === 0) {
-    //      this.showToast('A quiz must have at least one question.', 'error');
-    //      return;
-    //    }
+    if (!request) {
+      this.isSaving.set(false);
+      return;
+    }
 
-    //    // For the sake of completion, mapping the Quiz logic
-    //    if (isEdit) {
-    //        request = {
-    //          moduleId: moduleId!,
-    //          title,
-    //          type: 'QUIZ',
-    //          questions: questions,
-    //          content: '',
-    //          videoUploadId: null,
-    //          resources: [],
-    //          videoEnabled: false,
-    //          contentEnabled: false,
-    //          materialsEnabled: false
-    //        } as LearningStepUpdateRequest;
-    //    } else {
-    //        request = {
-    //          moduleId: moduleId!,
-    //          title,
-    //          type: 'QUIZ',
-    //          sequence: this.calculateDynamicSequence(),
-    //          questions: questions,
-    //          content: '',
-    //          videoUploadId: null,
-    //          resources: [],
-    //          videoEnabled: false,
-    //          contentEnabled: false,
-    //          materialsEnabled: false
-    //        } as LearningStepRequest;
-    //    }
-    // }
-
-    // --- 4. EXECUTION GATE ---
-    if (!request) return;
-
-    this.isSaving.set(true);
-
-    // Pick the correct API but keep the same subscription logic
     const operation$ = isEdit
       ? this.learningStepService.updateLearningStep(stepId!, request as LearningStepUpdateRequest)
       : this.learningStepService.createLearningStep(request as LearningStepRequest);
 
-    operation$
-      .pipe(
-        finalize(() => this.isSaving.set(false)), // 3. Re-enable after finish/error
-      )
-      .subscribe({
-        next: (res: LearningStepResponse) => {
-          this.showToast(
-            `${this.editingStepType()} ${isEdit ? 'updated' : 'created'} successfully`,
-            'success',
-          );
+    operation$.pipe(finalize(() => this.isSaving.set(false))).subscribe({
+      next: (res: LearningStepResponse) => {
+        this.showToast(`${type} ${isEdit ? 'updated' : 'created'} successfully`, 'success');
 
-          this.modules.update((currentModules) =>
-            currentModules.map((module) => {
-              if (module.id === moduleId) {
-                const currentSteps = module.learningSteps || [];
+        // Update modules list + backup (your existing logic)
+        this.modules.update((currentModules) =>
+          currentModules.map((module) => {
+            if (module.id === moduleId) {
+              const currentSteps = [...(module.learningSteps || [])];
+              let updatedSteps = isEdit
+                ? currentSteps.map((step) => (step.id === res.id ? { ...res } : step))
+                : [...currentSteps, { ...res }];
 
-                let updatedSteps: LearningStepResponse[];
+              updatedSteps.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 
-                if (isEdit) {
-                  // Update existing step
-                  updatedSteps = currentSteps.map((step) =>
-                    step.id === res.id ? { ...res } : step,
-                  );
-                } else {
-                  // Add new step at the end
-                  updatedSteps = [...currentSteps, { ...res }];
-                }
+              return { ...module, learningSteps: updatedSteps };
+            }
+            return module;
+          }),
+        );
 
-                return {
-                  ...module,
-                  learningSteps: updatedSteps,
-                };
-              }
-              return module;
-            }),
-          );
+        // Update raw backup too...
+        this.rawCourseResponse.update((prev) => {
+          if (!prev?.modules) return prev;
+          return {
+            ...prev,
+            modules: prev.modules.map((m) =>
+              m.id === moduleId
+                ? {
+                    ...m,
+                    learningSteps: isEdit
+                      ? (m.learningSteps || []).map((s) => (s.id === res.id ? res : s))
+                      : [...(m.learningSteps || []), res].sort((a, b) => a.sequence - b.sequence),
+                  }
+                : m,
+            ),
+          };
+        });
 
-          // Optional: Also update the raw backup
-          this.rawCourseResponse.update((prev) => {
-            if (!prev?.modules) return prev;
-            return {
-              ...prev,
-              modules: prev.modules.map((m) =>
-                m.id === moduleId
-                  ? {
-                      ...m,
-                      learningSteps: isEdit
-                        ? (m.learningSteps || []).map((s) => (s.id === res.id ? res : s))
-                        : [...(m.learningSteps || []), res],
-                    }
-                  : m,
-              ),
-            };
-          });
-
-          this.resetForm();
-          this.setView('MODULE_STRUCTURE', moduleId); // Important: refresh view
-        },
-        error: (err: any) => {
-          this.isSaving.set(false);
-          this.showToast(
-            err?.error?.detail ||
-              `Failed to ${isEdit ? 'update' : 'create'} learning step. Please try again.`,
-            'error',
-          );
-          console.error('Error Details:', err.error.errors);
-        },
-      });
-  }
-
-  private resetForm() {
-    // --- DIRECT STATE CLEANUP ---
-    // 1. Identifiers
-    this.selectedStepId.set(null);
-    this.editingStepTitle.set('');
-
-    // 2. Media & Cloud States
-    this.currentAssetId.set(null);
-    this.currentUploadId.set(null);
-    this.currentPlaybackId.set(null);
-    this.mainLessonVideo.set({
-      file: null,
-      progress: 0,
-      uploadId: null,
+        this.clearLessonEditorState();
+        this.setView('MODULE_STRUCTURE', moduleId);
+      },
+      error: (err: any) => {
+        this.showToast(
+          err?.error?.detail || `Failed to ${isEdit ? 'update' : 'create'} step.`,
+          'error',
+        );
+        console.error(err);
+      },
     });
-    this.loadingStates.clear(); // Important to prevent "stuck" uploads
-
-    // Reset Media/Resource States
-    this.editingResources.set([]);
-    this.currentUploadId.set(null);
-    this.selectedVideoFile.set(null);
-    this.isUploadComplete.set(false);
-
-    // 3. Content & Materials
-    this.editingStepContent.set('');
-    this.editingResources.set([]);
-
-    // 4. UI Toggles (Reset to clean slate)
-    this.isVideoLesson.set(false);
-    this.isContentEnabled.set(false);
-    this.isMaterialsEnabled.set(false);
-    this.showValidationErrors = false;
   }
 
   // Signal to track the IDs of the modules that are currently open
@@ -3461,7 +3311,7 @@ export class CourseBuilder implements OnInit {
   moduleTab = signal<'DETAILS' | 'STRUCTURE'>('DETAILS');
 
   reOrderStepSequence() {
-    const moduleId = this.selectedId();
+    const moduleId = this.selectedModuleId();
     if (!moduleId) return;
 
     // 1. Get the current UI state of steps
@@ -3510,7 +3360,7 @@ export class CourseBuilder implements OnInit {
   }
 
   discardStepReorder() {
-    const moduleId = this.selectedId();
+    const moduleId = this.selectedModuleId();
     const backup = this.rawCourseResponse();
 
     if (!moduleId || !backup || !backup.modules) return;
@@ -3599,5 +3449,170 @@ export class CourseBuilder implements OnInit {
         },
         error: () => this.showToast('Cleanup failed.', 'error'),
       });
+  }
+
+  /**
+   *
+   * LEARNING STEP
+   */
+
+  addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
+    if (!moduleId) {
+      this.showToast('Please select a valid module', 'info');
+      return;
+    }
+
+    this.isCreatingStep = true;
+    this.selectedModuleId.set(moduleId);
+    this.selectedStepId.set(null);
+    this.editingStepType.set(type);
+    this.editingStepTitle.set(type === 'QUIZ' ? 'Untitled Quiz' : 'Untitled Lesson');
+
+    this.clearLessonEditorState();
+
+    if (type === 'QUIZ') {
+      this.quizQuestions.set([]);
+      this.addQuestion();
+    }
+
+    this.setView(type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
+  }
+
+  getSelectedStep() {
+    const modules = this.modules();
+    const stepId = this.selectedStepId();
+
+    if (!modules || !stepId) return null;
+
+    for (const m of modules) {
+      const found = (m.learningSteps || []).find((s) => s.id === stepId);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  selectStep(step: LearningStepResponse) {
+    this.isCreatingStep = false;
+    this.selectedId.set(step.moduleId);
+    this.selectedStepId.set(step.id);
+
+    this.editingStepTitle.set(step.title);
+    this.editingStepType.set(step.type as 'LESSON' | 'QUIZ');
+
+    if (step.type === 'LESSON' && step.content) {
+      this.editingStepContent.set(step.content || '');
+
+      //  Hydrate Toggle States (Crucial for the UI switches)
+      this.isVideoLesson.set(step.videoEnabled);
+      this.isContentEnabled.set(step.contentEnabled);
+      this.isMaterialsEnabled.set(step.materialsEnabled);
+
+      if (step.videoPlaybackId) {
+        this.currentPlaybackId.set(step.videoPlaybackId);
+        this.isUploadComplete.set(true);
+      } else {
+        this.currentPlaybackId.set(null);
+        this.isUploadComplete.set(false);
+      }
+
+      this.currentAssetId.set(step.videoAssetId || null);
+
+      // Hydrate Resources/Attachments
+      this.editingResources.set(step.resources ? [...step.resources] : []);
+    }
+
+    this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
+  }
+
+  private clearLessonEditorState() {
+    this.editingStepContent.set('');
+    this.editingResources.set([]);
+    this.isVideoLesson.set(false);
+    this.isContentEnabled.set(false);
+    this.isMaterialsEnabled.set(false);
+
+    this.selectedVideoFile.set(null);
+    this.isUploadComplete.set(false);
+    this.isSyncingToCloud.set(false);
+    this.currentPlaybackId.set(null);
+    this.currentUploadId.set(null);
+    this.currentAssetId.set(null);
+
+    this.mainLessonVideo.set({ file: null, progress: 0, uploadId: null });
+    this.loadingStates.clear();
+  }
+
+  /*
+   * QUESTION
+   */
+  // UI-Specific state (only used when type === 'QUIZ')
+  quizQuestions = signal<any[]>([]);
+  // 1. Add a new Question with 2 default options
+  addQuestion() {
+    const newQuestion = {
+      questionText: '',
+      hasMultipleAnswers: false,
+      answerOptions: [
+        { answerText: '', isCorrect: true }, // One default correct
+        { answerText: '', isCorrect: false },
+      ],
+    };
+    this.quizQuestions.update((qs) => [...qs, newQuestion]);
+  }
+
+  // 2. Remove a Question
+  removeQuestion(qIdx: number) {
+    this.quizQuestions.update((qs) => qs.filter((_, i) => i !== qIdx));
+  }
+
+  // 3. Add an Option to a specific Question
+  addOption(qIdx: number) {
+    const qs = [...this.quizQuestions()];
+    qs[qIdx].answerOptions.push({ answerText: '', isCorrect: false });
+    this.quizQuestions.set(qs);
+  }
+
+  // 4. Remove an Option (Min 2 constraint)
+  removeOption(qIdx: number, oIdx: number) {
+    const qs = [...this.quizQuestions()];
+    if (qs[qIdx].answerOptions.length > 2) {
+      qs[qIdx].answerOptions.splice(oIdx, 1);
+      this.quizQuestions.set(qs);
+    }
+  }
+
+  // 5. Handle Choice Logic (Radio vs Checkbox behavior)
+  handleOptionToggle(qIdx: number, oIdx: number) {
+    const qs = [...this.quizQuestions()];
+    const question = qs[qIdx];
+
+    // 1. If we are in SINGLE CHOICE mode (hasMultipleAnswers === false)
+    if (!question.hasMultipleAnswers) {
+      if (oIdx === -1) {
+        // Toggle was flipped from Multiple -> Single: Keep only the first correct answer
+        let foundFirst = false;
+        question.answerOptions.forEach((opt: any) => {
+          if (opt.isCorrect && !foundFirst) {
+            foundFirst = true;
+          } else {
+            opt.isCorrect = false;
+          }
+        });
+      } else {
+        // A radio button was clicked: Deselect all others
+        question.answerOptions.forEach((opt: any, i: number) => {
+          opt.isCorrect = i === oIdx;
+        });
+      }
+    }
+
+    // 2. If we are in MULTIPLE CHOICE mode (hasMultipleAnswers === true)
+    // We do nothing! NgModel handles the independent checkboxes perfectly.
+
+    this.quizQuestions.set(qs);
+  }
+
+  getCorrectCount(qIdx: number): number {
+    return this.quizQuestions()[qIdx].answerOptions.filter((o: any) => o.isCorrect).length;
   }
 }

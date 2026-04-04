@@ -6,6 +6,8 @@ import dev.marvin.courseservice.lesson.LessonEntity;
 import dev.marvin.courseservice.lesson.LessonRepository;
 import dev.marvin.courseservice.module.ModuleEntity;
 import dev.marvin.courseservice.module.ModuleRepository;
+import dev.marvin.courseservice.storage.mux.MuxAsset;
+import dev.marvin.courseservice.storage.mux.MuxAssetRepository;
 import dev.marvin.courseservice.storage.mux.MuxVideoUploadService;
 import dev.marvin.courseservice.storage.rustfs.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +34,7 @@ public class LearningStepService {
     private final LearningStepResourceRepository learningStepResourceRepository;
     private final MuxVideoUploadService muxVideoService;
     private final S3Service s3Service;
+    private final MuxAssetRepository muxAssetRepository;
 
     @Transactional
     public LearningStepResponse create(LearningStepRequest request) {
@@ -49,6 +55,8 @@ public class LearningStepService {
         // Persist parent to generate ID
         learningStepEntity = learningStepRepository.save(learningStepEntity);
 
+
+        List<LearningStepResourceEntity> learningStepResourceEntityList = new ArrayList<>();
         // 3. Handle Resources
         if (request.materialsEnabled() && request.resources() != null) {
             for (var resourceReq : request.resources()) {
@@ -59,144 +67,208 @@ public class LearningStepService {
                         .contentType(resourceReq.contentType())
                         .size(resourceReq.size())
                         .build();
-                learningStepResourceRepository.save(resource);
+                learningStepResourceEntityList.add(resource); // ✅ ADD THIS
             }
         }
 
-        if (request.type().equals(LearningStepType.LESSON)) {
-            LessonEntity lessonEntity = LessonEntity.builder()
-                    .content(request.content())
-                    .learningStepEntity(learningStepEntity)
-                    .videoUploadId(request.videoUploadId())
-                    .build();
-            lessonRepository.save(lessonEntity);
+        learningStepResourceRepository.saveAll(learningStepResourceEntityList);
 
+        List<LearningStepResourceResponse> resourceResponses =
+                learningStepResourceEntityList.stream()
+                        .map(r -> new LearningStepResourceResponse(
+                                r.getId(),
+                                r.getName(),
+                                r.getObjectKey(),
+                                r.getObjectKey() != null
+                                        ? s3Service.generatePresignedUrl(r.getObjectKey())
+                                        : null,
+                                r.getContentType(),
+                                r.getSize()
+                        ))
+                        .toList();
+
+        LessonEntity lesson = null;
+
+        if (request.type().equals(LearningStepType.LESSON)) {
+            LessonEntity lessonEntity = new LessonEntity();
+            lessonEntity.setContent(request.content());
+            lessonEntity.setLearningStepEntity(learningStepEntity);
+            lessonEntity.setVideoUploadId(request.videoUploadId());
+
+            // 🔗 Sync with MuxAsset if webhook already came
+            if (request.videoUploadId() != null) {
+                muxAssetRepository.findByUploadId(request.videoUploadId())
+                        .ifPresent(muxAsset -> {
+                            if (muxAsset.getPlaybackId() != null && muxAsset.getAssetId() != null) {
+                                lessonEntity.setVideoPlaybackId(muxAsset.getPlaybackId());
+                                lessonEntity.setVideoAssetId(muxAsset.getAssetId());
+                                muxAsset.setProcessed(true);
+                                muxAssetRepository.save(muxAsset);
+                            }
+                        });
+            }
+            lesson = lessonRepository.save(lessonEntity);
         }
 
         if (request.type().equals(LearningStepType.QUIZ)) {
         }
 
-        return LearningStepMapper.mapToResponse(learningStepEntity);
+
+        return LearningStepMapper.mapToResponse(learningStepEntity, lesson, resourceResponses);
     }
 
-
-    private void validateStep(BaseLearningStepRequest request) {
-        if (request.type().equals(LearningStepType.LESSON)) {
-
-            // 1. If Content Toggle is ON, String must not be blank
-            if (request.contentEnabled() && (request.content() == null || request.content().isBlank())) {
-                throw new BadRequestException("Content is enabled but no text was provided.");
-            }
-
-            // 2. If Video Toggle is ON, we must have a Mux Upload ID
-            if (request.videoEnabled() && (request.videoUploadId() == null || request.videoUploadId().isBlank())) {
-                throw new BadRequestException("Video is enabled but no video was uploaded.");
-            }
-
-            // 3. If Materials Toggle is ON, the list must not be empty
-            if (request.materialsEnabled() && (request.resources() == null || request.resources().isEmpty())) {
-                throw new BadRequestException("Materials are enabled but no files were attached.");
-            }
-
-        }
-
-        if (request.type().equals(LearningStepType.QUIZ) && (request.questions() == null || request.questions().isEmpty())) {
-            throw new BadRequestException("Quiz type requires at least one question.");
-        }
-
-    }
 
     @Transactional
     public LearningStepResponse update(UUID learningStepId, LearningStepUpdateRequest request) {
-        validateStep(request);
+        log.info("Updating learning step with id: {}", learningStepId);
 
-        // 1. Fetch the existing entity
+        // 1. Fetch LearningStepEntity
         LearningStepEntity learningStep = learningStepRepository.findById(learningStepId)
-                .orElseThrow(() -> new ResourceNotFoundException("Learning step with id [%s] not found".formatted(learningStepId)));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Learning step with id [%s] not found".formatted(learningStepId)));
 
-        // 2. Update metadata
+        // 2. Update basic metadata
         learningStep.setTitle(request.title());
         learningStep.setVideoEnabled(request.videoEnabled());
         learningStep.setContentEnabled(request.contentEnabled());
         learningStep.setMaterialsEnabled(request.materialsEnabled());
 
+        // 3. Handle Lesson (Video + Content)
+        LessonEntity lessonEntity = lessonRepository
+                .findByLearningStepEntity_Id(learningStep.getId())
+                .orElse(null);
 
-        // 3. DEFENSIVE LESSON CLEANUP (Mux)
-        if (learningStep.getType().equals(LearningStepType.LESSON)) {
-            lessonRepository.findByLearningStepEntity_Id(learningStep.getId()).ifPresentOrElse(
-                    lessonEntity -> {
-                        lessonEntity.setContent(request.content());
+        if (lessonEntity != null) {
+            log.info("Found existing lesson for learning step: {}", learningStepId);
 
-                        // Logic: If (Toggled Off) OR (New Upload ID provided)
-                        boolean toggledOff = !request.videoEnabled();
-                        boolean videoChanged = request.videoUploadId() != null && !request.videoUploadId().equals(lessonEntity.getVideoUploadId());
+            // === VIDEO ===
+            if (!request.videoEnabled()) {
+                log.info("Disabling video for lesson: {}", lessonEntity.getId());
+                muxVideoService.deleteAsset(lessonEntity.getVideoAssetId());
+                lessonEntity.setVideoAssetId(null);
+                lessonEntity.setVideoPlaybackId(null);
+                lessonEntity.setVideoUploadId(null);
+            } else {
+                log.info("Updating video for lesson: {}", lessonEntity.getId());
+                String videoUploadId = request.videoUploadId();
 
-                        if ((toggledOff || videoChanged) && lessonEntity.getVideoAssetId() != null) {
-                            // Delete from Mux Cloud
-                            muxVideoService.deleteAsset(lessonEntity.getVideoAssetId());
+                if (StringUtils.hasText(videoUploadId)) {
+                    log.info("Updating video upload ID: {}", videoUploadId);
+                    muxVideoService.deleteAsset(lessonEntity.getVideoAssetId());
+                    lessonEntity.setVideoAssetId(null);
+                    lessonEntity.setVideoPlaybackId(null);
+                    lessonEntity.setVideoUploadId(videoUploadId);
 
-                            // Wipe DB playback info
-                            lessonEntity.setVideoAssetId(null);
-                            lessonEntity.setVideoPlaybackId(null);
-                        }
+                    // Get muxAsset and update if ready
+                    MuxAsset muxAsset = muxAssetRepository.findByUploadId(videoUploadId).orElse(null);
+                    if (muxAsset != null &&
+                            muxAsset.getPlaybackId() != null &&
+                            muxAsset.getAssetId() != null) {
+                        log.info("MuxAsset found for upload ID: {}", videoUploadId);
 
-                        lessonEntity.setVideoUploadId(toggledOff ? null : request.videoUploadId());
-                        lessonRepository.save(lessonEntity);
-
-
-                    }, () -> log.warn("Lesson not found for learning step with id [{}]", learningStepId)
-            );
-        }
-
-
-        // 4. DEFENSIVE RESOURCE CLEANUP (S3)
-        // If toggled off OR the list is empty, delete orphans
-        List<LearningStepResourceEntity> learningStepResourceEntities = learningStepResourceRepository.findByLearningStepEntity_Id(learningStepId);
-        if (!request.materialsEnabled() || request.resources().isEmpty()) {
-            if (learningStepResourceEntities != null && !learningStepResourceEntities.isEmpty()) {
-                for (var resource : learningStepResourceEntities) {
-                    s3Service.deleteFile(resource.getObjectKey()); // Purge S3
-                }
-                learningStepResourceRepository.deleteAll(learningStepResourceEntities);
-            }
-        } else {
-            // SYNC: We need to remove what's no longer in the request
-            // Simplest approach: Delete existing and re-save the current list from the request
-            if (learningStepResourceEntities != null && !learningStepResourceEntities.isEmpty()) {
-                // Optional: Only delete files from S3 that are NOT in the new request
-                for (var existing : learningStepResourceEntities) {
-                    boolean stillExists = request.resources().stream()
-                            .anyMatch(r -> r.objectKey().equals(existing.getObjectKey()));
-
-                    if (!stillExists) {
-                        s3Service.deleteFile(existing.getObjectKey());
+                        lessonEntity.setVideoPlaybackId(muxAsset.getPlaybackId());
+                        lessonEntity.setVideoAssetId(muxAsset.getAssetId());
+                        muxAsset.setProcessed(true);
+                        muxAssetRepository.save(muxAsset);
+                        log.info("MuxAsset updated for upload ID: {}", videoUploadId);
                     }
                 }
-                learningStepResourceRepository.deleteAll(learningStepResourceEntities);
             }
 
-            // Save the current state from the request
-            for (var resReq : request.resources()) {
-                LearningStepResourceEntity resource = LearningStepResourceEntity.builder()
-                        .learningStepEntity(learningStep)
-                        .name(resReq.name())
-                        .objectKey(resReq.objectKey())
-                        .contentType(resReq.contentType())
-                        .size(resReq.size())
-                        .build();
-                learningStepResourceRepository.save(resource);
+            // === CONTENT ===
+            if (!request.contentEnabled()) {
+                log.info("Disabling content for lesson: {}", lessonEntity.getId());
+                lessonEntity.setContent(null);
+            } else if (!StringUtils.hasText(request.content())) {
+                log.info("Content is enabled but no text was provided.");
+                throw new BadRequestException("Content is enabled but no text was provided.");
+            } else {
+                log.info("Updating content for lesson: {}", lessonEntity.getId());
+                lessonEntity.setContent(request.content());
+            }
+
+            lessonEntity = lessonRepository.save(lessonEntity);
+        }
+
+        // 4. Handle Resource Materials
+        List<LearningStepResourceEntity> existingResources =
+                learningStepResourceRepository.findByLearningStepEntity_Id(learningStepId);
+
+        if (!request.materialsEnabled()) {
+            log.info("Disabling materials for learning step: {}", learningStepId);
+            if (!existingResources.isEmpty()) {
+                log.info("Deleting {} existing resources for learning step: {}", existingResources.size(), learningStepId);
+                for (var resource : existingResources) {
+                    log.info("Deleting S3 file for resource: {}", resource.getObjectKey());
+                    s3Service.deleteFile(resource.getObjectKey());
+                    resource.setLearningStepEntity(null);
+                }
+            }
+            learningStepResourceRepository.deleteAll(existingResources);
+        } else {
+            log.info("Updating materials for learning step: {}", learningStepId);
+            if (request.resources() == null || request.resources().isEmpty()) {
+                log.info("Materials are enabled but no files were provided.");
+                throw new BadRequestException("Materials are enabled but no files were provided.");
+            }
+
+            // Delete resources that are no longer requested
+            for (LearningStepResourceEntity existing : existingResources) {
+                log.info("Checking if resource {} still exists", existing.getObjectKey());
+                boolean stillExists = request.resources().stream()
+                        .anyMatch(r -> r.objectKey().equals(existing.getObjectKey()));
+
+                if (!stillExists) {
+                    log.info("Deleting resource {} because it's no longer requested", existing.getObjectKey());
+                    s3Service.deleteFile(existing.getObjectKey());
+                    learningStepResourceRepository.delete(existing);
+                }
+            }
+
+            // Add newly requested resources
+            for (LearningStepResourceRequest resReq : request.resources()) {
+                log.info("Adding resource: {}", resReq.objectKey());
+                boolean alreadyExists = existingResources.stream()
+                        .anyMatch(e -> e.getObjectKey().equals(resReq.objectKey()));
+
+                if (!alreadyExists) {
+                    log.info("Resource does not exist, creating new one");
+                    LearningStepResourceEntity resource = LearningStepResourceEntity.builder()
+                            .learningStepEntity(learningStep)
+                            .name(resReq.name())
+                            .objectKey(resReq.objectKey())
+                            .contentType(resReq.contentType())
+                            .size(resReq.size())
+                            .build();
+                    learningStepResourceRepository.save(resource);
+                }
             }
         }
 
-
-        // 5. Handle Quiz Logic
-        if (learningStep.getType().equals(LearningStepType.QUIZ)) {
-            // Implementation for quiz question updates would go here
+        // 5. Quiz placeholder
+        if (LearningStepType.QUIZ.equals(learningStep.getType())) {
+            // TODO: Implement quiz update logic in the future
         }
 
-        // Save parent and return
+        // 6. Save the main LearningStepEntity
         LearningStepEntity updatedStep = learningStepRepository.save(learningStep);
-        return LearningStepMapper.mapToResponse(updatedStep);
+
+        // 7. Fetch fresh resources for the response
+        List<LearningStepResourceEntity> updatedResources =
+                learningStepResourceRepository.findByLearningStepEntity_Id(learningStepId);
+
+        List<LearningStepResourceResponse> resourceResponses = updatedResources.stream()
+                .map(r -> new LearningStepResourceResponse(
+                        r.getId(),
+                        r.getName(),
+                        r.getObjectKey(),
+                        s3Service.generatePresignedUrl(r.getObjectKey()),
+                        r.getContentType(),
+                        r.getSize()))
+                .toList();
+
+        // 8. Return response
+        return LearningStepMapper.mapToResponse(updatedStep, lessonEntity, resourceResponses);
     }
 
     @Transactional
@@ -237,6 +309,33 @@ public class LearningStepService {
         learningStepRepository.delete(learningStep);
 
         log.info("Successfully deleted learning step {} and all associated cloud assets.", learningStepId);
+    }
+
+
+    private void validateStep(LearningStepRequest request) {
+        if (request.type().equals(LearningStepType.LESSON)) {
+
+            // 1. If Content Toggle is ON, String must not be blank
+            if (request.contentEnabled() && (request.content() == null || request.content().isBlank())) {
+                throw new BadRequestException("Content is enabled but no text was provided.");
+            }
+
+            // 2. If Video Toggle is ON, we must have a Mux Upload ID
+            if (request.videoEnabled() && (request.videoUploadId() == null || request.videoUploadId().isBlank())) {
+                throw new BadRequestException("Video is enabled but no video was uploaded.");
+            }
+
+            // 3. If Materials Toggle is ON, the list must not be empty
+            if (request.materialsEnabled() && (request.resources() == null || request.resources().isEmpty())) {
+                throw new BadRequestException("Materials are enabled but no files were attached.");
+            }
+
+        }
+
+        if (request.type().equals(LearningStepType.QUIZ) && (request.questions() == null || request.questions().isEmpty())) {
+            throw new BadRequestException("Quiz type requires at least one question.");
+        }
+
     }
 }
 

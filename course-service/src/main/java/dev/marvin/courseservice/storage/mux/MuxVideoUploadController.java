@@ -31,16 +31,16 @@ public class MuxVideoUploadController {
     public ResponseEntity<Void> deleteMuxUpload(@PathVariable("id") String uploadId) {
         log.info("Deleting Mux upload with ID: {}", uploadId);
         muxVideoUploadService.deleteUpload(uploadId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
 
     @Operation(summary = "Delete Mux Asset")
-    @DeleteMapping("/assets{id}")
+    @DeleteMapping("/assets/{id}")
     public ResponseEntity<Void> deleteMuxAsset(@PathVariable("id") String assetId) {
         log.info("Deleting Mux asset with ID: {}", assetId);
         muxVideoUploadService.deleteAsset(assetId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Handle Mux webhook")

@@ -1,11 +1,33 @@
 package dev.marvin.courseservice.quiz;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Version;
+import dev.marvin.courseservice.learningstep.LearningStepEntity;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(
+        name = "quizzes",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_quiz_step",
+                        columnNames = "learning_step_id"
+                )
+        }, indexes = {
+        @Index(
+                name = "idx_quiz_step",
+                columnList = "learning_step_id"
+        )
+})
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
 public class QuizEntity {
     @Id
     @GeneratedValue
@@ -14,5 +36,12 @@ public class QuizEntity {
     @Version
     private Long version;
 
+    @OneToOne
+    @JoinColumn(name = "learning_step_id")
+    private LearningStepEntity learningStepEntity;
 
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

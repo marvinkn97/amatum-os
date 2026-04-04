@@ -39,5 +39,5 @@ public record LearningStepRequest(
 
         @Valid
         List<QuizQuestionRequest> questions
-) implements BaseLearningStepRequest {
+) {
 }

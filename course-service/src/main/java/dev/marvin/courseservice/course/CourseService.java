@@ -174,6 +174,7 @@ public class CourseService {
                                                 new LearningStepResourceResponse(
                                                         r.getId(),
                                                         r.getName(),
+                                                        r.getObjectKey(),
                                                         s3Service.generatePresignedUrl(r.getObjectKey()),
                                                         r.getContentType(),
                                                         r.getSize()

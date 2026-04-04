@@ -28,5 +28,5 @@ public record LearningStepUpdateRequest(
 
         @Valid
         List<QuizQuestionRequest> questions
-) implements BaseLearningStepRequest {
+) {
 }
