@@ -1,5 +1,6 @@
-package dev.marvin.courseservice.quiz;
+package dev.marvin.courseservice.quiz.question;
 
+import dev.marvin.courseservice.quiz.answer.QuizAnswerOptionRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

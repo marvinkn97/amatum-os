@@ -2,6 +2,7 @@ package dev.marvin.courseservice.course;
 
 import dev.marvin.courseservice.category.CategoryEntity;
 import dev.marvin.courseservice.category.CategoryRepository;
+import dev.marvin.courseservice.common.Status;
 import dev.marvin.courseservice.exception.BadRequestException;
 import dev.marvin.courseservice.exception.ResourceNotFoundException;
 import dev.marvin.courseservice.learningstep.*;
@@ -11,6 +12,15 @@ import dev.marvin.courseservice.module.ModuleEntity;
 import dev.marvin.courseservice.module.ModuleReOrderRequest;
 import dev.marvin.courseservice.module.ModuleRepository;
 import dev.marvin.courseservice.module.ModuleResponse;
+import dev.marvin.courseservice.quiz.answer.QuizAnswerOption;
+import dev.marvin.courseservice.quiz.answer.QuizAnswerOptionRepository;
+import dev.marvin.courseservice.quiz.answer.QuizAnswerOptionResponse;
+import dev.marvin.courseservice.quiz.question.QuizQuestion;
+import dev.marvin.courseservice.quiz.question.QuizQuestionRepository;
+import dev.marvin.courseservice.quiz.question.QuizQuestionResponse;
+import dev.marvin.courseservice.quiz.quiz.QuizEntity;
+import dev.marvin.courseservice.quiz.quiz.QuizRepository;
+import dev.marvin.courseservice.quiz.quiz.QuizResponse;
 import dev.marvin.courseservice.security.TenantContext;
 import dev.marvin.courseservice.storage.rustfs.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +46,9 @@ public class CourseService {
     private final LessonRepository lessonRepository;
     private final LearningStepResourceRepository learningStepResourceRepository;
     private final S3Service s3Service;
+    private final QuizRepository quizRepository;
+    private final QuizQuestionRepository quizQuestionRepository;
+    private final QuizAnswerOptionRepository quizAnswerOptionRepository;
 
     @Transactional
     public CourseResponse create(CourseRequest request) {
@@ -46,7 +59,7 @@ public class CourseService {
 
         String activeTenantId = TenantContext.TENANT_ID.get();
         CategoryEntity category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(()-> new BadRequestException("Category with id [%s] is invalid".formatted(request.categoryId())));
+                .orElseThrow(() -> new BadRequestException("Category with id [%s] is invalid".formatted(request.categoryId())));
 
         Set<String> cleanTags = request.tags().stream()
                 .map(String::trim)
@@ -65,8 +78,8 @@ public class CourseService {
                 .tenantId(activeTenantId)
                 .build();
 
-       course =  courseRepository.save(course);
-       return CourseMapper.mapToResponse(course);
+        course = courseRepository.save(course);
+        return CourseMapper.mapToResponse(course);
     }
 
     @Transactional
@@ -77,21 +90,21 @@ public class CourseService {
 
         boolean changes = false;
 
-        if(!course.getTitle().equals(update.title())){
+        if (!course.getTitle().equals(update.title())) {
             course.setTitle(update.title());
             course.setSlug(update.slug());
             changes = true;
         }
 
 
-        if(!course.getCategory().getId().equals(update.categoryId())){
+        if (!course.getCategory().getId().equals(update.categoryId())) {
             CategoryEntity category = categoryRepository.findById(update.categoryId()).
-                    orElseThrow(()-> new BadRequestException("Category with id [%s] is invalid".formatted(update.categoryId())));
+                    orElseThrow(() -> new BadRequestException("Category with id [%s] is invalid".formatted(update.categoryId())));
             course.setCategory(category);
             changes = true;
         }
 
-        if(!course.getDescription().equals(update.description())){
+        if (!course.getDescription().equals(update.description())) {
             course.setDescription(update.description());
             changes = true;
         }
@@ -102,9 +115,9 @@ public class CourseService {
         }
 
         if (update.accessTier() == CourseAccessTier.FREE) {
-                course.setPrice(BigDecimal.ZERO);
-                changes = true;
-            }
+            course.setPrice(BigDecimal.ZERO);
+            changes = true;
+        }
 
 
         if (update.accessTier() == CourseAccessTier.PREMIUM) {
@@ -120,7 +133,7 @@ public class CourseService {
         }
 
 
-        if(course.isFeatured() != update.isFeatured()){
+        if (course.isFeatured() != update.isFeatured()) {
             course.setFeatured(update.isFeatured());
             changes = true;
         }
@@ -149,19 +162,19 @@ public class CourseService {
     public CourseResponse getCourseById(UUID id) {
         log.info("Getting course with id: {}", id);
 
-        // 1. Fetch Course
+        // Fetch Course
         CourseEntity course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
 
-        // 2. Fetch Modules
+        // Fetch Modules
         List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_IdOrderBySequenceAsc(course.getId());
         List<UUID> moduleIds = moduleEntities.stream().map(ModuleEntity::getId).toList();
 
-        // 3. Fetch All Steps
+        // Fetch All Steps
         List<LearningStepEntity> stepEntities = learningStepRepository.findByModule_IdIn(moduleIds);
         List<UUID> stepIds = stepEntities.stream().map(LearningStepEntity::getId).toList();
 
-       // Bulk fetch resources
+        // Bulk fetch resources
         List<LearningStepResourceEntity> resourceEntities =
                 learningStepResourceRepository.findByLearningStepEntity_IdIn(stepIds);
 
@@ -192,7 +205,48 @@ public class CourseService {
                         (existing, replacement) -> existing         // Merge function to prevent duplicates
                 ));
 
-        // 3.5 Group Steps by Module ID and Flatten Lesson Data
+        // Fetch the Quiz headers
+        List<QuizEntity> quizEntities = quizRepository.findByLearningStepEntity_IdIn(stepIds);
+        List<UUID> quizIds = quizEntities.stream().map(QuizEntity::getId).toList();
+
+        // Fetch all Questions for these Quizzes
+        //  (Assuming you have a QuizQuestionRepository)
+        Map<UUID, List<QuizQuestion>> questionsByQuizId =
+                quizQuestionRepository.findByQuizEntity_IdIn(quizIds).stream()
+                        .collect(Collectors.groupingBy(q -> q.getQuizEntity().getId()));
+
+        // Fetch all Answer Options for these Questions
+        List<UUID> questionIds = questionsByQuizId.values().stream()
+                .flatMap(List::stream)
+                .map(QuizQuestion::getId)
+                .toList();
+
+        Map<UUID, List<QuizAnswerOption>> optionsByQuestionId =
+                quizAnswerOptionRepository.findByQuizQuestion_IdIn(questionIds).stream()
+                        .collect(Collectors.groupingBy(opt -> opt.getQuizQuestion().getId()));
+
+        //  Assemble the QuizResponse Map
+        Map<UUID, QuizResponse> quizzesByStepId = quizEntities.stream()
+                .collect(Collectors.toMap(
+                        quiz -> quiz.getLearningStepEntity().getId(),
+                        quiz -> {
+                            List<QuizQuestion> questions = questionsByQuizId.getOrDefault(quiz.getId(), List.of());
+
+                            List<QuizQuestionResponse> questionResponses = questions.stream()
+                                    .map(q -> {
+                                        List<QuizAnswerOptionResponse> optionResponses = optionsByQuestionId.getOrDefault(q.getId(), List.of())
+                                                .stream()
+                                                .map(opt -> new QuizAnswerOptionResponse(opt.getId(), opt.getAnswerText(), opt.isCorrect()))
+                                                .toList();
+
+                                        return new QuizQuestionResponse(q.getId(), q.getQuestionText(), q.isHasMultipleAnswers(), optionResponses);
+                                    }).toList();
+
+                            return new QuizResponse(quiz.getId(), questionResponses);
+                        }
+                ));
+
+        //  Group Steps by Module ID and Flatten Lesson Data
         Map<UUID, List<LearningStepResponse>> stepsByModuleId = stepEntities.stream()
                 .map(entity -> {
                     if (entity.getType().equals(LearningStepType.LESSON)) {
@@ -203,7 +257,12 @@ public class CourseService {
                         List<LearningStepResourceResponse> resources =
                                 resourcesByStepId.getOrDefault(entity.getId(), List.of());
 
-                        return LearningStepMapper.mapToResponse(entity, lesson, resources);
+                        return LearningStepMapper.mapToResponse(entity, lesson, resources, null);
+                    }
+
+                    if (entity.getType().equals(LearningStepType.QUIZ)) {
+                        QuizResponse quizResponse = quizzesByStepId.get(entity.getId());
+                        return LearningStepMapper.mapToResponse(entity, null, null, quizResponse);
                     }
 
                     // Fallback for QUIZ or other types: use the standard one-argument mapper
@@ -211,21 +270,35 @@ public class CourseService {
                 })
                 .collect(Collectors.groupingBy(LearningStepResponse::getModuleId));
 
-        // 4. Build ModuleResponses
+        // Group the RAW entities by Module ID first
+        Map<UUID, List<LearningStepEntity>> rawStepsByModuleId = stepEntities.stream()
+                .collect(Collectors.groupingBy(s -> s.getModule().getId()));
+
+        // Build ModuleResponses
         List<ModuleResponse> moduleResponses = moduleEntities.stream()
-                .map(m -> new ModuleResponse(
-                        m.getId(),
-                        m.getTitle(),
-                        m.getSequence(),
-                        stepsByModuleId.getOrDefault(m.getId(), List.of())
-                ))
+                .map(m -> {
+
+                    List<LearningStepEntity> rawSteps = rawStepsByModuleId.getOrDefault(m.getId(), List.of());
+
+                    // Check entities directly
+                    boolean isReady = !rawSteps.isEmpty() && rawSteps.stream()
+                            .allMatch(learningStepEntity -> learningStepEntity.getStatus().equals(Status.PUBLISHED));
+
+                    return new ModuleResponse(
+                            m.getId(),
+                            m.getTitle(),
+                            m.getSequence(),
+                            isReady,
+                            stepsByModuleId.getOrDefault(m.getId(), List.of())
+                    );
+                })
                 .toList();
 
         return CourseMapper.mapToResponseWithModulesAndLessons(course, moduleResponses);
     }
 
     @Transactional(readOnly = true)
-    public Page<CourseResponse> getAllActiveCourses(Pageable pageable){
+    public Page<CourseResponse> getAllActiveCourses(Pageable pageable) {
         log.info("Getting all active courses");
 
         if (!TenantContext.TENANT_ID.isBound()) {
@@ -245,7 +318,7 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CourseResponse> getAllArchivedCourses(Pageable pageable){
+    public Page<CourseResponse> getAllArchivedCourses(Pageable pageable) {
         log.info("Getting all archived courses");
         if (!TenantContext.TENANT_ID.isBound()) {
             throw new BadRequestException("No active organization context found in request");
@@ -282,12 +355,12 @@ public class CourseService {
         String activeTenantId = TenantContext.TENANT_ID.get();
 
 
-        return courseRepository.findArchivedByNameCategoryAndTenant(name, categoryId, activeTenantId,  pageable)
+        return courseRepository.findArchivedByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
                 .map(CourseMapper::mapToResponse);
     }
 
     @Transactional
-    public void delete(UUID id){
+    public void delete(UUID id) {
         log.info("Deleting course with id: {}", id);
         CourseEntity course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
@@ -296,7 +369,7 @@ public class CourseService {
     }
 
     @Transactional
-    public void restore(UUID id){
+    public void restore(UUID id) {
         log.info("Restoring course with id: {}", id);
         CourseEntity course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
@@ -305,7 +378,7 @@ public class CourseService {
     }
 
     @Transactional
-   public void reOrderModuleSequence(UUID courseId, List<ModuleReOrderRequest> moduleReOrderRequestList){
+    public void reOrderModuleSequence(UUID courseId, List<ModuleReOrderRequest> moduleReOrderRequestList) {
         log.info("Re-ordering modules for course with id: {}", courseId);
 
         // 1. Fetch the course to ensure it exists
@@ -334,6 +407,6 @@ public class CourseService {
 
         log.info("Successfully re-ordered {} modules for course {}", moduleEntities.size(), courseId);
 
-   }
+    }
 
 }

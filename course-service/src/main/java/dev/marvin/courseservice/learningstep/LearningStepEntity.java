@@ -51,6 +51,8 @@ public class LearningStepEntity {
     private boolean contentEnabled;
     private boolean materialsEnabled;
 
+    private boolean isReadyToPublish = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

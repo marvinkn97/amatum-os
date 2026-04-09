@@ -1,5 +1,6 @@
-package dev.marvin.courseservice.quiz;
+package dev.marvin.courseservice.quiz.question;
 
+import dev.marvin.courseservice.quiz.quiz.QuizEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,18 +9,17 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 @Entity
-@Table(name = "quiz_answer_options",
+@Table(name = "quiz_questions",
         indexes = {
-        @Index(name = "idx_quiz_option_question_id", columnList = "quiz_question_id")
+        @Index(name = "idx_quiz_question_quiz_id", columnList = "quiz_id")
 })
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class QuizAnswerOption {
+public class QuizQuestion {
     @Id
     @GeneratedValue
     private UUID id;
@@ -27,14 +27,14 @@ public class QuizAnswerOption {
     @Version
     private Long version;
 
-    @Column(columnDefinition = "TEXT")
-    private String answerText;
-
-    private boolean isCorrect;
-
     @ManyToOne
-    @JoinColumn(name = "quiz_question_id")
-    private QuizQuestion quizQuestion;
+    @JoinColumn(name = "quiz_id")
+    private QuizEntity quizEntity;
+
+    @Column(columnDefinition = "TEXT")
+    private String questionText;
+
+    private boolean hasMultipleAnswers;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

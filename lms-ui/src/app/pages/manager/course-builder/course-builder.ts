@@ -27,6 +27,7 @@ import {
   LearningStepResponse,
   LearningStepService,
   LearningStepUpdateRequest,
+  QuizQuestionRequest,
 } from '../../../services/learning-step.service';
 import { MuxService } from '../../../services/mux.service';
 import { S3Service } from '../../../services/s3.service';
@@ -161,7 +162,7 @@ interface StudioNotification {
               <span
                 class="text-[10px] font-black uppercase tracking-widest text-emerald-500 group-hover:text-white"
               >
-                Publish
+                Publish Course
               </span>
               <svg
                 class="size-3 text-emerald-500 group-hover:text-white"
@@ -1635,7 +1636,7 @@ interface StudioNotification {
                                 </div>
                               </div>
                             </div>
-                          } @else if (file.objectKey || file.url) {
+                          } @else if (file.objectKey || file.s3PreSignedUrl) {
                             <div
                               class="space-y-6 animate-in zoom-in duration-500 flex flex-col items-center justify-center"
                             >
@@ -1663,9 +1664,9 @@ interface StudioNotification {
                                 />
 
                                 <div class="flex items-center gap-3">
-                                  @if (file.url) {
+                                  @if (file.s3PreSignedUrl) {
                                     <a
-                                      [href]="file.url"
+                                      [href]="file.s3PreSignedUrl"
                                       target="_blank"
                                       title="Open Asset"
                                       class="p-3 bg-white/5 border border-white/10 rounded-2xl text-indigo-400 hover:text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all active:scale-90"
@@ -1917,7 +1918,360 @@ interface StudioNotification {
                   </section>
                 }
                 <div
-                  class="flex justify-end items-center gap-4 pt-12 pb-20 border-t border-white/5"
+                  class="flex justify-end items-center flex-wrap gap-4 pt-12 pb-20 border-t border-white/5"
+                >
+                  @if (getSelectedStep() != null) {
+                    <button
+                      type="button"
+                      (click)="getSelectedStep() && confirmDelete(getSelectedStep()!)"
+                      [disabled]="isDeleting()"
+                      class="group px-4 py-2 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5"
+                    >
+                      <svg
+                        class="size-3.5 block opacity-40 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <path
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+
+                      <span class="text-[11px] font-bold uppercase tracking-[0.2em] leading-none">
+                        {{ isDeleting() ? 'Removing...' : 'Delete Lesson' }}
+                      </span>
+                    </button>
+                  }
+
+                  <button
+                    (click)="saveStep()"
+                    [disabled]="isSaving() || hasPendingUploads()"
+                    class="px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                  >
+                    @if (isSaving()) {
+                      <span
+                        class="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                      ></span>
+                      Saving...
+                    } @else {
+                      <svg
+                        class="size-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      >
+                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      Save Changes
+                    }
+                  </button>
+                  <div class="flex items-center gap-3">
+                    @if (getSelectedStep()?.status === 'PUBLISHED') {
+                      <!-- Already Published Badge -->
+                      <div
+                        class="flex items-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 rounded-2xl"
+                      >
+                        <div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span
+                          class="text-emerald-400 text-[11px] font-black uppercase tracking-widest"
+                        >
+                          Published
+                        </span>
+                      </div>
+                    } @else {
+                      <!-- Publish Button -->
+                      <button
+                        (click)="publishStep()"
+                        [disabled]="
+                          isPublishing() || !getSelectedStep()?.readyToPublish || isSaving()
+                        "
+                        class="group flex items-center gap-2 px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        @if (isPublishing()) {
+                          <span
+                            class="size-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"
+                          ></span>
+                          Publishing...
+                        } @else {
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="size-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="3"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M5 10l7-7m0 0l7 7"
+                            />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v14" />
+                          </svg>
+                          Publish Lesson
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+            @if (activeView() === 'QUIZ_EDITOR') {
+              <div class="space-y-10 animate-in fade-in duration-500 pb-24">
+                <header
+                  class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-8 gap-4"
+                >
+                  <div class="flex-1">
+                    <p
+                      class="text-indigo-500/60 text-[10px] font-black uppercase tracking-widest mt-2"
+                    >
+                      Quiz Designer • {{ quizQuestions().length }} Questions
+                    </p>
+                    <input
+                      [(ngModel)]="editingStepTitle"
+                      class="bg-transparent border-none outline-none text-xl lg:text-2xl font-black text-white italic tracking-tighter w-full mt-2 placeholder:text-white/20"
+                    />
+                    @if (showValidationErrors && !editingStepTitle()) {
+                      <span
+                        class="text-[10px] font-black uppercase text-rose-500 animate-in fade-in italic"
+                      >
+                        Title is Required
+                      </span>
+                    }
+                  </div>
+                  <button
+                    (click)="setView('MODULE_STRUCTURE', selectedModuleId())"
+                    class="w-full sm:w-auto px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all hover:bg-white/5 cursor-pointer"
+                  >
+                    Back to Module
+                  </button>
+                </header>
+
+                <div class="space-y-8">
+                  @if (quizQuestions().length === 0) {
+                    <div
+                      class="py-20 text-center border-2 border-dashed border-white/5 rounded-4xl bg-white/1"
+                    >
+                      <svg
+                        class="size-12 mx-auto text-slate-800 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1"
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                        />
+                      </svg>
+                      <p class="text-slate-600 font-black uppercase text-[10px] tracking-[0.2em]">
+                        No questions added to this quiz yet.
+                      </p>
+                    </div>
+                  }
+
+                  @for (question of quizQuestions(); track $index; let qIdx = $index) {
+                    <div
+                      class="p-8 bg-white/2 border border-white/5 rounded-4xl space-y-6 relative group hover:border-white/10 transition-all"
+                    >
+                      <button
+                        (click)="removeQuestion(qIdx)"
+                        class="absolute top-6 right-6 text-slate-600 hover:text-red-400 transition-colors cursor-pointer"
+                      >
+                        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+
+                      <div class="flex items-start gap-6">
+                        <span
+                          class="text-2xl font-black italic text-indigo-500/20 leading-none select-none"
+                        >
+                          {{ qIdx + 1 }}
+                        </span>
+
+                        <div class="flex-1 space-y-4">
+                          <input
+                            [(ngModel)]="question.questionText"
+                            placeholder="What is the question?"
+                            class="w-full bg-transparent border-none outline-none text-white font-bold text-lg placeholder:text-slate-800"
+                          />
+
+                          <div class="flex items-center gap-6">
+                            <label
+                              class="flex items-center gap-3 cursor-pointer select-none w-fit group/toggle"
+                            >
+                              <input
+                                type="checkbox"
+                                [(ngModel)]="question.hasMultipleAnswers"
+                                (change)="handleOptionToggle(qIdx, -1)"
+                                class="hidden"
+                              />
+                              <div
+                                class="w-10 h-5 bg-slate-800 rounded-full relative transition-colors"
+                                [class.bg-indigo-500]="question.hasMultipleAnswers"
+                              >
+                                <div
+                                  class="absolute top-1 left-1 size-3 bg-white rounded-full transition-transform"
+                                  [class.translate-x-5]="question.hasMultipleAnswers"
+                                ></div>
+                              </div>
+                              <span
+                                class="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover/toggle:text-slate-300 transition-colors"
+                              >
+                                Allow Multiple Correct Answers
+                              </span>
+                            </label>
+
+                            @if (question.hasMultipleAnswers && getCorrectCount(qIdx) < 2) {
+                              <div class="flex items-center gap-2 text-amber-500 animate-pulse">
+                                <svg
+                                  class="size-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  />
+                                </svg>
+                                <span class="text-[8px] font-black uppercase tracking-widest">
+                                  Select 2+ correct answers
+                                </span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-12">
+                        @for (opt of question.answerOptions; track $index; let oIdx = $index) {
+                          <div
+                            class="flex items-center gap-4 p-4 rounded-2xl border transition-all relative group/opt cursor-pointer"
+                            [class.bg-emerald-500/5]="opt.isCorrect"
+                            [class.border-emerald-500/30]="opt.isCorrect"
+                            [class.border-white/5]="!opt.isCorrect"
+                            (click)="handleOptionToggle(qIdx, oIdx)"
+                          >
+                            <div
+                              class="flex items-center justify-center size-5 border-2 transition-all"
+                              [class.rounded-full]="!question.hasMultipleAnswers"
+                              [class.rounded-md]="question.hasMultipleAnswers"
+                              [class.bg-emerald-500]="opt.isCorrect"
+                              [class.border-emerald-500]="opt.isCorrect"
+                              [class.border-white/20]="!opt.isCorrect"
+                            >
+                              @if (opt.isCorrect) {
+                                <svg
+                                  class="size-3 text-white"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="4"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              }
+                            </div>
+
+                            <div class="flex-1">
+                              <div class="flex items-center gap-2 mb-1">
+                                <p
+                                  class="text-[8px] font-black uppercase tracking-tighter transition-colors"
+                                  [class.text-emerald-500]="opt.isCorrect"
+                                  [class.text-slate-700]="!opt.isCorrect"
+                                >
+                                  {{ opt.isCorrect ? 'Correct Answer' : 'Incorrect Option' }}
+                                </p>
+                              </div>
+
+                              <input
+                                [(ngModel)]="opt.answerText"
+                                (click)="$event.stopPropagation()"
+                                placeholder="Option text..."
+                                class="bg-transparent border-none outline-none text-sm w-full pr-8 transition-colors"
+                                [class.text-white]="opt.isCorrect"
+                                [class.text-slate-400]="!opt.isCorrect"
+                              />
+                            </div>
+
+                            @if (question.answerOptions.length > 2) {
+                              <button
+                                (click)="$event.stopPropagation(); removeOption(qIdx, oIdx)"
+                                class="absolute right-3 opacity-0 group-hover/opt:opacity-100 text-slate-600 hover:text-red-400 transition-all cursor-pointer"
+                              >
+                                <svg
+                                  class="size-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            }
+                          </div>
+                        }
+
+                        <button
+                          (click)="addOption(qIdx)"
+                          class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/5 text-slate-600 hover:border-indigo-500/20 hover:text-indigo-400 transition-all text-[10px] font-black uppercase tracking-widest bg-white/1 cursor-pointer"
+                        >
+                          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                          Add Option
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <button
+                    (click)="addQuestion()"
+                    class="w-full py-8 border-2 border-dashed border-white/5 rounded-4xl text-slate-600 font-black uppercase text-[10px] tracking-[0.2em] hover:border-indigo-500/20 hover:text-indigo-400 transition-all bg-white/1 cursor-pointer flex items-center justify-center gap-3"
+                  >
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    Add Question to Quiz
+                  </button>
+                </div>
+
+                <div
+                  class="flex justify-end items-center flex-wrap gap-4 pt-12 pb-20 border-t border-white/5"
                 >
                   @if (getSelectedStep() != null) {
                     <button
@@ -1969,177 +2323,53 @@ interface StudioNotification {
                       Save Changes
                     }
                   </button>
-                </div>
-              </div>
-            }
-            @if (activeView() === 'QUIZ_EDITOR') {
-              <div class="space-y-10 animate-in fade-in duration-500">
-                <header
-                  class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-8 gap-4"
-                >
-                  <div class="flex-1">
-                    <p
-                      class="text-indigo-500/60 text-[10px] font-black uppercase tracking-widest mt-2"
-                    >
-                      Quiz Designer • {{ quizQuestions().length }} Questions
-                    </p>
-                    <input
-                      [(ngModel)]="editingStepTitle"
-                      class="bg-transparent border-none outline-none text-xl lg:text-2xl font-black text-white italic tracking-tighter w-full mt-2 placeholder:text-white/20"
-                      placeholder="Quiz Title..."
-                    />
-                  </div>
-                  <button
-                    (click)="setView('MODULE_STRUCTURE', selectedId())"
-                    class="w-full sm:w-auto px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all hover:bg-white/5"
-                  >
-                    Back to Module
-                  </button>
-                </header>
-
-                <div class="space-y-8">
-                  @for (question of quizQuestions(); track $index; let qIdx = $index) {
-                    <div
-                      class="p-8 bg-white/2 border border-white/5 rounded-4xl space-y-6 relative group hover:border-white/10 transition-all"
-                    >
-                      <button
-                        (click)="removeQuestion(qIdx)"
-                        class="absolute top-6 right-6 text-slate-600 hover:text-red-400 transition-colors"
+                  <div class="flex items-center gap-3">
+                    @if (getSelectedStep()?.status === 'PUBLISHED') {
+                      <!-- Already Published Badge -->
+                      <div
+                        class="flex items-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 rounded-2xl"
                       >
-                        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-
-                      <div class="flex items-start gap-6">
+                        <div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span
-                          class="text-2xl font-black italic text-indigo-500/20 leading-none select-none"
+                          class="text-emerald-400 text-[11px] font-black uppercase tracking-widest"
                         >
-                          {{ qIdx + 1 }}
+                          Published
                         </span>
-                        <div class="flex-1 space-y-4">
-                          <input
-                            [(ngModel)]="question.questionText"
-                            placeholder="What is the question?"
-                            class="w-full bg-transparent border-none outline-none text-white font-bold text-lg placeholder:text-slate-800"
-                          />
-
-                          <div class="flex items-center gap-6">
-                            <label
-                              class="flex items-center gap-3 cursor-pointer select-none w-fit group/toggle"
-                            >
-                              <input
-                                type="checkbox"
-                                [(ngModel)]="question.hasMultipleAnswers"
-                                (change)="handleOptionToggle(qIdx, -1)"
-                                class="hidden"
-                              />
-                              <div
-                                class="w-10 h-5 bg-slate-800 rounded-full relative transition-colors"
-                                [class.bg-indigo-500]="question.hasMultipleAnswers"
-                              >
-                                <div
-                                  class="absolute top-1 left-1 size-3 bg-white rounded-full transition-transform"
-                                  [class.translate-x-5]="question.hasMultipleAnswers"
-                                ></div>
-                              </div>
-                              <span
-                                class="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover/toggle:text-slate-300 transition-colors"
-                              >
-                                Allow Multiple Correct Answers
-                              </span>
-                            </label>
-
-                            @if (question.hasMultipleAnswers && getCorrectCount(qIdx) < 2) {
-                              <span
-                                class="text-[8px] font-black text-amber-500 uppercase tracking-widest animate-pulse"
-                              >
-                                ⚠️ Select 2 or more correct answers
-                              </span>
-                            }
-                          </div>
-                        </div>
                       </div>
-
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-12">
-                        @for (opt of question.answerOptions; track $index; let oIdx = $index) {
-                          <div
-                            class="flex items-center gap-4 p-4 rounded-2xl border transition-all relative group/opt"
-                            [class.bg-emerald-500/5]="opt.isCorrect"
-                            [class.border-emerald-500/30]="opt.isCorrect"
-                            [class.border-white/5]="!opt.isCorrect"
+                    } @else {
+                      <!-- Publish Button -->
+                      <button
+                        (click)="publishStep()"
+                        [disabled]="
+                          isPublishing() || !getSelectedStep()?.readyToPublish || isSaving()
+                        "
+                        class="group flex items-center gap-2 px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        @if (isPublishing()) {
+                          <span
+                            class="size-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"
+                          ></span>
+                          Publishing...
+                        } @else {
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="size-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="3"
                           >
-                            <input
-                              [type]="question.hasMultipleAnswers ? 'checkbox' : 'radio'"
-                              [name]="'q-' + qIdx"
-                              [(ngModel)]="opt.isCorrect"
-                              (change)="handleOptionToggle(qIdx, oIdx)"
-                              class="size-4 accent-emerald-500 cursor-pointer"
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M5 10l7-7m0 0l7 7"
                             />
-
-                            <div class="flex-1">
-                              <p
-                                class="text-[8px] font-black uppercase tracking-tighter mb-1 transition-colors"
-                                [class.text-emerald-500]="opt.isCorrect"
-                                [class.text-slate-700]="!opt.isCorrect"
-                              >
-                                {{ opt.isCorrect ? 'Correct Answer' : 'Incorrect Option' }}
-                              </p>
-
-                              <input
-                                [(ngModel)]="opt.answerText"
-                                placeholder="Option text..."
-                                class="bg-transparent border-none outline-none text-sm w-full pr-8 transition-colors"
-                                [class.text-white]="opt.isCorrect"
-                                [class.text-slate-400]="!opt.isCorrect"
-                              />
-                            </div>
-
-                            @if (question.answerOptions.length > 2) {
-                              <button
-                                (click)="removeOption(qIdx, oIdx)"
-                                class="absolute right-3 opacity-0 group-hover/opt:opacity-100 text-slate-600 hover:text-red-400 transition-all"
-                              >
-                                <svg
-                                  class="size-4"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            }
-                          </div>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v14" />
+                          </svg>
+                          Publish Quiz
                         }
-
-                        <button
-                          (click)="addOption(qIdx)"
-                          class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/5 text-slate-600 hover:border-indigo-500/20 hover:text-indigo-400 transition-all text-[10px] font-black uppercase tracking-widest bg-white/1"
-                        >
-                          <span class="text-lg leading-none">+</span> Add Option
-                        </button>
-                      </div>
-                    </div>
-                  }
-
-                  <button
-                    (click)="addQuestion()"
-                    class="w-full py-8 border-2 border-dashed border-white/5 rounded-4xl text-slate-600 font-black uppercase text-[10px] tracking-[0.2em] hover:border-indigo-500/20 hover:text-indigo-400 transition-all bg-white/1 cursor-pointer"
-                  >
-                    + Add Question to Quiz
-                  </button>
-                </div>
-
-                <div
-                  class="fixed bottom-0 left-0 w-full lg:static lg:mt-12 bg-linear-to-t from-[#030712] pt-10 pb-6 px-4 z-30"
-                >
-                  <div class="max-w-4xl mx-auto flex justify-end">
-                    <button
-                      class="w-full lg:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 cursor-pointer"
-                    >
-                      Save Quiz Changes
-                    </button>
+                      </button>
+                    }
                   </div>
                 </div>
               </div>
@@ -3010,8 +3240,26 @@ export class CourseBuilder implements OnInit {
     );
   });
 
+
+    // Add near your other signals (after isSystemLocked for example)
+  hasPendingUploads = computed(() => {
+    const hasVideoUploading = this.isSyncingToCloud() || 
+                              (this.isVideoLesson() && !!this.selectedVideoFile() && !this.isUploadComplete());
+
+    const hasMaterialUploading = this.loadingStates.size > 0 ||
+                                 this.editingResources().some(r => !!(r as any).tempFile && !r.objectKey);
+
+    return hasVideoUploading || hasMaterialUploading;
+  });
+
   saveStep() {
     if (this.isSaving()) return;
+
+    // === NEW: BLOCK SAVE DURING UPLOADS ===
+    if (this.hasPendingUploads()) {
+      this.showToast('Please wait for all uploads (video and materials) to complete before saving.', 'info');
+      return;
+    }
 
     this.isSaving.set(true);
     this.showValidationErrors = false;
@@ -3133,7 +3381,80 @@ export class CourseBuilder implements OnInit {
       }
     }
 
-    // TODO: Add QUIZ handling here when ready
+    // === QUIZ HANDLING ===
+    if (type === 'QUIZ') {
+      const quizQuestions = this.quizQuestions(); // Your Signal<QuizQuestion[]>
+
+      // 1. Basic Validation
+      if (!quizQuestions || quizQuestions.length === 0) {
+        this.showToast('A quiz must have at least one question.', 'error');
+        this.isSaving.set(false);
+        return;
+      }
+
+      // 2. Multi-Answer & Correctness Validation Logic
+      for (const [index, q] of quizQuestions.entries()) {
+        const correctCount = q.answerOptions.filter((opt) => opt.isCorrect).length;
+        const questionLabel = q.questionText?.trim() || `Question ${index + 1}`;
+
+        // Ensure question has text
+        if (!q.questionText?.trim()) {
+          this.showToast(`Question ${index + 1} text is required.`, 'error');
+          this.isSaving.set(false);
+          return;
+        }
+
+        // Must have at least one correct answer
+        if (correctCount === 0) {
+          this.showToast(`"${questionLabel}" must have at least one correct answer.`, 'error');
+          this.isSaving.set(false);
+          return;
+        }
+
+        // STRICT MULTI-ANSWER VALIDATION
+        // If toggle is OFF (Single Choice), but user selected > 1 answer
+        if (!q.hasMultipleAnswers && correctCount > 1) {
+          this.showToast(
+            `"${questionLabel}" is set to single choice, but you've selected ${correctCount} correct answers.`,
+            'error',
+          );
+          this.isSaving.set(false);
+          return;
+        }
+      }
+
+      // 3. Map to Backend Request Interface
+      const quizRequestData: QuizQuestionRequest[] = quizQuestions.map((q) => ({
+        questionText: q.questionText,
+        hasMultipleAnswers: q.hasMultipleAnswers,
+        answerOptions: q.answerOptions.map((opt) => ({
+          answerText: opt.answerText,
+          isCorrect: opt.isCorrect,
+        })),
+      }));
+
+      if (isEdit) {
+        request = {
+          title,
+          type: 'QUIZ',
+          videoEnabled: false,
+          contentEnabled: false,
+          materialsEnabled: false,
+          questions: quizRequestData,
+        } as LearningStepUpdateRequest;
+      } else {
+        request = {
+          moduleId: moduleId!,
+          title,
+          type: 'QUIZ',
+          sequence: this.calculateDynamicSequence(moduleId!),
+          videoEnabled: false,
+          contentEnabled: false,
+          materialsEnabled: false,
+          questions: quizRequestData,
+        } as LearningStepRequest;
+      }
+    }
 
     if (!request) {
       this.isSaving.set(false);
@@ -3165,6 +3486,11 @@ export class CourseBuilder implements OnInit {
           }),
         );
 
+        // === IMPORTANT: Handle Quiz Questions specifically ===
+        if (type === 'QUIZ' && res.quiz) {
+          this.quizQuestions.set(res.quiz.questions || []); // ← Map from response
+        }
+
         // Update raw backup too...
         this.rawCourseResponse.update((prev) => {
           if (!prev?.modules) return prev;
@@ -3182,6 +3508,17 @@ export class CourseBuilder implements OnInit {
             ),
           };
         });
+
+        // 3. CRITICAL: Refresh the module title in the editor
+        const currentModule = this.modules().find((m) => m.id === moduleId);
+        if (currentModule) {
+          this.editingModuleTitle = currentModule.title; // ← This fixes "Untitled Module"
+        }
+
+        // Also update the current step title in the editor
+        this.editingStepTitle.set(
+          res.title || (type === 'LESSON' ? 'Untitled Lesson' : 'Untitled Quiz'),
+        );
 
         this.clearLessonEditorState();
         this.setView('MODULE_STRUCTURE', moduleId);
@@ -3229,29 +3566,13 @@ export class CourseBuilder implements OnInit {
     });
   }
 
-  onStepDrop(event: CdkDragDrop<any>) {
-    const containerData = event.container.data;
-    if (!containerData) return;
+  /**
+   *
+   * MODULE
+   */
 
-    // Find which module this drop happened in
-    const moduleId = this.selectedModuleId(); // or derive it from the container if possible
-
-    this.modules.update((currentModules) => {
-      return currentModules.map((module) => {
-        // Only update the module that contains the dropped steps
-        if (module.id === moduleId && module.learningSteps) {
-          const newSteps = [...module.learningSteps]; // shallow copy
-          moveItemInArray(newSteps, event.previousIndex, event.currentIndex);
-
-          return {
-            ...module,
-            learningSteps: newSteps,
-          };
-        }
-        return module;
-      });
-    });
-  }
+  // Component Signal
+  moduleTab = signal<'DETAILS' | 'STRUCTURE'>('DETAILS');
 
   reorderModuleSequence() {
     const courseId = this.courseId(); // Assuming you have this signal/variable
@@ -3289,6 +3610,7 @@ export class CourseBuilder implements OnInit {
         this.modules.set(updatedModules);
       },
       error: (err) => {
+        console.log('Reorder failed. Error:', err);
         this.showToast('Failed to reorder module sequence', 'error');
       },
     });
@@ -3307,8 +3629,174 @@ export class CourseBuilder implements OnInit {
     }
   }
 
-  // Component Signal
-  moduleTab = signal<'DETAILS' | 'STRUCTURE'>('DETAILS');
+  /**
+   *
+   * LEARNING STEP
+   */
+
+  addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
+    if (!moduleId) {
+      this.showToast('Please select a valid module', 'info');
+      return;
+    }
+
+    this.isCreatingStep = true;
+    this.selectedModuleId.set(moduleId);
+    this.selectedStepId.set(null);
+    this.editingStepType.set(type);
+    this.editingStepTitle.set(type === 'QUIZ' ? 'Untitled Quiz' : 'Untitled Lesson');
+
+    this.clearLessonEditorState();
+
+    if (type === 'QUIZ') {
+      this.quizQuestions.set([]);
+      this.addQuestion();
+    }
+
+    this.setView(type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
+  }
+
+  getSelectedStep() {
+    const modules = this.modules();
+    const stepId = this.selectedStepId();
+
+    if (!modules || !stepId) return null;
+
+    for (const m of modules) {
+      const found = (m.learningSteps || []).find((s) => s.id === stepId);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  selectStep(step: LearningStepResponse) {
+    this.isCreatingStep = false;
+
+    this.selectedModuleId.set(step.moduleId);
+    this.selectedStepId.set(step.id);
+
+    this.editingStepTitle.set(step.title);
+    this.editingStepType.set(step.type as 'LESSON' | 'QUIZ');
+
+    if (step.type === 'LESSON' && step.content) {
+      this.editingStepContent.set(step.content || '');
+
+      //  Hydrate Toggle States (Crucial for the UI switches)
+      this.isVideoLesson.set(step.videoEnabled);
+      this.isContentEnabled.set(step.contentEnabled);
+      this.isMaterialsEnabled.set(step.materialsEnabled);
+
+      if (step.videoPlaybackId) {
+        this.currentPlaybackId.set(step.videoPlaybackId);
+        this.isUploadComplete.set(true);
+      } else {
+        this.currentPlaybackId.set(null);
+        this.isUploadComplete.set(false);
+      }
+
+      this.currentAssetId.set(step.videoAssetId || null);
+
+      // Hydrate Resources/Attachments
+      this.editingResources.set(step.resources ? [...step.resources] : []);
+    } else if (step.type === 'QUIZ') {
+      // Preserve questions even if backend response is minimal
+      if (step.quiz?.questions && step.quiz.questions.length > 0) {
+        this.quizQuestions.set([...step.quiz.questions]);
+      }
+      // If quiz data is missing, keep current questions (important after publish)
+      else if (this.quizQuestions().length === 0) {
+        // fallback - do nothing, keep what user has
+      }
+    }
+
+    this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
+  }
+
+  private clearLessonEditorState() {
+    this.editingStepContent.set('');
+    this.editingResources.set([]);
+    this.isVideoLesson.set(false);
+    this.isContentEnabled.set(false);
+    this.isMaterialsEnabled.set(false);
+
+    this.selectedVideoFile.set(null);
+    this.isUploadComplete.set(false);
+    this.isSyncingToCloud.set(false);
+    this.currentPlaybackId.set(null);
+    this.currentUploadId.set(null);
+    this.currentAssetId.set(null);
+
+    this.mainLessonVideo.set({ file: null, progress: 0, uploadId: null });
+    this.loadingStates.clear();
+  }
+
+  // Signals for the Player
+  currentPlaybackId = signal<string | null>(null);
+  currentUserId = signal<string>(''); // Keycloak 'sub'
+
+  editingStepId = signal<string | null>(null);
+
+  // editingQuestions = signal<QuizQuestionRequest[]>([]);
+
+  // The State: Holds the step being edited AND the one pending deletion
+  editingStep = signal<LearningStepResponse | null>(null);
+  stepToDelete = signal<LearningStepResponse | null>(null);
+
+  // The Confirmation: Sets the target for the Tailwind modal
+  confirmDelete(step: LearningStepResponse) {
+    this.stepToDelete.set(step);
+  }
+
+  // The Cleanup: Wipes the target if they click "Cancel" or "Keep it"
+  cancelDelete() {
+    this.stepToDelete.set(null);
+  }
+
+  executePurge() {
+    const step = this.stepToDelete();
+    if (!step) return;
+
+    this.isDeleting.set(true);
+
+    this.learningStepService
+      .delete(step.id)
+      .pipe(
+        finalize(() => {
+          this.isDeleting.set(false);
+          this.stepToDelete.set(null);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          // ✅ 1. Update RAW response (source of truth)
+          this.rawCourseResponse.update((course) => {
+            if (!course || !course.modules) return course;
+
+            return {
+              ...course,
+              modules: course.modules.map((m) => ({
+                ...m,
+                learningSteps: m.learningSteps
+                  ? m.learningSteps.filter((s) => s.id !== step.id)
+                  : [],
+              })),
+            };
+          });
+
+          // ✅ 2. Update UI state (what your template uses)
+          this.modules.update((mods) =>
+            mods.map((m) => ({
+              ...m,
+              learningSteps: m.learningSteps.filter((s) => s.id !== step.id),
+            })),
+          );
+
+          this.setView('MODULE_STRUCTURE', this.selectedModuleId()); // Refresh the view to reflect changes
+          this.showToast('Step and cloud assets purged.', 'success');
+        },
+        error: () => this.showToast('Cleanup failed.', 'error'),
+      });
+  }
 
   reOrderStepSequence() {
     const moduleId = this.selectedModuleId();
@@ -3383,170 +3871,37 @@ export class CourseBuilder implements OnInit {
     }
   }
 
-  // Signals for the Player
-  currentPlaybackId = signal<string | null>(null);
-  currentUserId = signal<string>(''); // Keycloak 'sub'
+  onStepDrop(event: CdkDragDrop<any>) {
+    const containerData = event.container.data;
+    if (!containerData) return;
 
-  editingStepId = signal<string | null>(null);
+    // Find which module this drop happened in
+    const moduleId = this.selectedModuleId(); // or derive it from the container if possible
 
-  // editingQuestions = signal<QuizQuestionRequest[]>([]);
+    this.modules.update((currentModules) => {
+      return currentModules.map((module) => {
+        // Only update the module that contains the dropped steps
+        if (module.id === moduleId && module.learningSteps) {
+          const newSteps = [...module.learningSteps]; // shallow copy
+          moveItemInArray(newSteps, event.previousIndex, event.currentIndex);
 
-  // The State: Holds the step being edited AND the one pending deletion
-  editingStep = signal<LearningStepResponse | null>(null);
-  stepToDelete = signal<LearningStepResponse | null>(null);
-
-  // The Confirmation: Sets the target for the Tailwind modal
-  confirmDelete(step: LearningStepResponse) {
-    this.stepToDelete.set(step);
-  }
-
-  // The Cleanup: Wipes the target if they click "Cancel" or "Keep it"
-  cancelDelete() {
-    this.stepToDelete.set(null);
-  }
-
-  executePurge() {
-    const step = this.stepToDelete();
-    if (!step) return;
-
-    this.isDeleting.set(true);
-
-    this.learningStepService
-      .delete(step.id)
-      .pipe(
-        finalize(() => {
-          this.isDeleting.set(false);
-          this.stepToDelete.set(null);
-        }),
-      )
-      .subscribe({
-        next: () => {
-          // ✅ 1. Update RAW response (source of truth)
-          this.rawCourseResponse.update((course) => {
-            if (!course || !course.modules) return course;
-
-            return {
-              ...course,
-              modules: course.modules.map((m) => ({
-                ...m,
-                learningSteps: m.learningSteps
-                  ? m.learningSteps.filter((s) => s.id !== step.id)
-                  : [],
-              })),
-            };
-          });
-
-          // ✅ 2. Update UI state (what your template uses)
-          this.modules.update((mods) =>
-            mods.map((m) => ({
-              ...m,
-              learningSteps: m.learningSteps.filter((s) => s.id !== step.id),
-            })),
-          );
-
-          this.setView('MODULE_STRUCTURE', this.selectedModuleId()); // Refresh the view to reflect changes
-          this.showToast('Step and cloud assets purged.', 'success');
-        },
-        error: () => this.showToast('Cleanup failed.', 'error'),
+          return {
+            ...module,
+            learningSteps: newSteps,
+          };
+        }
+        return module;
       });
-  }
-
-  /**
-   *
-   * LEARNING STEP
-   */
-
-  addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
-    if (!moduleId) {
-      this.showToast('Please select a valid module', 'info');
-      return;
-    }
-
-    this.isCreatingStep = true;
-    this.selectedModuleId.set(moduleId);
-    this.selectedStepId.set(null);
-    this.editingStepType.set(type);
-    this.editingStepTitle.set(type === 'QUIZ' ? 'Untitled Quiz' : 'Untitled Lesson');
-
-    this.clearLessonEditorState();
-
-    if (type === 'QUIZ') {
-      this.quizQuestions.set([]);
-      this.addQuestion();
-    }
-
-    this.setView(type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
-  }
-
-  getSelectedStep() {
-    const modules = this.modules();
-    const stepId = this.selectedStepId();
-
-    if (!modules || !stepId) return null;
-
-    for (const m of modules) {
-      const found = (m.learningSteps || []).find((s) => s.id === stepId);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  selectStep(step: LearningStepResponse) {
-    this.isCreatingStep = false;
-    this.selectedId.set(step.moduleId);
-    this.selectedStepId.set(step.id);
-
-    this.editingStepTitle.set(step.title);
-    this.editingStepType.set(step.type as 'LESSON' | 'QUIZ');
-
-    if (step.type === 'LESSON' && step.content) {
-      this.editingStepContent.set(step.content || '');
-
-      //  Hydrate Toggle States (Crucial for the UI switches)
-      this.isVideoLesson.set(step.videoEnabled);
-      this.isContentEnabled.set(step.contentEnabled);
-      this.isMaterialsEnabled.set(step.materialsEnabled);
-
-      if (step.videoPlaybackId) {
-        this.currentPlaybackId.set(step.videoPlaybackId);
-        this.isUploadComplete.set(true);
-      } else {
-        this.currentPlaybackId.set(null);
-        this.isUploadComplete.set(false);
-      }
-
-      this.currentAssetId.set(step.videoAssetId || null);
-
-      // Hydrate Resources/Attachments
-      this.editingResources.set(step.resources ? [...step.resources] : []);
-    }
-
-    this.setView(step.type === 'QUIZ' ? 'QUIZ_EDITOR' : 'LESSON_EDITOR');
-  }
-
-  private clearLessonEditorState() {
-    this.editingStepContent.set('');
-    this.editingResources.set([]);
-    this.isVideoLesson.set(false);
-    this.isContentEnabled.set(false);
-    this.isMaterialsEnabled.set(false);
-
-    this.selectedVideoFile.set(null);
-    this.isUploadComplete.set(false);
-    this.isSyncingToCloud.set(false);
-    this.currentPlaybackId.set(null);
-    this.currentUploadId.set(null);
-    this.currentAssetId.set(null);
-
-    this.mainLessonVideo.set({ file: null, progress: 0, uploadId: null });
-    this.loadingStates.clear();
+    });
   }
 
   /*
-   * QUESTION
+   * QUIZ
    */
+
   // UI-Specific state (only used when type === 'QUIZ')
-  quizQuestions = signal<any[]>([]);
+  quizQuestions = signal<QuizQuestionRequest[]>([]);
+
   // 1. Add a new Question with 2 default options
   addQuestion() {
     const newQuestion = {
@@ -3583,36 +3938,97 @@ export class CourseBuilder implements OnInit {
 
   // 5. Handle Choice Logic (Radio vs Checkbox behavior)
   handleOptionToggle(qIdx: number, oIdx: number) {
-    const qs = [...this.quizQuestions()];
-    const question = qs[qIdx];
+    this.quizQuestions.update((qs) => {
+      // Create a shallow copy of the questions array
+      const updatedQs = [...qs];
+      const question = updatedQs[qIdx];
 
-    // 1. If we are in SINGLE CHOICE mode (hasMultipleAnswers === false)
-    if (!question.hasMultipleAnswers) {
+      // 1. Handle the "Allow Multiple" toggle switch
       if (oIdx === -1) {
-        // Toggle was flipped from Multiple -> Single: Keep only the first correct answer
-        let foundFirst = false;
-        question.answerOptions.forEach((opt: any) => {
-          if (opt.isCorrect && !foundFirst) {
-            foundFirst = true;
-          } else {
-            opt.isCorrect = false;
+        if (!question.hasMultipleAnswers) {
+          // If switching to SINGLE CHOICE: Keep only the first correct answer found
+          let foundCorrect = false;
+          question.answerOptions.forEach((opt) => {
+            if (opt.isCorrect && !foundCorrect) {
+              foundCorrect = true;
+            } else {
+              opt.isCorrect = false;
+            }
+          });
+          // Safety: If none were correct, default the first one
+          if (!foundCorrect && question.answerOptions.length > 0) {
+            question.answerOptions[0].isCorrect = true;
           }
-        });
+        }
+        return updatedQs;
+      }
+
+      // 2. Handle clicking an answer option
+      if (question.hasMultipleAnswers) {
+        // Toggle logic: If it was true, make it false. If false, make it true.
+        question.answerOptions[oIdx].isCorrect = !question.answerOptions[oIdx].isCorrect;
       } else {
-        // A radio button was clicked: Deselect all others
-        question.answerOptions.forEach((opt: any, i: number) => {
+        // Radio logic: Set only the clicked one to true, all others to false
+        question.answerOptions.forEach((opt, i) => {
           opt.isCorrect = i === oIdx;
         });
       }
-    }
 
-    // 2. If we are in MULTIPLE CHOICE mode (hasMultipleAnswers === true)
-    // We do nothing! NgModel handles the independent checkboxes perfectly.
-
-    this.quizQuestions.set(qs);
+      return updatedQs;
+    });
   }
 
   getCorrectCount(qIdx: number): number {
     return this.quizQuestions()[qIdx].answerOptions.filter((o: any) => o.isCorrect).length;
+  }
+
+  isPublishing = signal<boolean>(false);
+
+  publishStep() {
+    const step = this.getSelectedStep();
+    if (!step) {
+      this.showToast('No step selected', 'error');
+      return;
+    }
+
+    if (!step.readyToPublish) {
+      this.showToast('This step is not ready to publish yet.', 'error');
+      return;
+    }
+
+    this.isPublishing.set(true);
+
+    this.learningStepService.publishLearningStep(step.id).subscribe({
+      next: (updatedStep: LearningStepResponse) => {
+        this.showToast('Step published successfully!', 'success');
+        this.isPublishing.set(false);
+
+        // Update modules list
+        this.modules.update((modules) =>
+          modules.map((module) =>
+            module.id === this.selectedModuleId()
+              ? {
+                  ...module,
+                  learningSteps: module.learningSteps?.map((s) =>
+                    s.id === step.id ? { ...updatedStep } : s,
+                  ),
+                }
+              : module,
+          ),
+        );
+
+        // CRITICAL FIX: Preserve quiz questions before refreshing view
+        if (updatedStep.type === 'QUIZ' && updatedStep.quiz?.questions) {
+          this.quizQuestions.set([...updatedStep.quiz.questions]);
+        }
+
+        // Refresh current view with updated step
+        this.selectStep(updatedStep);
+      },
+      error: (err: any) => {
+        this.isPublishing.set(false);
+        this.showToast(err?.error?.detail || 'Failed to publish step', 'error');
+      },
+    });
   }
 }

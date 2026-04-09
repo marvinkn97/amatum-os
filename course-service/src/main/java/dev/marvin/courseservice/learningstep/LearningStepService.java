@@ -1,27 +1,33 @@
 package dev.marvin.courseservice.learningstep;
 
+import dev.marvin.courseservice.common.Status;
 import dev.marvin.courseservice.exception.BadRequestException;
 import dev.marvin.courseservice.exception.ResourceNotFoundException;
 import dev.marvin.courseservice.lesson.LessonEntity;
 import dev.marvin.courseservice.lesson.LessonRepository;
 import dev.marvin.courseservice.module.ModuleEntity;
 import dev.marvin.courseservice.module.ModuleRepository;
+import dev.marvin.courseservice.quiz.answer.QuizAnswerOptionRepository;
+import dev.marvin.courseservice.quiz.answer.QuizAnswerOptionRequest;
+import dev.marvin.courseservice.quiz.question.QuizQuestion;
+import dev.marvin.courseservice.quiz.question.QuizQuestionRepository;
+import dev.marvin.courseservice.quiz.question.QuizQuestionRequest;
+import dev.marvin.courseservice.quiz.quiz.QuizRepository;
+import dev.marvin.courseservice.quiz.quiz.QuizResponse;
+import dev.marvin.courseservice.quiz.quiz.QuizService;
 import dev.marvin.courseservice.storage.mux.MuxAsset;
 import dev.marvin.courseservice.storage.mux.MuxAssetRepository;
 import dev.marvin.courseservice.storage.mux.MuxVideoUploadService;
 import dev.marvin.courseservice.storage.rustfs.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +36,15 @@ public class LearningStepService {
     private final ModuleRepository moduleRepository;
     private final LearningStepRepository learningStepRepository;
     private final LessonRepository lessonRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final LearningStepResourceRepository learningStepResourceRepository;
     private final MuxVideoUploadService muxVideoService;
     private final S3Service s3Service;
     private final MuxAssetRepository muxAssetRepository;
+    private final QuizService quizService;
+    private final QuizQuestionRepository quizQuestionRepository;
+    private final QuizAnswerOptionRepository quizAnswerOptionRepository;
+    private final QuizRepository quizRepository;
+
 
     @Transactional
     public LearningStepResponse create(LearningStepRequest request) {
@@ -50,10 +60,11 @@ public class LearningStepService {
                 .videoEnabled(request.videoEnabled())
                 .contentEnabled(request.contentEnabled())
                 .materialsEnabled(request.materialsEnabled())
+                .isReadyToPublish(true)
                 .build();
 
         // Persist parent to generate ID
-        learningStepEntity = learningStepRepository.save(learningStepEntity);
+        learningStepEntity = learningStepRepository.saveAndFlush(learningStepEntity);
 
 
         List<LearningStepResourceEntity> learningStepResourceEntityList = new ArrayList<>();
@@ -110,11 +121,13 @@ public class LearningStepService {
             lesson = lessonRepository.save(lessonEntity);
         }
 
+        QuizResponse quizResponse = null;
+
         if (request.type().equals(LearningStepType.QUIZ)) {
+            quizResponse = quizService.saveOrUpdateQuiz(learningStepEntity, request.questions());
         }
 
-
-        return LearningStepMapper.mapToResponse(learningStepEntity, lesson, resourceResponses);
+        return LearningStepMapper.mapToResponse(learningStepEntity, lesson, resourceResponses, quizResponse);
     }
 
 
@@ -164,13 +177,13 @@ public class LearningStepService {
                     if (muxAsset != null &&
                             muxAsset.getPlaybackId() != null &&
                             muxAsset.getAssetId() != null) {
-                        log.info("MuxAsset found for upload ID: {}", videoUploadId);
+                        log.info("Mux Asset found for upload ID: {}", videoUploadId);
 
                         lessonEntity.setVideoPlaybackId(muxAsset.getPlaybackId());
                         lessonEntity.setVideoAssetId(muxAsset.getAssetId());
                         muxAsset.setProcessed(true);
                         muxAssetRepository.save(muxAsset);
-                        log.info("MuxAsset updated for upload ID: {}", videoUploadId);
+                        log.info("Mux Asset updated for upload ID: {}", videoUploadId);
                     }
                 }
             }
@@ -245,9 +258,12 @@ public class LearningStepService {
             }
         }
 
-        // 5. Quiz placeholder
-        if (LearningStepType.QUIZ.equals(learningStep.getType())) {
-            // TODO: Implement quiz update logic in the future
+        QuizResponse quizResponse = null;
+
+        // 5. Quiz
+        if (request.type().equals(LearningStepType.QUIZ)) {
+            validateQuiz(request.questions());
+            quizResponse = quizService.saveOrUpdateQuiz(learningStep, request.questions());
         }
 
         // 6. Save the main LearningStepEntity
@@ -268,8 +284,9 @@ public class LearningStepService {
                 .toList();
 
         // 8. Return response
-        return LearningStepMapper.mapToResponse(updatedStep, lessonEntity, resourceResponses);
+        return LearningStepMapper.mapToResponse(updatedStep, lessonEntity, resourceResponses, quizResponse);
     }
+
 
     @Transactional
     public void delete(UUID learningStepId) {
@@ -279,6 +296,7 @@ public class LearningStepService {
 
         // 2. MUX CLEANUP (If it's a Lesson)
         if (learningStep.getType() == LearningStepType.LESSON) {
+            log.info("Deleting Lesson for learning step: {}", learningStepId);
             lessonRepository.findByLearningStepEntity_Id(learningStepId).ifPresent(lesson -> {
                 if (lesson.getVideoAssetId() != null && !lesson.getVideoPlaybackId().isBlank()) {
                     log.info("Deleting Mux Asset for lesson: {}", lesson.getVideoAssetId());
@@ -288,6 +306,22 @@ public class LearningStepService {
                     muxVideoService.deleteUpload(lesson.getVideoUploadId());
                 }
                 lessonRepository.delete(lesson);
+            });
+        }
+
+
+        if (learningStep.getType() == LearningStepType.QUIZ) {
+            log.info("Deleting Quiz for learning step: {}", learningStepId);
+            quizRepository.findByLearningStepEntity_Id(learningStepId).ifPresent(quiz -> {
+                List<QuizQuestion> questions = quizQuestionRepository.findByQuizEntity_Id(quiz.getId());
+                if (!questions.isEmpty()) {
+                    quizAnswerOptionRepository.deleteAllByQuizQuestionIn(questions);
+                    quizAnswerOptionRepository.flush();
+
+                    quizQuestionRepository.deleteAllInBatch(questions);
+                    quizQuestionRepository.flush();
+                }
+                quizRepository.delete(quiz);
             });
         }
 
@@ -313,6 +347,7 @@ public class LearningStepService {
 
 
     private void validateStep(LearningStepRequest request) {
+        log.info("Validating learning step request: {}", request);
         if (request.type().equals(LearningStepType.LESSON)) {
 
             // 1. If Content Toggle is ON, String must not be blank
@@ -332,10 +367,61 @@ public class LearningStepService {
 
         }
 
-        if (request.type().equals(LearningStepType.QUIZ) && (request.questions() == null || request.questions().isEmpty())) {
-            throw new BadRequestException("Quiz type requires at least one question.");
+        if (request.type().equals(LearningStepType.QUIZ)) {
+            validateQuiz(request.questions());
         }
 
     }
+
+
+    private void validateQuiz(List<QuizQuestionRequest> questions) {
+        log.info("Validating quiz questions: {}", questions);
+
+        if (questions == null || questions.isEmpty()) {
+            log.info("Quiz has no questions.");
+            throw new BadRequestException("Quiz must have at least one question.");
+        }
+
+        for (QuizQuestionRequest q : questions) {
+            if (q.answerOptions().isEmpty() || q.answerOptions().size() < 2) {
+                log.info("Question '{}' has less than 2 options.", q.questionText());
+                throw new BadRequestException("Each question must have at least 2 options.");
+            }
+
+            long correctCount = q.answerOptions().stream()
+                    .filter(QuizAnswerOptionRequest::isCorrect)
+                    .count();
+
+            if (correctCount == 0) {
+                log.info("Question '{}' has no correct answers.", q.questionText());
+                throw new BadRequestException("Question '" + q.questionText() + "' must have at least one correct answer.");
+            }
+
+            if (!q.hasMultipleAnswers() && correctCount > 1) {
+                log.info("Question '{}' has multiple correct answers.", q.questionText());
+                throw new BadRequestException("Question '" + q.questionText() + "' is set to single choice but has multiple correct answers.");
+            }
+        }
+
+    }
+
+    @Transactional
+    public LearningStepResponse publish(UUID learningStepId) {
+        log.info("Publishing learning step with id: {}", learningStepId);
+        LearningStepEntity learningStep = learningStepRepository.findById(learningStepId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Learning step with id [%s] not found".formatted(learningStepId)));
+
+        if (learningStep.getStatus().equals(Status.PUBLISHED)) {
+            log.info("Learning step is already published");
+            return LearningStepMapper.mapToResponse(learningStep);
+        }
+
+        learningStep.setStatus(Status.PUBLISHED);
+        learningStep = learningStepRepository.save(learningStep);
+
+        return LearningStepMapper.mapToResponse(learningStep);
+    }
+
 }
 

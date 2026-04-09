@@ -28,6 +28,8 @@ export interface LearningStepResponse {
   sequence: number;
   type: 'LESSON' | 'QUIZ';
 
+  status: 'DRAFT' | 'PUBLISHED';
+
   // State Flags
   videoEnabled: boolean;
   contentEnabled: boolean;
@@ -38,11 +40,13 @@ export interface LearningStepResponse {
   videoPlaybackId?: string | null;
   videoAssetId?: string | null;
 
+  readyToPublish?: boolean;
+
   // Future Quiz Data
-  quiz?: any;
+  quiz?: QuizResponse;
 
   // Resources (if applicable)
-  resources?: any[];
+  resources?: LearningStepResource[];
 }
 
 export interface LearningStepRequest {
@@ -59,7 +63,7 @@ export interface LearningStepRequest {
   content: string;
   resources?: LearningStepResource[];
 
-  questions?: [];
+  questions?: QuizQuestionRequest[];
 }
 
 export interface LearningStepUpdateRequest {
@@ -74,7 +78,7 @@ export interface LearningStepUpdateRequest {
   content: string;
   resources?: LearningStepResource[];
 
-  questions?: [];
+  questions?: QuizQuestionRequest[];
 }
 
 export interface LearningStepResource {
@@ -83,10 +87,37 @@ export interface LearningStepResource {
   objectKey?: string; // "materials/uuid-notes.pdf"
   contentType: string; // "application/pdf"
   size: number; // 1024576 (in bytes)
-  url?: string; // "pre-signed S3 URL for download"
+  s3PreSignedUrl?: string; // "pre-signed S3 URL for download"
 }
 
+export interface QuizAnswerOptionRequest {
+  answerText: string;
+  isCorrect: boolean;
+}
 
+export interface QuizQuestionRequest {
+  questionText: string;
+  hasMultipleAnswers: boolean;
+  answerOptions: QuizAnswerOptionRequest[];
+}
+
+export interface QuizAnswerOptionResponse {
+  id: string; // Database UUID
+  answerText: string;
+  isCorrect: boolean;
+}
+
+export interface QuizQuestionResponse {
+  id: string; // Database UUID
+  questionText: string;
+  hasMultipleAnswers: boolean;
+  answerOptions: QuizAnswerOptionResponse[];
+}
+
+export interface QuizResponse {
+  quizId: string;
+  questions: QuizQuestionResponse[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -113,6 +144,9 @@ export class LearningStepService {
     }
 
     if (request.type === 'QUIZ') {
+      formData.append('videoEnabled', 'false');
+      formData.append('contentEnabled', 'false');
+      formData.append('materialsEnabled', 'false');
       formData.append('questions', JSON.stringify(request.questions ?? []));
     }
 
@@ -145,7 +179,7 @@ export class LearningStepService {
     request: LearningStepUpdateRequest,
   ): Observable<LearningStepResponse> {
     console.log('Updating Learning Step with ID:', stepId);
-    
+
     const formData = new FormData();
 
     // Append basic fields
@@ -161,6 +195,9 @@ export class LearningStepService {
     }
 
     if (request.type === 'QUIZ') {
+      formData.append('videoEnabled', 'false');
+      formData.append('contentEnabled', 'false');
+      formData.append('materialsEnabled', 'false');
       formData.append('questions', JSON.stringify(request.questions ?? []));
     }
 
@@ -188,8 +225,14 @@ export class LearningStepService {
     return this.http.put<LearningStepResponse>(`${this.API_URL}/${stepId}`, formData);
   }
 
-
   delete(id: string): Observable<void> {
-  return this.http.delete<void>(`${this.API_URL}/${id}`);
-}
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
+  }
+
+  publishLearningStep(stepId: string): Observable<LearningStepResponse> {
+    return this.http.patch<LearningStepResponse>(
+      `${this.API_URL}/${stepId}/publish`,
+      {},
+    );
+  }
 }

@@ -1,4 +1,4 @@
-package dev.marvin.courseservice.quiz;
+package dev.marvin.courseservice.quiz.answer;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -1,6 +1,6 @@
 package dev.marvin.courseservice.learningstep;
 
-import dev.marvin.courseservice.quiz.QuizQuestionRequest;
+import dev.marvin.courseservice.quiz.question.QuizQuestionRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

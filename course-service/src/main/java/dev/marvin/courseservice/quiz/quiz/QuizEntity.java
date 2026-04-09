@@ -1,4 +1,4 @@
-package dev.marvin.courseservice.quiz;
+package dev.marvin.courseservice.quiz.quiz;
 
 import dev.marvin.courseservice.learningstep.LearningStepEntity;
 import jakarta.persistence.*;

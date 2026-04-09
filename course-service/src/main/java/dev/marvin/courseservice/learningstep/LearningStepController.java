@@ -46,4 +46,12 @@ public class LearningStepController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Publish a learning step")
+    @PatchMapping("/{id}/publish")
+    public ResponseEntity<LearningStepResponse> publish(@PathVariable("id") UUID learningStepId) {
+        log.info("Received request to publish learning step: {}", learningStepId);
+        LearningStepResponse learningStepResponse = learningStepService.publish(learningStepId);
+        return ResponseEntity.ok(learningStepResponse);
+    }
+
 }

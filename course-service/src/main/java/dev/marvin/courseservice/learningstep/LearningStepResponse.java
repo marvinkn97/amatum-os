@@ -1,7 +1,8 @@
 package dev.marvin.courseservice.learningstep;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import dev.marvin.courseservice.quiz.QuizResponse;
+import dev.marvin.courseservice.common.Status;
+import dev.marvin.courseservice.quiz.quiz.QuizResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,9 @@ public class LearningStepResponse {
     private String title;
     private LearningStepType type;
     private Integer sequence;
+    private Status status;
+
+    private boolean isReadyToPublish;
 
     private boolean videoEnabled;
     private boolean contentEnabled;
