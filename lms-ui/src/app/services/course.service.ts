@@ -50,7 +50,8 @@ export interface CourseResponse {
   categoryId: string; // UUID
   status: 'DRAFT' | 'PUBLISHED'; // Matches your CourseStatus enum
   tenantId: string;
-  modules: ModuleResponse[]
+  modules: ModuleResponse[];
+  isReadyToPublish: boolean; // New field to indicate if the course is ready to publish
 }
 
 @Injectable({
@@ -75,7 +76,6 @@ export class CourseService {
   getCourseById(id: string): Observable<CourseResponse> {
     return this.http.get<CourseResponse>(`${this.API_URL}/${id}`);
   }
-
 
   deleteCourse(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
@@ -111,5 +111,9 @@ export class CourseService {
 
   reorderModuleSequence(courseId: string, requests: ModuleReOrderRequest[]): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/${courseId}/reorder-modules`, requests);
+  }
+
+  publishCourse(courseId: string): Observable<CourseResponse> {
+    return this.http.patch<CourseResponse>(`${this.API_URL}/${courseId}/publish`, {});
   }
 }

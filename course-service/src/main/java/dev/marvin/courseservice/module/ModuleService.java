@@ -1,5 +1,6 @@
 package dev.marvin.courseservice.module;
 
+import dev.marvin.courseservice.common.Status;
 import dev.marvin.courseservice.course.CourseEntity;
 import dev.marvin.courseservice.course.CourseRepository;
 import dev.marvin.courseservice.exception.BadRequestException;
@@ -84,6 +85,46 @@ public class ModuleService {
 
         moduleRepository.save(moduleEntity);
         return ModuleMapper.mapToResponse(moduleEntity);
+    }
+
+    @Transactional
+    public ModuleResponse publishModule(UUID moduleId) {
+        log.info("Publishing module with id: {}", moduleId);
+        ModuleEntity moduleEntity = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Module with id [%s] not found".formatted(moduleId)));
+
+        if(moduleEntity.getStatus().equals(Status.PUBLISHED)){
+            return ModuleMapper.mapToResponse(moduleEntity);
+        }
+
+         List<LearningStepEntity> learningStepEntityList = learningStepRepository.findByModule_Id(moduleEntity.getId());
+
+         boolean allStepsPublished = learningStepEntityList.stream()
+                 .allMatch(learningStep -> learningStep.getStatus().equals(Status.PUBLISHED));
+
+        boolean isReadyToPublish = !learningStepEntityList.isEmpty() && allStepsPublished;
+
+        if(!isReadyToPublish){
+            throw new BadRequestException("Cannot publish module: all associated learning steps must be published first");
+        }
+
+        moduleEntity.setStatus(Status.PUBLISHED);
+        moduleEntity = moduleRepository.save(moduleEntity);
+
+        return ModuleMapper.mapToResponse(moduleEntity);
+    }
+
+    @Transactional
+    public void deleteModule(UUID moduleId) {
+        log.info("Deleting module with id: {}", moduleId);
+        ModuleEntity moduleEntity = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Module with id [%s] not found".formatted(moduleId)));
+
+        if(learningStepRepository.countAllByModule_Id(moduleEntity.getId()) > 0){
+            throw new BadRequestException("Cannot delete module: it has associated learning steps");
+        }
+
+        moduleRepository.delete(moduleEntity);
     }
 
 }

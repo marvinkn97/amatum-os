@@ -154,27 +154,51 @@ interface StudioNotification {
         </div>
 
         <div class="flex items-center gap-4">
-          @if (isReadyToPublish()) {
+          @if (isCoursePublished()) {
+            <!-- ✅ PUBLISHED STATE -->
+            <div
+              class="flex items-center gap-2 px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl"
+            >
+              <div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span class="text-emerald-400 text-[11px] font-black uppercase tracking-widest">
+                Published
+              </span>
+            </div>
+          } @else if (isReadyToPublish()) {
+            <!-- Ready to Publish -->
             <button
               (click)="publishCourse()"
-              class="group flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 rounded-xl transition-all cursor-pointer"
+              [disabled]="isPublishingCourse()"
+              class="group flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 rounded-xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span
-                class="text-[10px] font-black uppercase tracking-widest text-emerald-500 group-hover:text-white"
-              >
-                Publish Course
-              </span>
-              <svg
-                class="size-3 text-emerald-500 group-hover:text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <path d="M5 13l4 4L19 7" />
-              </svg>
+              @if (isPublishingCourse()) {
+                <span
+                  class="size-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"
+                ></span>
+                <span
+                  class="text-[10px] font-black uppercase tracking-widest text-emerald-500 group-hover:text-white"
+                >
+                  Publishing...
+                </span>
+              } @else {
+                <span
+                  class="text-[10px] font-black uppercase tracking-widest text-emerald-500 group-hover:text-white"
+                >
+                  Publish Course
+                </span>
+                <svg
+                  class="size-3 text-emerald-500 group-hover:text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+              }
             </button>
           } @else {
+            <!-- Draft Mode -->
             <span class="text-[10px] font-black uppercase tracking-widest text-slate-600 italic">
               Draft Mode
             </span>
@@ -942,6 +966,77 @@ interface StudioNotification {
                         Organize learning steps using drag and drop.
                       </p>
                     </header>
+
+                    @if (selectedModuleId()) {
+                      <div
+                        class="flex flex-col sm:flex-row items-center gap-4 mt-8 mb-10 border-b border-white/5 pb-10"
+                      >
+                        @if (getSelectedModule()?.status === 'PUBLISHED' && selectedModuleId()) {
+                          <div
+                            class="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 border border-emerald-500/20 bg-emerald-500/5 rounded-2xl"
+                          >
+                            <div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span
+                              class="text-emerald-400 text-[11px] font-black uppercase tracking-widest"
+                            >
+                              Published
+                            </span>
+                          </div>
+                        } @else if (getSelectedModule()?.isReadyToPublish) {
+                          <button
+                            (click)="publishModule()"
+                            [disabled]="isPublishingModule() || isSaving()"
+                            class="w-full sm:w-auto px-10 py-4 bg-emerald-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+                          >
+                            @if (isPublishingModule()) {
+                              <span
+                                class="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                              ></span>
+                              Publishing...
+                            } @else {
+                              <svg
+                                class="size-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="3"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M5 10l7-7m0 0l7 7m-7-7v14"
+                                />
+                              </svg>
+                              Publish Module
+                            }
+                          </button>
+                        }
+
+                        <button
+                          type="button"
+                          (click)="confirmDeleteModule()"
+                          [disabled]="isDeletingModule()"
+                          class="group w-full sm:w-auto px-6 py-3 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5"
+                        >
+                          <svg
+                            class="size-4 block opacity-40 group-hover:opacity-100 transition-opacity"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                          >
+                            <path
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                          <span class="text-[11px] font-bold uppercase tracking-[0.2em]">
+                            {{ isDeletingModule() ? 'Removing...' : 'Delete Module' }}
+                          </span>
+                        </button>
+                      </div>
+                    }
                     @if (isCreatingNew) {
                       <div class="w-full py-1.5">
                         <div
@@ -1918,14 +2013,14 @@ interface StudioNotification {
                   </section>
                 }
                 <div
-                  class="flex justify-end items-center flex-wrap gap-4 pt-12 pb-20 border-t border-white/5"
+                  class="flex flex-col sm:flex-row sm:justify-end items-stretch sm:items-center gap-4 pt-12 pb-20 border-t border-white/5"
                 >
                   @if (getSelectedStep() != null) {
                     <button
                       type="button"
                       (click)="getSelectedStep() && confirmDelete(getSelectedStep()!)"
                       [disabled]="isDeleting()"
-                      class="group px-4 py-2 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5"
+                      class="group w-full sm:w-auto px-4 py-3 sm:py-2 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center justify-center sm:justify-start gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5 order-3 sm:order-1"
                     >
                       <svg
                         class="size-3.5 block opacity-40 group-hover:opacity-100 transition-opacity"
@@ -1950,7 +2045,7 @@ interface StudioNotification {
                   <button
                     (click)="saveStep()"
                     [disabled]="isSaving() || hasPendingUploads()"
-                    class="px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                    class="w-full sm:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer order-1 sm:order-2"
                   >
                     @if (isSaving()) {
                       <span
@@ -1970,11 +2065,11 @@ interface StudioNotification {
                       Save Changes
                     }
                   </button>
-                  <div class="flex items-center gap-3">
+
+                  <div class="flex items-center gap-3 w-full sm:w-auto order-2 sm:order-3">
                     @if (getSelectedStep()?.status === 'PUBLISHED') {
-                      <!-- Already Published Badge -->
                       <div
-                        class="flex items-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 rounded-2xl"
+                        class="flex items-center justify-center gap-2 w-full px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 rounded-2xl"
                       >
                         <div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span
@@ -1984,13 +2079,12 @@ interface StudioNotification {
                         </span>
                       </div>
                     } @else {
-                      <!-- Publish Button -->
                       <button
                         (click)="publishStep()"
                         [disabled]="
                           isPublishing() || !getSelectedStep()?.readyToPublish || isSaving()
                         "
-                        class="group flex items-center gap-2 px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                        class="group flex items-center justify-center gap-2 w-full px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         @if (isPublishing()) {
                           <span
@@ -2271,14 +2365,14 @@ interface StudioNotification {
                 </div>
 
                 <div
-                  class="flex justify-end items-center flex-wrap gap-4 pt-12 pb-20 border-t border-white/5"
+                  class="flex flex-col sm:flex-row sm:justify-end items-stretch sm:items-center gap-4 pt-12 pb-20 border-t border-white/5"
                 >
                   @if (getSelectedStep() != null) {
                     <button
                       type="button"
                       (click)="getSelectedStep() && confirmDelete(getSelectedStep()!)"
                       [disabled]="isDeleting()"
-                      class="group px-4 py-2 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5"
+                      class="group w-full sm:w-auto px-4 py-3 sm:py-2 text-slate-500 hover:text-rose-500 rounded-xl transition-all duration-300 flex items-center justify-center sm:justify-start gap-2 cursor-pointer bg-transparent hover:bg-rose-500/5 order-3 sm:order-1"
                     >
                       <svg
                         class="size-3.5 block opacity-40 group-hover:opacity-100 transition-opacity"
@@ -2302,8 +2396,8 @@ interface StudioNotification {
 
                   <button
                     (click)="saveStep()"
-                    [disabled]="isSaving()"
-                    class="px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer"
+                    [disabled]="isSaving() || hasPendingUploads()"
+                    class="w-full sm:w-auto px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3 cursor-pointer order-1 sm:order-2"
                   >
                     @if (isSaving()) {
                       <span
@@ -2323,11 +2417,11 @@ interface StudioNotification {
                       Save Changes
                     }
                   </button>
-                  <div class="flex items-center gap-3">
+
+                  <div class="flex items-center gap-3 w-full sm:w-auto order-2 sm:order-3">
                     @if (getSelectedStep()?.status === 'PUBLISHED') {
-                      <!-- Already Published Badge -->
                       <div
-                        class="flex items-center gap-2 px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 rounded-2xl"
+                        class="flex items-center justify-center gap-2 w-full px-5 py-3.5 border border-emerald-500/30 bg-emerald-500/10 rounded-2xl"
                       >
                         <div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span
@@ -2337,13 +2431,12 @@ interface StudioNotification {
                         </span>
                       </div>
                     } @else {
-                      <!-- Publish Button -->
                       <button
                         (click)="publishStep()"
                         [disabled]="
                           isPublishing() || !getSelectedStep()?.readyToPublish || isSaving()
                         "
-                        class="group flex items-center gap-2 px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                        class="group flex items-center justify-center gap-2 w-full px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         @if (isPublishing()) {
                           <span
@@ -2432,6 +2525,61 @@ interface StudioNotification {
                 Purging...
               } @else {
                 Yes, Delete
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- MODULE DELETE CONFIRMATION MODAL -->
+    @if (moduleToDelete(); as mod) {
+      <div
+        class="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+        (click)="cancelModuleDelete()"
+      >
+        <div
+          class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 text-center animate-in zoom-in-95 duration-200"
+          (click)="$event.stopPropagation()"
+        >
+          <div
+            class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-4"
+          >
+            <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+          </div>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Delete Module?</h2>
+          <p class="text-slate-600 dark:text-slate-400 mb-6">
+            Are you sure you want to permanently delete the module
+            <span class="font-semibold text-slate-900 dark:text-white">"{{ mod.title }}"</span>
+            and <span class="font-medium text-rose-500">all its learning steps</span>?
+          </p>
+          <p class="text-xs text-slate-500 mb-6 italic">
+            This action cannot be undone and will remove all associated videos and files from cloud
+            storage.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+              [disabled]="isDeletingModule()"
+              (click)="cancelModuleDelete()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex items-center justify-center gap-2"
+              [disabled]="isDeletingModule()"
+              (click)="executeDeleteModule()"
+            >
+              @if (isDeletingModule()) {
+                <span
+                  class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                ></span>
+                Deleting...
+              } @else {
+                Yes, Delete Module
               }
             </button>
           </div>
@@ -2778,18 +2926,14 @@ export class CourseBuilder implements OnInit {
   }
 
   isReadyToPublish(): boolean {
-    const data = this.courseData();
+    const course = this.rawCourseResponse(); // or this.courseData() if you add the field
+    return course?.isReadyToPublish === true;
+  }
 
-    const priceValid = data.tier === 'FREE' ? true : data.price !== null && data.price > 0;
-
-    return !!(
-      data.title &&
-      data.categoryId &&
-      data.description &&
-      data.description.length >= 20 &&
-      data.tags.length > 0 &&
-      priceValid
-    );
+  isCoursePublished(): boolean {
+    const raw = this.rawCourseResponse();
+    if (raw?.status === 'PUBLISHED') return true;
+    return false;
   }
 
   saveCourse() {
@@ -2843,16 +2987,6 @@ export class CourseBuilder implements OnInit {
         this.showToast(`${message}`, 'error');
       },
     });
-  }
-
-  publishCourse() {
-    if (!this.isReadyToPublish()) {
-      this.showValidationErrors = true;
-      this.showToast('Complete all details before publishing', 'error');
-      return;
-    }
-
-    this.showToast('Publishing live version...', 'info');
   }
 
   toggleDropdown(event: Event) {
@@ -2909,7 +3043,7 @@ export class CourseBuilder implements OnInit {
 
     this.isCreatingNew = true;
     this.editingModuleTitle = 'Untitled Module';
-    this.selectedId.set(null); // Use a placeholder ID for the view
+    this.selectedModuleId.set(null); // Use a placeholder ID for the view
     this.setView('MODULE_STRUCTURE');
   }
 
@@ -2930,7 +3064,7 @@ export class CourseBuilder implements OnInit {
           this.modules.update((currentList) => [...currentList, savedModule]);
 
           // 3. Update state to reflect it's no longer a "New" draft
-          this.selectedId.set(savedModule.id);
+          this.selectedModuleId.set(savedModule.id);
           this.isCreatingNew = false;
 
           this.showToast('Your changes have been saved successfully.', 'success');
@@ -3240,298 +3374,18 @@ export class CourseBuilder implements OnInit {
     );
   });
 
-
-    // Add near your other signals (after isSystemLocked for example)
+  // Add near your other signals (after isSystemLocked for example)
   hasPendingUploads = computed(() => {
-    const hasVideoUploading = this.isSyncingToCloud() || 
-                              (this.isVideoLesson() && !!this.selectedVideoFile() && !this.isUploadComplete());
+    const hasVideoUploading =
+      this.isSyncingToCloud() ||
+      (this.isVideoLesson() && !!this.selectedVideoFile() && !this.isUploadComplete());
 
-    const hasMaterialUploading = this.loadingStates.size > 0 ||
-                                 this.editingResources().some(r => !!(r as any).tempFile && !r.objectKey);
+    const hasMaterialUploading =
+      this.loadingStates.size > 0 ||
+      this.editingResources().some((r) => !!(r as any).tempFile && !r.objectKey);
 
     return hasVideoUploading || hasMaterialUploading;
   });
-
-  saveStep() {
-    if (this.isSaving()) return;
-
-    // === NEW: BLOCK SAVE DURING UPLOADS ===
-    if (this.hasPendingUploads()) {
-      this.showToast('Please wait for all uploads (video and materials) to complete before saving.', 'info');
-      return;
-    }
-
-    this.isSaving.set(true);
-    this.showValidationErrors = false;
-
-    const type = this.editingStepType();
-    const title = this.editingStepTitle()?.trim();
-    const moduleId = this.selectedModuleId(); // ← Get it once
-    const stepId = this.selectedStepId();
-    const isEdit = !!stepId;
-
-    const isVideo = this.isVideoLesson();
-    const isContent = this.isContentEnabled();
-    const isMaterials = this.isMaterialsEnabled();
-
-    // === GUARD: Module Existence ===
-    if (!moduleId) {
-      this.showToast('Please select a module before saving the step.', 'error');
-      this.isSaving.set(false);
-      return;
-    }
-
-    // === COMMON VALIDATION ===
-    if (!title) {
-      this.showValidationErrors = true;
-      this.showToast('Title is required.', 'error');
-      this.isSaving.set(false);
-      return;
-    }
-
-    let request: LearningStepRequest | LearningStepUpdateRequest | null = null;
-
-    if (type === 'LESSON') {
-      // Cloud Sync Guard
-      if (this.muxService.isUploading?.() || this.loadingStates.size > 0) {
-        this.showToast('Please wait for media uploads to finish.', 'info');
-        this.isSaving.set(false);
-        return;
-      }
-
-      const rawContent = this.editingStepContent();
-      const currentResources = this.editingResources();
-
-      const isEditorEmpty = !rawContent || rawContent.replace(/<[^>]*>/g, '').trim().length === 0;
-
-      const hasValidVideo = isVideo && !!this.currentUploadId();
-      const hasValidContent = isContent && !isEditorEmpty;
-      const hasValidMaterials = isMaterials && currentResources.length > 0;
-
-      if (!hasValidVideo && !hasValidContent && !hasValidMaterials) {
-        this.showToast('A lesson must have at least one content section.', 'error');
-        this.isSaving.set(false);
-        return;
-      }
-
-      if (isMaterials) {
-        const hasInvalid = currentResources.some((r) => !r.objectKey);
-        if (hasInvalid) {
-          this.showToast('Some materials are missing upload data. Please re-upload them.', 'error');
-          this.isSaving.set(false);
-          return;
-        }
-      }
-
-      if (isEdit) {
-        // UPDATE existing step
-        let videoUploadIdToSend: string | null | undefined = undefined;
-
-        if (isVideo) {
-          if (this.currentUploadId()) {
-            videoUploadIdToSend = this.currentUploadId()!;
-          } else if (this.selectedVideoFile()) {
-            this.showToast('Please upload the new video first before saving.', 'error');
-            this.isSaving.set(false);
-            return;
-          }
-        } else {
-          videoUploadIdToSend = null; // clear video
-        }
-
-        request = {
-          title,
-          type: 'LESSON',
-          videoEnabled: isVideo,
-          contentEnabled: isContent,
-          materialsEnabled: isMaterials,
-          videoUploadId: videoUploadIdToSend,
-          content: hasValidContent && isContent ? rawContent : '',
-          resources:
-            hasValidMaterials && isMaterials
-              ? currentResources.map((res) => ({
-                  name: res.name,
-                  objectKey: res.objectKey!,
-                  contentType: res.contentType,
-                  size: res.size,
-                }))
-              : [],
-        } as LearningStepUpdateRequest;
-      } else {
-        // CREATE new step
-        request = {
-          moduleId: moduleId!, // ← Now safe
-          title,
-          type: 'LESSON',
-          sequence: this.calculateDynamicSequence(moduleId!),
-          videoEnabled: isVideo,
-          contentEnabled: isContent,
-          materialsEnabled: isMaterials,
-          content: hasValidContent ? rawContent : '',
-          videoUploadId: this.currentUploadId() || undefined,
-          resources: hasValidMaterials
-            ? currentResources.map((res) => ({
-                name: res.name,
-                objectKey: res.objectKey!,
-                contentType: res.contentType,
-                size: res.size,
-              }))
-            : [],
-        } as LearningStepRequest;
-      }
-    }
-
-    // === QUIZ HANDLING ===
-    if (type === 'QUIZ') {
-      const quizQuestions = this.quizQuestions(); // Your Signal<QuizQuestion[]>
-
-      // 1. Basic Validation
-      if (!quizQuestions || quizQuestions.length === 0) {
-        this.showToast('A quiz must have at least one question.', 'error');
-        this.isSaving.set(false);
-        return;
-      }
-
-      // 2. Multi-Answer & Correctness Validation Logic
-      for (const [index, q] of quizQuestions.entries()) {
-        const correctCount = q.answerOptions.filter((opt) => opt.isCorrect).length;
-        const questionLabel = q.questionText?.trim() || `Question ${index + 1}`;
-
-        // Ensure question has text
-        if (!q.questionText?.trim()) {
-          this.showToast(`Question ${index + 1} text is required.`, 'error');
-          this.isSaving.set(false);
-          return;
-        }
-
-        // Must have at least one correct answer
-        if (correctCount === 0) {
-          this.showToast(`"${questionLabel}" must have at least one correct answer.`, 'error');
-          this.isSaving.set(false);
-          return;
-        }
-
-        // STRICT MULTI-ANSWER VALIDATION
-        // If toggle is OFF (Single Choice), but user selected > 1 answer
-        if (!q.hasMultipleAnswers && correctCount > 1) {
-          this.showToast(
-            `"${questionLabel}" is set to single choice, but you've selected ${correctCount} correct answers.`,
-            'error',
-          );
-          this.isSaving.set(false);
-          return;
-        }
-      }
-
-      // 3. Map to Backend Request Interface
-      const quizRequestData: QuizQuestionRequest[] = quizQuestions.map((q) => ({
-        questionText: q.questionText,
-        hasMultipleAnswers: q.hasMultipleAnswers,
-        answerOptions: q.answerOptions.map((opt) => ({
-          answerText: opt.answerText,
-          isCorrect: opt.isCorrect,
-        })),
-      }));
-
-      if (isEdit) {
-        request = {
-          title,
-          type: 'QUIZ',
-          videoEnabled: false,
-          contentEnabled: false,
-          materialsEnabled: false,
-          questions: quizRequestData,
-        } as LearningStepUpdateRequest;
-      } else {
-        request = {
-          moduleId: moduleId!,
-          title,
-          type: 'QUIZ',
-          sequence: this.calculateDynamicSequence(moduleId!),
-          videoEnabled: false,
-          contentEnabled: false,
-          materialsEnabled: false,
-          questions: quizRequestData,
-        } as LearningStepRequest;
-      }
-    }
-
-    if (!request) {
-      this.isSaving.set(false);
-      return;
-    }
-
-    const operation$ = isEdit
-      ? this.learningStepService.updateLearningStep(stepId!, request as LearningStepUpdateRequest)
-      : this.learningStepService.createLearningStep(request as LearningStepRequest);
-
-    operation$.pipe(finalize(() => this.isSaving.set(false))).subscribe({
-      next: (res: LearningStepResponse) => {
-        this.showToast(`${type} ${isEdit ? 'updated' : 'created'} successfully`, 'success');
-
-        // Update modules list + backup (your existing logic)
-        this.modules.update((currentModules) =>
-          currentModules.map((module) => {
-            if (module.id === moduleId) {
-              const currentSteps = [...(module.learningSteps || [])];
-              let updatedSteps = isEdit
-                ? currentSteps.map((step) => (step.id === res.id ? { ...res } : step))
-                : [...currentSteps, { ...res }];
-
-              updatedSteps.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
-
-              return { ...module, learningSteps: updatedSteps };
-            }
-            return module;
-          }),
-        );
-
-        // === IMPORTANT: Handle Quiz Questions specifically ===
-        if (type === 'QUIZ' && res.quiz) {
-          this.quizQuestions.set(res.quiz.questions || []); // ← Map from response
-        }
-
-        // Update raw backup too...
-        this.rawCourseResponse.update((prev) => {
-          if (!prev?.modules) return prev;
-          return {
-            ...prev,
-            modules: prev.modules.map((m) =>
-              m.id === moduleId
-                ? {
-                    ...m,
-                    learningSteps: isEdit
-                      ? (m.learningSteps || []).map((s) => (s.id === res.id ? res : s))
-                      : [...(m.learningSteps || []), res].sort((a, b) => a.sequence - b.sequence),
-                  }
-                : m,
-            ),
-          };
-        });
-
-        // 3. CRITICAL: Refresh the module title in the editor
-        const currentModule = this.modules().find((m) => m.id === moduleId);
-        if (currentModule) {
-          this.editingModuleTitle = currentModule.title; // ← This fixes "Untitled Module"
-        }
-
-        // Also update the current step title in the editor
-        this.editingStepTitle.set(
-          res.title || (type === 'LESSON' ? 'Untitled Lesson' : 'Untitled Quiz'),
-        );
-
-        this.clearLessonEditorState();
-        this.setView('MODULE_STRUCTURE', moduleId);
-      },
-      error: (err: any) => {
-        this.showToast(
-          err?.error?.detail || `Failed to ${isEdit ? 'update' : 'create'} step.`,
-          'error',
-        );
-        console.error(err);
-      },
-    });
-  }
 
   // Signal to track the IDs of the modules that are currently open
   // 1. Change to a Set to track multiple open IDs
@@ -3566,9 +3420,65 @@ export class CourseBuilder implements OnInit {
     });
   }
 
+  isPublishingCourse = signal(false);
+
+  publishCourse() {
+    const courseId = this.courseId();
+    if (!courseId) {
+      this.showToast('Please save the course first', 'error');
+      return;
+    }
+
+    if (!this.isReadyToPublish()) {
+      this.showValidationErrors = true;
+      this.showToast('Please complete all required fields before publishing the course', 'info');
+      return;
+    }
+
+    this.isPublishingCourse.set(true);
+
+    this.courseService
+      .publishCourse(courseId)
+      .pipe(finalize(() => this.isPublishingCourse.set(false)))
+      .subscribe({
+        next: (updatedCourse: CourseResponse) => {
+          // Sync the full course data
+          this.syncSignals(updatedCourse);
+
+          // Optional: Update modules if backend returns them too
+          if (updatedCourse.modules) {
+            this.modules.set(
+              updatedCourse.modules
+                .map((mod) => ({
+                  ...mod,
+                  learningSteps: mod.learningSteps
+                    ? [...mod.learningSteps].sort((a, b) => a.sequence - b.sequence)
+                    : [],
+                }))
+                .sort((a, b) => a.sequence - b.sequence),
+            );
+          }
+
+          this.showToast('Course published successfully! It is now live.', 'success');
+
+          // Optional: Refresh the top nav button state
+          this.isReadyToPublish(); // just to re-evaluate
+        },
+        error: (err: any) => {
+          const message = err?.error?.detail || 'Failed to publish course. Please try again.';
+          this.showToast(message, 'error');
+          console.error('Publish course error:', err);
+        },
+      });
+  }
+
   /**
    *
+   *
+   *
    * MODULE
+   *
+   *
    */
 
   // Component Signal
@@ -3629,9 +3539,126 @@ export class CourseBuilder implements OnInit {
     }
   }
 
+  isPublishingModule = signal(false);
+  isDeletingModule = signal(false);
+
+  // ==================== MODULE PUBLISH ====================
+  publishModule(): void {
+    const moduleId = this.selectedModuleId();
+    if (!moduleId || moduleId === 'NEW') {
+      this.showToast('Please save the module first', 'error');
+      return;
+    }
+
+    const selectedModule = this.getSelectedModule();
+    if (!selectedModule?.isReadyToPublish) {
+      this.showToast('Module is not ready to publish yet', 'error');
+      return;
+    }
+
+    this.isPublishingModule.set(true);
+
+    this.moduleService
+      .publishModule(moduleId)
+      .pipe(finalize(() => this.isPublishingModule.set(false)))
+      .subscribe({
+        next: (updatedModule: ModuleResponse) => {
+          // Update main list
+          this.modules.update((mods) =>
+            mods.map((m) =>
+              m.id === moduleId ? { ...updatedModule, learningSteps: m.learningSteps } : m,
+            ),
+          );
+
+          // Update backup
+          this.rawCourseResponse.update((course) => {
+            if (!course?.modules) return course;
+            return {
+              ...course,
+              modules: course.modules.map((m) =>
+                m.id === moduleId ? { ...updatedModule, learningSteps: m.learningSteps } : m,
+              ),
+            };
+          });
+
+          this.showToast('Module published successfully!', 'success');
+          this.selectModule(updatedModule); // Refresh view
+        },
+        error: (err) => {
+          this.showToast(err?.error?.detail || 'Failed to publish module', 'error');
+        },
+      });
+  }
+
+  // ==================== MODULE DELETE MODAL ====================
+  confirmDeleteModule(): void {
+    const moduleId = this.selectedModuleId();
+    if (!moduleId || moduleId === 'NEW') {
+      this.showToast('Cannot delete an unsaved module', 'error');
+      return;
+    }
+
+    const module = this.modules().find((m) => m.id === moduleId);
+    if (module) {
+      this.moduleToDelete.set(module);
+    }
+  }
+
+  cancelModuleDelete(): void {
+    this.moduleToDelete.set(null);
+  }
+
+  executeDeleteModule(): void {
+    const module = this.moduleToDelete();
+    if (!module) return;
+
+    this.isDeletingModule.set(true);
+
+    this.moduleService
+      .deleteModule(module.id)
+      .pipe(
+        finalize(() => {
+          this.isDeletingModule.set(false);
+          this.moduleToDelete.set(null);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          // Remove from UI modules list
+          this.modules.update((mods) => mods.filter((m) => m.id !== module.id));
+
+          // Remove from raw backup
+          this.rawCourseResponse.update((course) => {
+            if (!course?.modules) return course;
+            return {
+              ...course,
+              modules: course.modules.filter((m) => m.id !== module.id),
+            };
+          });
+
+          // Reset view if we were inside the deleted module
+          if (this.selectedModuleId() === module.id) {
+            this.selectedModuleId.set(null);
+            this.setView('COURSE_IDENTITY');
+          }
+
+          this.showToast(`Module "${module.title}" and all its content deleted`, 'success');
+        },
+        error: (err) => {
+          this.showToast(err?.error?.detail || 'Failed to delete module', 'error');
+        },
+      });
+  }
+
+  // Module Delete Modal
+  moduleToDelete = signal<ModuleResponse | null>(null);
+
   /**
    *
+   *
    * LEARNING STEP
+   *
+   *
    */
 
   addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
@@ -4028,6 +4055,290 @@ export class CourseBuilder implements OnInit {
       error: (err: any) => {
         this.isPublishing.set(false);
         this.showToast(err?.error?.detail || 'Failed to publish step', 'error');
+      },
+    });
+  }
+
+  saveStep() {
+    if (this.isSaving()) return;
+
+    // === NEW: BLOCK SAVE DURING UPLOADS ===
+    if (this.hasPendingUploads()) {
+      this.showToast(
+        'Please wait for all uploads (video and materials) to complete before saving.',
+        'info',
+      );
+      return;
+    }
+
+    this.isSaving.set(true);
+    this.showValidationErrors = false;
+
+    const type = this.editingStepType();
+    const title = this.editingStepTitle()?.trim();
+    const moduleId = this.selectedModuleId(); // ← Get it once
+    const stepId = this.selectedStepId();
+    const isEdit = !!stepId;
+
+    const isVideo = this.isVideoLesson();
+    const isContent = this.isContentEnabled();
+    const isMaterials = this.isMaterialsEnabled();
+
+    // === GUARD: Module Existence ===
+    if (!moduleId) {
+      this.showToast('Please select a module before saving the step.', 'error');
+      this.isSaving.set(false);
+      return;
+    }
+
+    // === COMMON VALIDATION ===
+    if (!title) {
+      this.showValidationErrors = true;
+      this.showToast('Title is required.', 'error');
+      this.isSaving.set(false);
+      return;
+    }
+
+    let request: LearningStepRequest | LearningStepUpdateRequest | null = null;
+
+    if (type === 'LESSON') {
+      // Cloud Sync Guard
+      if (this.muxService.isUploading?.() || this.loadingStates.size > 0) {
+        this.showToast('Please wait for media uploads to finish.', 'info');
+        this.isSaving.set(false);
+        return;
+      }
+
+      const rawContent = this.editingStepContent();
+      const currentResources = this.editingResources();
+
+      const isEditorEmpty = !rawContent || rawContent.replace(/<[^>]*>/g, '').trim().length === 0;
+
+      const hasValidVideo = isVideo && !!this.currentUploadId();
+      const hasValidContent = isContent && !isEditorEmpty;
+      const hasValidMaterials = isMaterials && currentResources.length > 0;
+
+      if (!hasValidVideo && !hasValidContent && !hasValidMaterials) {
+        this.showToast('A lesson must have at least one content section.', 'error');
+        this.isSaving.set(false);
+        return;
+      }
+
+      if (isMaterials) {
+        const hasInvalid = currentResources.some((r) => !r.objectKey);
+        if (hasInvalid) {
+          this.showToast('Some materials are missing upload data. Please re-upload them.', 'error');
+          this.isSaving.set(false);
+          return;
+        }
+      }
+
+      if (isEdit) {
+        // UPDATE existing step
+        let videoUploadIdToSend: string | null | undefined = undefined;
+
+        if (isVideo) {
+          if (this.currentUploadId()) {
+            videoUploadIdToSend = this.currentUploadId()!;
+          } else if (this.selectedVideoFile()) {
+            this.showToast('Please upload the new video first before saving.', 'error');
+            this.isSaving.set(false);
+            return;
+          }
+        } else {
+          videoUploadIdToSend = null; // clear video
+        }
+
+        request = {
+          title,
+          type: 'LESSON',
+          videoEnabled: isVideo,
+          contentEnabled: isContent,
+          materialsEnabled: isMaterials,
+          videoUploadId: videoUploadIdToSend,
+          content: hasValidContent && isContent ? rawContent : '',
+          resources:
+            hasValidMaterials && isMaterials
+              ? currentResources.map((res) => ({
+                  name: res.name,
+                  objectKey: res.objectKey!,
+                  contentType: res.contentType,
+                  size: res.size,
+                }))
+              : [],
+        } as LearningStepUpdateRequest;
+      } else {
+        // CREATE new step
+        request = {
+          moduleId: moduleId!, // ← Now safe
+          title,
+          type: 'LESSON',
+          sequence: this.calculateDynamicSequence(moduleId!),
+          videoEnabled: isVideo,
+          contentEnabled: isContent,
+          materialsEnabled: isMaterials,
+          content: hasValidContent ? rawContent : '',
+          videoUploadId: this.currentUploadId() || undefined,
+          resources: hasValidMaterials
+            ? currentResources.map((res) => ({
+                name: res.name,
+                objectKey: res.objectKey!,
+                contentType: res.contentType,
+                size: res.size,
+              }))
+            : [],
+        } as LearningStepRequest;
+      }
+    }
+
+    // === QUIZ HANDLING ===
+    if (type === 'QUIZ') {
+      const quizQuestions = this.quizQuestions(); // Your Signal<QuizQuestion[]>
+
+      // 1. Basic Validation
+      if (!quizQuestions || quizQuestions.length === 0) {
+        this.showToast('A quiz must have at least one question.', 'error');
+        this.isSaving.set(false);
+        return;
+      }
+
+      // 2. Multi-Answer & Correctness Validation Logic
+      for (const [index, q] of quizQuestions.entries()) {
+        const correctCount = q.answerOptions.filter((opt) => opt.isCorrect).length;
+        const questionLabel = q.questionText?.trim() || `Question ${index + 1}`;
+
+        // Ensure question has text
+        if (!q.questionText?.trim()) {
+          this.showToast(`Question ${index + 1} text is required.`, 'error');
+          this.isSaving.set(false);
+          return;
+        }
+
+        // Must have at least one correct answer
+        if (correctCount === 0) {
+          this.showToast(`"${questionLabel}" must have at least one correct answer.`, 'error');
+          this.isSaving.set(false);
+          return;
+        }
+
+        // STRICT MULTI-ANSWER VALIDATION
+        // If toggle is OFF (Single Choice), but user selected > 1 answer
+        if (!q.hasMultipleAnswers && correctCount > 1) {
+          this.showToast(
+            `"${questionLabel}" is set to single choice, but you've selected ${correctCount} correct answers.`,
+            'error',
+          );
+          this.isSaving.set(false);
+          return;
+        }
+      }
+
+      // 3. Map to Backend Request Interface
+      const quizRequestData: QuizQuestionRequest[] = quizQuestions.map((q) => ({
+        questionText: q.questionText,
+        hasMultipleAnswers: q.hasMultipleAnswers,
+        answerOptions: q.answerOptions.map((opt) => ({
+          answerText: opt.answerText,
+          isCorrect: opt.isCorrect,
+        })),
+      }));
+
+      if (isEdit) {
+        request = {
+          title,
+          type: 'QUIZ',
+          videoEnabled: false,
+          contentEnabled: false,
+          materialsEnabled: false,
+          questions: quizRequestData,
+        } as LearningStepUpdateRequest;
+      } else {
+        request = {
+          moduleId: moduleId!,
+          title,
+          type: 'QUIZ',
+          sequence: this.calculateDynamicSequence(moduleId!),
+          videoEnabled: false,
+          contentEnabled: false,
+          materialsEnabled: false,
+          questions: quizRequestData,
+        } as LearningStepRequest;
+      }
+    }
+
+    if (!request) {
+      this.isSaving.set(false);
+      return;
+    }
+
+    const operation$ = isEdit
+      ? this.learningStepService.updateLearningStep(stepId!, request as LearningStepUpdateRequest)
+      : this.learningStepService.createLearningStep(request as LearningStepRequest);
+
+    operation$.pipe(finalize(() => this.isSaving.set(false))).subscribe({
+      next: (res: LearningStepResponse) => {
+        this.showToast(`${type} ${isEdit ? 'updated' : 'created'} successfully`, 'success');
+
+        // Update modules list + backup (your existing logic)
+        this.modules.update((currentModules) =>
+          currentModules.map((module) => {
+            if (module.id === moduleId) {
+              const currentSteps = [...(module.learningSteps || [])];
+              let updatedSteps = isEdit
+                ? currentSteps.map((step) => (step.id === res.id ? { ...res } : step))
+                : [...currentSteps, { ...res }];
+
+              updatedSteps.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+
+              return { ...module, learningSteps: updatedSteps };
+            }
+            return module;
+          }),
+        );
+
+        // === IMPORTANT: Handle Quiz Questions specifically ===
+        if (type === 'QUIZ' && res.quiz) {
+          this.quizQuestions.set(res.quiz.questions || []); // ← Map from response
+        }
+
+        // Update raw backup too...
+        this.rawCourseResponse.update((prev) => {
+          if (!prev?.modules) return prev;
+          return {
+            ...prev,
+            modules: prev.modules.map((m) =>
+              m.id === moduleId
+                ? {
+                    ...m,
+                    learningSteps: isEdit
+                      ? (m.learningSteps || []).map((s) => (s.id === res.id ? res : s))
+                      : [...(m.learningSteps || []), res].sort((a, b) => a.sequence - b.sequence),
+                  }
+                : m,
+            ),
+          };
+        });
+
+        // 3. CRITICAL: Refresh the module title in the editor
+        const currentModule = this.modules().find((m) => m.id === moduleId);
+        if (currentModule) {
+          this.editingModuleTitle = currentModule.title; // ← This fixes "Untitled Module"
+        }
+
+        // Also update the current step title in the editor
+        this.editingStepTitle.set(
+          res.title || (type === 'LESSON' ? 'Untitled Lesson' : 'Untitled Quiz'),
+        );
+
+        this.clearLessonEditorState();
+        this.setView('MODULE_STRUCTURE', moduleId);
+      },
+      error: (err: any) => {
+        this.showToast(
+          err?.error?.detail || `Failed to ${isEdit ? 'update' : 'create'} step.`,
+          'error',
+        );
+        console.error(err);
       },
     });
   }

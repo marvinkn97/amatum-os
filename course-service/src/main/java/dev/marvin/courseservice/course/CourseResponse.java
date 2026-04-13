@@ -20,6 +20,7 @@ public record CourseResponse(
         BigDecimal price,
         UUID categoryId,
         Status status,
+        Boolean isReadyToPublish,
         List<ModuleResponse> modules
 ) {
 
@@ -35,6 +36,6 @@ public record CourseResponse(
             UUID categoryId,
             Status status
     ) {
-        this(id, title, slug, description, tags, isFeatured, accessTier, price, categoryId, status, Collections.emptyList());
+        this(id, title, slug, description, tags, isFeatured, accessTier, price, categoryId, status, null, Collections.emptyList());
     }
 }

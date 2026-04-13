@@ -40,7 +40,7 @@ export interface LearningStepResponse {
   videoPlaybackId?: string | null;
   videoAssetId?: string | null;
 
-  readyToPublish?: boolean;
+  readyToPublish: boolean;
 
   // Future Quiz Data
   quiz?: QuizResponse;

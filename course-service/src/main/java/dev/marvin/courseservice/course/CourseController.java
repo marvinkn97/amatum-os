@@ -132,4 +132,11 @@ public class CourseController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Publish a course")
+    @PatchMapping("/{id}/publish")
+    public ResponseEntity<CourseResponse> publish(@Parameter @PathVariable("id") UUID courseId){
+        CourseResponse courseResponse = courseService.publishCourse(courseId);
+        return ResponseEntity.ok(courseResponse);
+    }
+
 }

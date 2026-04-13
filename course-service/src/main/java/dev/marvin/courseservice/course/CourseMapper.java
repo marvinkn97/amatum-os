@@ -23,7 +23,7 @@ public class CourseMapper {
     }
 
 
-    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity, List<ModuleResponse> moduleResponses){
+    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity,boolean isReadyToPublish, List<ModuleResponse> moduleResponses){
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
@@ -35,6 +35,7 @@ public class CourseMapper {
                 courseEntity.getPrice(),
                 courseEntity.getCategory().getId(),
                 courseEntity.getStatus(),
+                isReadyToPublish,
                 moduleResponses
         );
 

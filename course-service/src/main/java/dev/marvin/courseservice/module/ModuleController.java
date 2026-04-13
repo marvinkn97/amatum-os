@@ -44,4 +44,19 @@ public class ModuleController {
         ModuleResponse moduleResponse = moduleService.updateModuleDetails(moduleId, request);
         return ResponseEntity.ok(moduleResponse);
     }
+
+    @Operation(summary = "Publish a module")
+    @PatchMapping("/{id}/publish")
+    public ResponseEntity<ModuleResponse> publishModule(@Parameter @PathVariable("id") UUID moduleId) {
+        ModuleResponse moduleResponse = moduleService.publishModule(moduleId);
+        return ResponseEntity.ok(moduleResponse);
+    }
+
+    @Operation(summary = "Delete a module")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteModule(@Parameter @PathVariable("id") UUID moduleId) {
+        moduleService.deleteModule(moduleId);
+        return ResponseEntity.ok().build();
+    }
+
 }

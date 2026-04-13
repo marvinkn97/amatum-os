@@ -36,6 +36,8 @@ export interface ModuleResponse {
   id: string;
   sequence: number;
   title: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  isReadyToPublish: boolean;
   learningSteps: LearningStepResponse[];
 }
 
@@ -62,4 +64,14 @@ export class ModuleService {
   reOrderStepSequence(moduleId: string, payload: LearningStepReorderRequest[]): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/${moduleId}/reorder-steps`, payload);
   }
+
+  publishModule(moduleId: string): Observable<ModuleResponse> {
+    return this.http.patch<ModuleResponse>(`${this.API_URL}/${moduleId}/publish`, {});
+  }
+
+  deleteModule(moduleId: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${moduleId}`);
+  }
 }
+
+

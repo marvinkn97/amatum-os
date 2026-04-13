@@ -160,6 +160,152 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public CourseResponse getCourseById(UUID id) {
+       return getHydratedCourseResponse(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getAllActiveCourses(Pageable pageable) {
+        log.info("Getting all active courses");
+
+        if (!TenantContext.TENANT_ID.isBound()) {
+            throw new BadRequestException("No active organization context found in request");
+        }
+
+        log.info("isBound: {}", TenantContext.TENANT_ID.isBound());
+        log.info("ScopedValue.get() safe? {}", TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : "not bound");
+
+        String activeTenantId = TenantContext.TENANT_ID.get();
+
+        log.info("Active tenant id: {}", activeTenantId);
+
+
+        return courseRepository.findByTenantIdAndIsDeleted(activeTenantId, false, pageable)
+                .map(CourseMapper::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getAllArchivedCourses(Pageable pageable) {
+        log.info("Getting all archived courses");
+        if (!TenantContext.TENANT_ID.isBound()) {
+            throw new BadRequestException("No active organization context found in request");
+        }
+
+        String activeTenantId = TenantContext.TENANT_ID.get();
+
+        return courseRepository.findByTenantIdAndIsDeleted(activeTenantId, true, pageable)
+                .map(CourseMapper::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> searchActiveCourses(String name, UUID categoryId, Pageable pageable) {
+        log.info("Searching active courses with name: {}, categoryId: {}", name, categoryId);
+
+        if (!TenantContext.TENANT_ID.isBound()) {
+            throw new BadRequestException("No active organization context found in request");
+        }
+
+        String activeTenantId = TenantContext.TENANT_ID.get();
+
+        return courseRepository.findActiveByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
+                .map(CourseMapper::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> searchArchivedCourses(String name, UUID categoryId, Pageable pageable) {
+        log.info("Searching archived courses with name: {}, categoryId: {}", name, categoryId);
+
+        if (!TenantContext.TENANT_ID.isBound()) {
+            throw new BadRequestException("No active organization context found in request");
+        }
+
+        String activeTenantId = TenantContext.TENANT_ID.get();
+
+
+        return courseRepository.findArchivedByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
+                .map(CourseMapper::mapToResponse);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        log.info("Deleting course with id: {}", id);
+        CourseEntity course = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
+        course.setIsDeleted(true);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public void restore(UUID id) {
+        log.info("Restoring course with id: {}", id);
+        CourseEntity course = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
+        course.setIsDeleted(false);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public void reOrderModuleSequence(UUID courseId, List<ModuleReOrderRequest> moduleReOrderRequestList) {
+        log.info("Re-ordering modules for course with id: {}", courseId);
+
+        // 1. Fetch the course to ensure it exists
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(courseId)));
+
+        // 2. Get the current modules from the course
+        List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_Id(course.getId());
+
+        // 3. Map the new sequences from the request
+        // We turn the request list into a Map for O(1) lookup speed
+        Map<UUID, Integer> sequenceMap = moduleReOrderRequestList.stream()
+                .collect(Collectors.toMap(ModuleReOrderRequest::moduleId, ModuleReOrderRequest::sequence));
+
+        // 4. Update the entities in memory
+        moduleEntities.forEach(module -> {
+            Integer newSequence = sequenceMap.get(module.getId());
+            if (newSequence != null) {
+                module.setSequence(newSequence);
+            }
+        });
+
+        // 5. Batch Save
+        // JPA is smart enough to update only the changed 'sequence' columns
+        moduleRepository.saveAll(moduleEntities);
+
+        log.info("Successfully re-ordered {} modules for course {}", moduleEntities.size(), courseId);
+
+    }
+
+    @Transactional
+    public CourseResponse publishCourse(UUID courseId) {
+        log.info("Publishing course with id: {}", courseId);
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(courseId)));
+
+        if (course.getStatus().equals(Status.PUBLISHED)) {
+            log.info("Course {} is already published", courseId);
+            return getHydratedCourseResponse(courseId); // Return full hydrated response
+        }
+
+        List<ModuleEntity> modules = moduleRepository.findByCourse_Id(courseId);
+        if (modules.isEmpty()) {
+            throw new BadRequestException("Cannot publish a course with no modules");
+        }
+
+        boolean allModulesPublished = modules.stream()
+                .allMatch(m -> m.getStatus().equals(Status.PUBLISHED));
+
+        if (!allModulesPublished) {
+            throw new BadRequestException("All modules must be published before publishing the course");
+        }
+
+        course.setStatus(Status.PUBLISHED);
+        courseRepository.save(course);
+
+        return getHydratedCourseResponse(courseId);   // Return full hydrated response
+
+    }
+
+    private CourseResponse getHydratedCourseResponse(UUID id) {
         log.info("Getting course with id: {}", id);
 
         // Fetch Course
@@ -288,125 +434,28 @@ public class CourseService {
                             m.getId(),
                             m.getTitle(),
                             m.getSequence(),
+                            m.getStatus(),
                             isReady,
                             stepsByModuleId.getOrDefault(m.getId(), List.of())
                     );
                 })
                 .toList();
 
-        return CourseMapper.mapToResponseWithModulesAndLessons(course, moduleResponses);
-    }
+        List<ModuleEntity> modules = moduleRepository.findByCourse_Id(course.getId());
 
-    @Transactional(readOnly = true)
-    public Page<CourseResponse> getAllActiveCourses(Pageable pageable) {
-        log.info("Getting all active courses");
-
-        if (!TenantContext.TENANT_ID.isBound()) {
-            throw new BadRequestException("No active organization context found in request");
-        }
-
-        log.info("isBound: {}", TenantContext.TENANT_ID.isBound());
-        log.info("ScopedValue.get() safe? {}", TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : "not bound");
-
-        String activeTenantId = TenantContext.TENANT_ID.get();
-
-        log.info("Active tenant id: {}", activeTenantId);
+        boolean allModulesPublished = modules.stream()
+                .allMatch(m -> m.getStatus().equals(Status.PUBLISHED));
 
 
-        return courseRepository.findByTenantIdAndIsDeleted(activeTenantId, false, pageable)
-                .map(CourseMapper::mapToResponse);
-    }
+        boolean allStepsPublished = modules.stream()
+                .allMatch(m -> {
+                    List<LearningStepEntity> steps = rawStepsByModuleId.getOrDefault(m.getId(), List.of());
+                    return !steps.isEmpty() && steps.stream().allMatch(s -> s.getStatus().equals(Status.PUBLISHED));
+                });
 
-    @Transactional(readOnly = true)
-    public Page<CourseResponse> getAllArchivedCourses(Pageable pageable) {
-        log.info("Getting all archived courses");
-        if (!TenantContext.TENANT_ID.isBound()) {
-            throw new BadRequestException("No active organization context found in request");
-        }
+        boolean isReadyToPublish = !modules.isEmpty() && allModulesPublished && allStepsPublished;
 
-        String activeTenantId = TenantContext.TENANT_ID.get();
-
-        return courseRepository.findByTenantIdAndIsDeleted(activeTenantId, true, pageable)
-                .map(CourseMapper::mapToResponse);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<CourseResponse> searchActiveCourses(String name, UUID categoryId, Pageable pageable) {
-        log.info("Searching active courses with name: {}, categoryId: {}", name, categoryId);
-
-        if (!TenantContext.TENANT_ID.isBound()) {
-            throw new BadRequestException("No active organization context found in request");
-        }
-
-        String activeTenantId = TenantContext.TENANT_ID.get();
-
-        return courseRepository.findActiveByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
-                .map(CourseMapper::mapToResponse);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<CourseResponse> searchArchivedCourses(String name, UUID categoryId, Pageable pageable) {
-        log.info("Searching archived courses with name: {}, categoryId: {}", name, categoryId);
-
-        if (!TenantContext.TENANT_ID.isBound()) {
-            throw new BadRequestException("No active organization context found in request");
-        }
-
-        String activeTenantId = TenantContext.TENANT_ID.get();
-
-
-        return courseRepository.findArchivedByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
-                .map(CourseMapper::mapToResponse);
-    }
-
-    @Transactional
-    public void delete(UUID id) {
-        log.info("Deleting course with id: {}", id);
-        CourseEntity course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
-        course.setIsDeleted(true);
-        courseRepository.save(course);
-    }
-
-    @Transactional
-    public void restore(UUID id) {
-        log.info("Restoring course with id: {}", id);
-        CourseEntity course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
-        course.setIsDeleted(false);
-        courseRepository.save(course);
-    }
-
-    @Transactional
-    public void reOrderModuleSequence(UUID courseId, List<ModuleReOrderRequest> moduleReOrderRequestList) {
-        log.info("Re-ordering modules for course with id: {}", courseId);
-
-        // 1. Fetch the course to ensure it exists
-        CourseEntity course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(courseId)));
-
-        // 2. Get the current modules from the course
-        List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_Id(course.getId());
-
-        // 3. Map the new sequences from the request
-        // We turn the request list into a Map for O(1) lookup speed
-        Map<UUID, Integer> sequenceMap = moduleReOrderRequestList.stream()
-                .collect(Collectors.toMap(ModuleReOrderRequest::moduleId, ModuleReOrderRequest::sequence));
-
-        // 4. Update the entities in memory
-        moduleEntities.forEach(module -> {
-            Integer newSequence = sequenceMap.get(module.getId());
-            if (newSequence != null) {
-                module.setSequence(newSequence);
-            }
-        });
-
-        // 5. Batch Save
-        // JPA is smart enough to update only the changed 'sequence' columns
-        moduleRepository.saveAll(moduleEntities);
-
-        log.info("Successfully re-ordered {} modules for course {}", moduleEntities.size(), courseId);
-
+        return CourseMapper.mapToResponseWithModulesAndLessons(course, isReadyToPublish, moduleResponses);
     }
 
 }

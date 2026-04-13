@@ -84,4 +84,6 @@ public class CategoryController {
         List<CategoryResponse> categoryResponseList = categoryService.getAllActiveCategories();
         return ResponseEntity.ok(categoryResponseList);
     }
+
+
 }
