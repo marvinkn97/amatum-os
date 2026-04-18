@@ -613,20 +613,21 @@ interface StudioNotification {
                           <h4
                             class="text-xs font-black uppercase tracking-widest text-indigo-100 italic"
                           >
-                            Promote to public view
+                            Go Public
                           </h4>
-                          <p class="text-[10px] text-slate-500 font-medium">
-                            Pin this course to the front page featured section.
+                          <p class="text-[11px] text-slate-500 font-medium">
+                            Enabling this makes your course discoverable by independent learners
+                            outside your organization.
                           </p>
                         </div>
                         <button
-                          (click)="courseData().featured = !courseData().featured"
-                          [class.bg-indigo-600]="courseData().featured"
+                          (click)="courseData().isPublic = !courseData().isPublic"
+                          [class.bg-indigo-600]="courseData().isPublic"
                           class="w-14 h-7 rounded-full border border-white/10 transition-all relative p-1 cursor-pointer"
                         >
                           <div
                             class="size-5 bg-white rounded-full transition-all shadow-lg"
-                            [class.translate-x-7]="courseData().featured"
+                            [class.translate-x-7]="courseData().isPublic"
                           ></div>
                         </button>
                       </div>
@@ -2720,7 +2721,7 @@ export class CourseBuilder implements OnInit {
     title: '',
     slug: '',
     tier: 'FREE' as 'FREE' | 'PREMIUM',
-    featured: false,
+    isPublic: false,
     price: 0,
     description: '',
     categoryId: '',
@@ -2775,7 +2776,7 @@ export class CourseBuilder implements OnInit {
       title: '',
       slug: '',
       tier: 'FREE',
-      featured: false,
+      isPublic: false,
       price: 0,
       description: '',
       categoryId: '',
@@ -2824,7 +2825,7 @@ export class CourseBuilder implements OnInit {
       slug: response.slug,
       description: response.description,
       tags: [...response.tags],
-      featured: response.isFeatured,
+      isPublic: response.isPublic,
       tier: response.accessTier as 'FREE' | 'PREMIUM',
       price: response.price,
       categoryId: response.categoryId,
@@ -2955,7 +2956,7 @@ export class CourseBuilder implements OnInit {
       title: data.title,
       slug: data.slug,
       accessTier: data.tier,
-      isFeatured: data.featured,
+      isPublic: data.isPublic,
       price: data.price,
       description: data.description,
       categoryId: data.categoryId,

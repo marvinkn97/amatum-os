@@ -1,7 +1,8 @@
 package dev.marvin.courseservice.module;
 
-import dev.marvin.courseservice.common.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,5 +15,6 @@ public interface ModuleRepository extends JpaRepository<ModuleEntity, UUID> {
 
     List<ModuleEntity> findByCourse_Id(UUID courseId);
 
-    int countByCourse_IdAndStatus(UUID courseId, Status status);
+    @Query("SELECT m.course.id, COUNT(m) FROM ModuleEntity m WHERE m.course.id IN :courseIds GROUP BY m.course.id")
+    List<Object[]> countModulesByCourseIds(@Param("courseIds") List<UUID> courseIds);
 }

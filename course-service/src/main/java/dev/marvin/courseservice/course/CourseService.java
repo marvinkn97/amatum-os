@@ -73,7 +73,7 @@ public class CourseService {
                 .description(request.description())
                 .accessTier(request.accessTier())
                 .price(request.accessTier() == CourseAccessTier.FREE ? BigDecimal.ZERO : request.price())
-                .isFeatured(request.isFeatured())
+                .isPublic(request.isPublic())
                 .tags(cleanTags) // Set the processed list
                 .tenantId(activeTenantId)
                 .build();
@@ -133,8 +133,8 @@ public class CourseService {
         }
 
 
-        if (course.isFeatured() != update.isFeatured()) {
-            course.setFeatured(update.isFeatured());
+        if (course.isPublic() != update.isPublic()) {
+            course.setPublic(update.isPublic());
             changes = true;
         }
 
@@ -160,7 +160,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public CourseResponse getCourseById(UUID id) {
-       return getHydratedCourseResponse(id);
+        return getHydratedCourseResponse(id);
     }
 
     @Transactional(readOnly = true)
@@ -178,9 +178,9 @@ public class CourseService {
 
         log.info("Active tenant id: {}", activeTenantId);
 
+        Page<CourseEntity> coursePage = courseRepository.findByTenantIdAndIsDeleted(activeTenantId, false, pageable);
 
-        return courseRepository.findByTenantIdAndIsDeleted(activeTenantId, false, pageable)
-                .map(CourseMapper::mapToResponse);
+        return mapCoursePageToResponseWithCounts(coursePage);
     }
 
     @Transactional(readOnly = true)
@@ -192,8 +192,9 @@ public class CourseService {
 
         String activeTenantId = TenantContext.TENANT_ID.get();
 
-        return courseRepository.findByTenantIdAndIsDeleted(activeTenantId, true, pageable)
-                .map(CourseMapper::mapToResponse);
+        Page<CourseEntity> coursePage = courseRepository.findByTenantIdAndIsDeleted(activeTenantId, true, pageable);
+
+        return mapCoursePageToResponseWithCounts(coursePage);
     }
 
     @Transactional(readOnly = true)
@@ -206,8 +207,9 @@ public class CourseService {
 
         String activeTenantId = TenantContext.TENANT_ID.get();
 
-        return courseRepository.findActiveByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
-                .map(CourseMapper::mapToResponse);
+        Page<CourseEntity> coursePage = courseRepository.findActiveByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable);
+
+        return mapCoursePageToResponseWithCounts(coursePage);
     }
 
     @Transactional(readOnly = true)
@@ -220,9 +222,9 @@ public class CourseService {
 
         String activeTenantId = TenantContext.TENANT_ID.get();
 
+        Page<CourseEntity> coursePage = courseRepository.findArchivedByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable);
 
-        return courseRepository.findArchivedByNameCategoryAndTenant(name, categoryId, activeTenantId, pageable)
-                .map(CourseMapper::mapToResponse);
+        return mapCoursePageToResponseWithCounts(coursePage);
     }
 
     @Transactional
@@ -455,7 +457,55 @@ public class CourseService {
 
         boolean isReadyToPublish = !modules.isEmpty() && allModulesPublished && allStepsPublished;
 
-        return CourseMapper.mapToResponseWithModulesAndLessons(course, isReadyToPublish, moduleResponses);
+        return CourseMapper.mapToResponseWithModulesAndLessons(course, isReadyToPublish, moduleResponses, moduleEntities.size(), stepEntities.size());
     }
+
+    private Page<CourseResponse> mapCoursePageToResponseWithCounts(Page<CourseEntity> coursePage) {
+        List<UUID> courseIds = coursePage.getContent().stream()
+                .map(CourseEntity::getId)
+                .toList();
+
+        if (courseIds.isEmpty()) {
+            return Page.empty();
+        }
+
+        // Bulk fetch counts in two efficient queries
+        Map<UUID, Long> moduleCounts = moduleRepository.countModulesByCourseIds(courseIds)
+                .stream()
+                .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
+
+        Map<UUID, Long> stepCounts = learningStepRepository.countStepsByCourseIds(courseIds)
+                .stream()
+                .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
+
+        // Map using your updated CourseMapper
+        return coursePage.map(courseEntity -> {
+            int moduleCount = moduleCounts.getOrDefault(courseEntity.getId(), 0L).intValue();
+            int stepCount = stepCounts.getOrDefault(courseEntity.getId(), 0L).intValue();
+            return CourseMapper.mapToResponse(courseEntity, moduleCount, stepCount);
+        });
+    }
+
+
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getLearnerCatalog(String name, UUID categoryId, Pageable pageable) {
+        log.info("Fetching learner catalog. Search: {}, Category: {}", name, categoryId);
+
+        // 1. Get tenantId from context if it exists (for corporate learners),
+        //    otherwise null (for independent marketplace learners).
+        String activeTenantId = TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : null;
+
+        // 2. Execute the refined query that handles Public + Specific Tenant logic
+        Page<CourseEntity> coursePage = courseRepository.findMarketplaceAndTenantCourses(
+                name,
+                categoryId,
+                activeTenantId,
+                pageable
+        );
+
+        // 3. Use your private reusable method to bulk-fetch counts and map to Response
+        return mapCoursePageToResponseWithCounts(coursePage);
+    }
+
 
 }

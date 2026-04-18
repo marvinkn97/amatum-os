@@ -16,6 +16,7 @@ import { RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CourseService, CourseResponse } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
+import { TenantService } from '../../../services/tenant.service';
 
 @Component({
   selector: 'app-manager-courses',
@@ -167,13 +168,13 @@ import { CategoryService } from '../../../services/category.service';
             <div class="p-8 pt-4 flex flex-col flex-1">
               <div class="flex items-center gap-2 mb-4">
                 <span class="text-[8px] font-black text-indigo-400 uppercase tracking-widest"
-                  >4 Modules</span
+                  >{{course?.moduleCount}} Modules</span
                 >
                 <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
                   >•</span
                 >
                 <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
-                  >12 Lessons</span
+                  >{{course.learningStepCount}} Lessons</span
                 >
               </div>
 
@@ -206,7 +207,7 @@ import { CategoryService } from '../../../services/category.service';
                       >Visibility:</span
                     >
                     <span class="text-[10px] text-white font-bold italic">{{
-                      course.isFeatured ? 'Public' : 'Private'
+                      course.isPublic ? 'Public' : 'Private'
                     }}</span>
                   </div>
                 </div>
@@ -340,6 +341,7 @@ export class ManagerCourses implements OnInit, AfterViewInit {
   private courseService = inject(CourseService);
   private categoryService = inject(CategoryService);
   private scroller = inject(ViewportScroller);
+  private tenantService = inject(TenantService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
   @ViewChild('confirmModal') confirmModal!: ElementRef<HTMLDialogElement>;
@@ -370,7 +372,7 @@ export class ManagerCourses implements OnInit, AfterViewInit {
       this.viewMode();
       this.searchQuery();
       this.activeCategoryId();
-
+      this.tenantService.tenantId();
       untracked(() => {
         this.resetAndReload();
       });

@@ -1,10 +1,9 @@
 import { Routes } from '@angular/router';
 import { AuthCallbackComponent } from './auth/auth.callback';
 import { canActivateAuth } from './auth/auth.guard';
-import { ProfileComponent } from './pages/shared/profile/profile';
+import { ProfileComponent } from './auth/profile';
 import { LearnerLayout } from './pages/learner/layout/layout';
 import { LearnerDashboardComponent } from './pages/learner/dashboard/dashboard';
-import { EnrollmentComponent } from './pages/learner/enrollment/enrollment';
 import { LessonComponent } from './pages/learner/lesson/lesson';
 import { CourseCatalogueComponent } from './pages/learner/course-catalogue/course-catalogue';
 import { MyCertificatesComponent } from './pages/learner/certificates/certificates';
@@ -14,7 +13,8 @@ import { ManagerCourses } from './pages/manager/courses/courses';
 import { CourseBuilder } from './pages/manager/course-builder/course-builder';
 import { SuperAdminLayout } from './pages/super-admin/layout/layout';
 import { CourseCategoriesComponent } from './pages/super-admin/categories/categories';
-import { RoleSelectionComponent } from './pages/shared/role-selection/role-selection';
+import { RoleSelectionComponent } from './auth/role-selection';
+import { CourseDetailsComponent } from './pages/learner/course-details/course-details';
 
 export const routes: Routes = [
   {
@@ -33,13 +33,12 @@ export const routes: Routes = [
   {
     path: 'onboarding',
     canActivate: [canActivateAuth],
-    loadComponent: () => import('./pages/public/onboarding/onboarding').then((m) => m.Onboarding),
+    loadComponent: () => import('./auth/onboarding').then((m) => m.Onboarding),
   },
   {
     path: 'auth/callback',
     component: AuthCallbackComponent,
   },
-
 
   { path: 'choose-role', component: RoleSelectionComponent, canActivate: [canActivateAuth] },
 
@@ -58,9 +57,9 @@ export const routes: Routes = [
     children: [
       { path: '', component: LearnerDashboardComponent, pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
-      { path: 'enrollment', component: EnrollmentComponent },
       { path: 'lesson', component: LessonComponent },
       { path: 'course-catalogue', component: CourseCatalogueComponent },
+      { path: 'course-catalogue/:id', component: CourseDetailsComponent },
       { path: 'certificates', component: MyCertificatesComponent },
     ],
   },

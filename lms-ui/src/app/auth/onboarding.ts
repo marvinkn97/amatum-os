@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IdentityService } from '../../../services/identity.service';
+import { IdentityService } from '../services/identity.service';
 
 @Component({
   selector: 'app-onboarding',
@@ -31,13 +31,39 @@ import { IdentityService } from '../../../services/identity.service';
             >
               @if (loading && currentRole === 'learner') {
                 <svg class="animate-spin size-7 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               } @else {
-                <svg class="size-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3L2 8l10 5 10-5-10-5z" />
-                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 10v4c0 2 3 3 6 3s6-1 6-3v-4" />
+                <svg
+                  class="size-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 3L2 8l10 5 10-5-10-5z"
+                  />
+                  <path
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 10v4c0 2 3 3 6 3s6-1 6-3v-4"
+                  />
                 </svg>
               }
             </div>
@@ -65,27 +91,62 @@ import { IdentityService } from '../../../services/identity.service';
             >
               @if (loading && currentRole === 'manager' && !showOrgDialog) {
                 <svg class="animate-spin size-7 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               } @else {
-                <svg class="size-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14" />
-                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1" />
+                <svg
+                  class="size-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 21h18M5 21V7l7-4 7 4v14"
+                  />
+                  <path
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"
+                  />
                 </svg>
               }
             </div>
 
             <h2 class="text-3xl font-bold mb-3 text-white">
-              {{ loading && currentRole === 'manager' && !showOrgDialog ? 'Opening...' : "I'm here to build" }}
+              {{
+                loading && currentRole === 'manager' && !showOrgDialog
+                  ? 'Opening...'
+                  : "I'm here to build"
+              }}
             </h2>
 
             <p class="text-slate-400 leading-relaxed">
-              Launch a private academy for your organization. Create and manage secure internal training.
+              Launch a private academy for your organization. Create and manage secure internal
+              training.
             </p>
 
             <div class="mt-8 flex items-center text-sm font-semibold text-indigo-400">
-               {{ loading && currentRole === 'manager' && !showOrgDialog ? 'Please wait' : 'Create workspace →' }}
+              {{
+                loading && currentRole === 'manager' && !showOrgDialog
+                  ? 'Please wait'
+                  : 'Create workspace →'
+              }}
             </div>
           </button>
         </div>
@@ -99,7 +160,9 @@ import { IdentityService } from '../../../services/identity.service';
         <div
           class="w-full max-w-lg bg-linear-to-b from-[#111823]/80 to-[#0b1120]/80 border border-indigo-500/20 rounded-3xl p-8 shadow-2xl shadow-indigo-500/40 relative overflow-hidden"
         >
-          <div class="absolute -top-16 -right-16 w-40 h-40 bg-indigo-600/30 rounded-full blur-3xl animate-pulse"></div>
+          <div
+            class="absolute -top-16 -right-16 w-40 h-40 bg-indigo-600/30 rounded-full blur-3xl animate-pulse"
+          ></div>
 
           <h2 class="text-2xl font-bold mb-6 text-white drop-shadow-md">
             Create your organization
@@ -117,15 +180,13 @@ import { IdentityService } from '../../../services/identity.service';
             </div>
 
             <div>
-              <label class="text-sm text-slate-400 font-medium ml-1">Workspace URL</label>
+              <label class="text-sm text-slate-400 font-medium ml-1">Workspace Alias</label>
               <input
+               placeholder="acme-inc"
                 [(ngModel)]="organization.slug"
                 (input)="slugEdited = true"
                 class="w-full mt-1 bg-black/30 border border-indigo-500/20 rounded-xl px-4 py-3 text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 outline-none transition-all duration-300 font-mono text-sm"
               />
-              <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-2 ml-1">
-                amatum.com/{{ organization.slug || 'your-url' }}
-              </p>
             </div>
 
             <div>
@@ -153,8 +214,19 @@ import { IdentityService } from '../../../services/identity.service';
             >
               @if (loading) {
                 <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 <span>Provisioning...</span>
               } @else {

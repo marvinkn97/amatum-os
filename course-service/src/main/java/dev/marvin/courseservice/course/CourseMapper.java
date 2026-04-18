@@ -14,7 +14,7 @@ public class CourseMapper {
                 courseEntity.getSlug(),
                 courseEntity.getDescription(),
                 courseEntity.getTags(),
-                courseEntity.isFeatured(),
+                courseEntity.isPublic(),
                 courseEntity.getAccessTier(),
                 courseEntity.getPrice(),
                 courseEntity.getCategory().getId(),
@@ -23,23 +23,43 @@ public class CourseMapper {
     }
 
 
-    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity,boolean isReadyToPublish, List<ModuleResponse> moduleResponses){
+    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity,boolean isReadyToPublish, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount){
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
                 courseEntity.getSlug(),
                 courseEntity.getDescription(),
                 courseEntity.getTags(),
-                courseEntity.isFeatured(),
+                courseEntity.isPublic(),
                 courseEntity.getAccessTier(),
                 courseEntity.getPrice(),
                 courseEntity.getCategory().getId(),
                 courseEntity.getStatus(),
                 isReadyToPublish,
-                moduleResponses
+                moduleResponses,
+                moduleCount,
+                learningStepCount
         );
-
-
     }
+
+
+    public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount){
+        return new CourseResponse(
+                courseEntity.getId(),
+                courseEntity.getTitle(),
+                courseEntity.getSlug(),
+                courseEntity.getDescription(),
+                courseEntity.getTags(),
+                courseEntity.isPublic(),
+                courseEntity.getAccessTier(),
+                courseEntity.getPrice(),
+                courseEntity.getCategory().getId(),
+                courseEntity.getStatus(),
+                moduleCount,
+                learningStepCount
+        );
+    }
+
+
 
 }

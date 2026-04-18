@@ -139,4 +139,18 @@ public class CourseController {
         return ResponseEntity.ok(courseResponse);
     }
 
+    @Operation(summary = "Get course catalog for learners (Marketplace + Organization courses)")
+    @GetMapping("/catalog")
+    public ResponseEntity<PagedModel<EntityModel<CourseResponse>>> getLearnerCatalog(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "categoryId", required = false) UUID categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        Page<CourseResponse> coursePage =
+                courseService.getLearnerCatalog(name, categoryId, PageRequest.of(page, size));
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(coursePage, EntityModel::of));
+    }
+
 }

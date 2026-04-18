@@ -35,7 +35,8 @@ public class CourseEntity {
 
     @Enumerated(EnumType.STRING)
     private CourseAccessTier accessTier;
-    private boolean isFeatured;
+
+    private boolean isPublic;
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)

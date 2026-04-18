@@ -124,7 +124,7 @@ import Keycloak from 'keycloak-js';
                   @if (canSwitchToManager()) {
                     <button routerLink="/manager" (click)="isProfileOpen.set(false)" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer">
                       <svg class="size-4 text-emerald-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                      Manager Console
+                      Manager Portal
                     </button>
                   }
                   @if (canSwitchToLearner()) {

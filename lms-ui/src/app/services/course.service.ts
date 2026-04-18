@@ -26,7 +26,7 @@ export interface CourseRequest {
   title: string;
   slug: string;
   accessTier: 'FREE' | 'PREMIUM';
-  isFeatured: boolean;
+  isPublic: boolean;
   price: number;
   description: string;
   categoryId: string;
@@ -44,7 +44,7 @@ export interface CourseResponse {
   slug: string;
   description: string;
   tags: string[]; // Set<String> maps to string[]
-  isFeatured: boolean;
+  isPublic: boolean;
   accessTier: 'FREE' | 'PREMIUM'; // Using a union type for your Enum
   price: number; // BigDecimal maps to number
   categoryId: string; // UUID
@@ -52,6 +52,8 @@ export interface CourseResponse {
   tenantId: string;
   modules: ModuleResponse[];
   isReadyToPublish: boolean; // New field to indicate if the course is ready to publish
+  moduleCount: number;
+  learningStepCount: number;
 }
 
 @Injectable({
@@ -115,5 +117,20 @@ export class CourseService {
 
   publishCourse(courseId: string): Observable<CourseResponse> {
     return this.http.patch<CourseResponse>(`${this.API_URL}/${courseId}/publish`, {});
+  }
+
+  // Add to CourseService class
+  fetchCatalog(
+    search: string = '',
+    categoryId: string = '',
+    page: number = 0,
+    size: number = 9,
+  ): Observable<PagedResponse<CourseResponse>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
+    if (search?.trim()) params = params.set('name', search);
+    if (categoryId?.trim()) params = params.set('categoryId', categoryId);
+
+    return this.http.get<PagedResponse<CourseResponse>>(`${this.API_URL}/catalog`, { params });
   }
 }

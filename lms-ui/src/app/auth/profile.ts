@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IdentityService } from '../../../services/identity.service';
+import { IdentityService } from '../services/identity.service';
 import Keycloak from 'keycloak-js';
 import { finalize } from 'rxjs';
 

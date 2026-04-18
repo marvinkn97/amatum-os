@@ -19,7 +19,7 @@ public record CourseRequest(
         @NotNull
         List<String> tags,
         @NotNull
-        Boolean isFeatured,
+        Boolean isPublic,
         @NotNull
         CourseAccessTier accessTier,
         @NotNull

@@ -233,18 +233,67 @@ interface Organization {
                   </div>
 
                   <button
-                    routerLink="/manager/profile"
+                    routerLink="/learner/profile"
                     (click)="isProfileOpen.set(false)"
                     class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all mb-1 cursor-pointer"
                   >
-                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      class="size-4 opacity-60"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         stroke-width="2"
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
-                    Profile
+                    My Profile
                   </button>
+
+                  <div class="py-1">
+                    <p
+                      class="px-3 py-2 text-[9px] font-black text-slate-600 uppercase tracking-widest"
+                    >
+                      Switch View
+                    </p>
+                    @if (isSuperAdmin()) {
+                      <button
+                        routerLink="/super-admin"
+                        (click)="isProfileOpen.set(false)"
+                        class="w-full flex items-center gap-3 px-3 py-2 text-sm text-amber-500/80 hover:bg-amber-500/10 rounded-xl transition-all mb-1 cursor-pointer"
+                      >
+                        <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                          />
+                        </svg>
+                        System Administrator
+                      </button>
+                    }
+
+                    @if (canSwitchToLearner()) {
+                      <button
+                        routerLink="/learner"
+                        (click)="isProfileOpen.set(false)"
+                        class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                      >
+                        <svg
+                          class="size-4 text-sky-500/60"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"
+                          />
+                        </svg>
+                        Learner Portal
+                      </button>
+                    }
+                  </div>
 
                   <button
                     (click)="isLogoutConfirmOpen.set(true); isProfileOpen.set(false)"
@@ -253,7 +302,7 @@ interface Organization {
                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        d="M17 16l4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
                     Sign Out
@@ -389,4 +438,9 @@ export class ManagerLayout {
   logout() {
     this.keycloak.logout({ redirectUri: window.location.origin });
   }
+
+  isSuperAdmin = signal(this.keycloak.hasRealmRole('SUPER_ADMIN'));
+
+  canSwitchToManager = signal(this.keycloak.hasResourceRole('MANAGER', this.keycloak.clientId));
+  canSwitchToLearner = signal(this.keycloak.hasResourceRole('LEARNER', this.keycloak.clientId));
 }
