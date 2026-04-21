@@ -1,15 +1,13 @@
-package dev.marvin.enrollmentservice;
+package dev.marvin.enrollmentservice.enrollment;
 
 import dev.marvin.enrollmentservice.exception.BadRequestException;
+import dev.marvin.enrollmentservice.exception.EnrollmentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -31,15 +29,13 @@ public class EnrollmentService {
 
         EnrollmentEntity enrollmentEntity = EnrollmentEntity.builder()
                 .courseId(courseId)
-                .userId(UUID.fromString(learnerId))
+                .learnerId(learnerId)
                 .status(EnrollmentStatus.ENROLLED)
-                .startTime(Instant.now())
                 .build();
 
         EnrollmentEntity savedEnrollment = enrollmentRepository.save(enrollmentEntity);
-
+        log.info("Enrollment saved with id {}", savedEnrollment.getId());
         return EnrollmentMapper.mapToResponse(savedEnrollment);
     }
-
 
 }

@@ -1,3 +1,15 @@
+server:
+  port: 8083
+
 spring:
   application:
     name: enrollment-service
+
+  profiles:
+    active: dev
+
+logging:
+  level:
+    root: info
+
+

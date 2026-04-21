@@ -177,6 +177,14 @@ interface Organization {
                     Learner
                   </p>
                 </div>
+                <svg
+                  class="size-3 text-slate-500 group-hover:text-white transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M19 9l-7 7-7-7" stroke-width="2" />
+                </svg>
               </button>
 
               @if (isProfileOpen()) {

@@ -172,7 +172,7 @@ import { TenantService } from '../../../services/tenant.service';
                 <a
                   [routerLink]="['/learner/course-catalogue', course.id]"
                   class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90"
-                  title="View Syllabus"
+                  title="View Curriculum"
                 >
                   <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -185,6 +185,7 @@ import { TenantService } from '../../../services/tenant.service';
                 </a>
 
                 <button
+                  title="Enroll"
                   (click)="enroll(course)"
                   class="size-11 bg-white/5 border border-white/10 text-slate-500 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white rounded-2xl flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                 >

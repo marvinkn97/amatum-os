@@ -1,4 +1,4 @@
-package dev.marvin.enrollmentservice;
+package dev.marvin.enrollmentservice.exception;
 
 public enum EnrollmentStatus {
     ENROLLED,

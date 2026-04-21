@@ -1,6 +1,7 @@
 package dev.marvin.courseservice.security;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,9 +19,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
+@RequiredArgsConstructor
+@Slf4j
 public class SecurityConfiguration {
-    @Value("${keycloak.clients.lumina-client-id}")
-    private String clientId;
+    private final KeycloakProps keycloakProps;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -41,17 +43,22 @@ public class SecurityConfiguration {
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Map<String, Object> resourceAccess = (Map<String, Object>) jwt.getClaim("resource_access");
-            if (resourceAccess == null) return Collections.emptyList();
+            Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+            Map<String, String> clients = keycloakProps.getClients();
 
-            Map<String, Object> clientRoles = (Map<String, Object>) resourceAccess.get(clientId);
-            if (clientRoles == null) return Collections.emptyList();
+            if (resourceAccess == null || clients == null) {
+                log.error("Resource access or clients map is null");
+                return Collections.emptyList();
+            }
 
-            List<String> roles = (List<String>) clientRoles.get("roles");
-            if (roles == null) return Collections.emptyList();
-
-            return roles.stream()
-                    .map(role -> "ROLE_" + role)
+            // Extract roles from all client IDs defined in application-dev.yml
+            return clients.values().stream()
+                    .filter(resourceAccess::containsKey)
+                    .map(clientId -> (Map<String, Object>) resourceAccess.get(clientId))
+                    .filter(clientMap -> clientMap.containsKey("roles"))
+                    .flatMap(clientMap -> ((List<String>) clientMap.get("roles")).stream())
+                    .map(role -> "ROLE_" + role.toUpperCase())
+                    .distinct()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
         });

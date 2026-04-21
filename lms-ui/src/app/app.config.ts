@@ -13,7 +13,7 @@ import {
 
 // Only attach token for your backend
 const urlCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-  urlPattern: /^(http:\/\/localhost:(8081|8082))(\/.*)?$/i,
+  urlPattern: /^(http:\/\/localhost:(8081|8082|8083))(\/.*)?$/i,
   bearerPrefix: 'Bearer',
 });
 
@@ -37,7 +37,7 @@ export const appConfig: ApplicationConfig = {
         // onLoad: 'check-sso',
         redirectUri: window.location.origin + '/auth/callback',
         checkLoginIframe: false, // Disable the login state iframe to avoid issues in certain environments
-        scope: 'openid profile email organization:*', 
+        scope: 'openid profile email organization:*',
       },
       features: [
         withAutoRefreshToken({
@@ -53,9 +53,9 @@ export const appConfig: ApplicationConfig = {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
       useValue: [urlCondition], // Add the condition to the interceptor config
     },
-    { 
-      provide: ACTIVE_TENANT_ID, 
-      useValue: signal<string | null>(null) 
+    {
+      provide: ACTIVE_TENANT_ID,
+      useValue: signal<string | null>(null),
     },
 
     provideHttpClient(withInterceptors([includeBearerTokenInterceptor, tenantInterceptor])),

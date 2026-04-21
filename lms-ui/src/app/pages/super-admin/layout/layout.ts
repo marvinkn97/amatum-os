@@ -109,6 +109,14 @@ import Keycloak from 'keycloak-js';
                 <p class="text-xs font-bold text-white leading-none mb-0.5">{{ fullName() }}</p>
                 <p class="text-[10px] text-indigo-400 font-black uppercase tracking-tighter">System Administrator</p>
               </div>
+              <svg
+                  class="size-3 text-slate-500 group-hover:text-white transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M19 9l-7 7-7-7" stroke-width="2" />
+                </svg>
             </button>
             
             @if (isProfileOpen()) {

@@ -1,6 +1,5 @@
 package dev.marvin.enrollmentservice.exception;
 
-import dev.marvin.courseservice.exception.BadRequestException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(dev.marvin.courseservice.exception.ServiceException.class)
+    @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ProblemDetail> handleServiceException(ServiceException e){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         problemDetail.setTitle(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());

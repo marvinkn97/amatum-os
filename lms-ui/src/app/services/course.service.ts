@@ -54,6 +54,7 @@ export interface CourseResponse {
   isReadyToPublish: boolean; // New field to indicate if the course is ready to publish
   moduleCount: number;
   learningStepCount: number;
+  isEnrolled: boolean;
 }
 
 @Injectable({

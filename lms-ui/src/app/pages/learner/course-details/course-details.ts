@@ -1,8 +1,11 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CourseService, CourseResponse } from '../../../services/course.service';
-import { finalize } from 'rxjs';
+import { filter, finalize, map, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import { TenantService } from '../../../services/tenant.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { EnrollmentRequest, EnrollmentService } from '../../../services/enrollment.service';
 
 @Component({
   selector: 'app-course-details',
@@ -178,6 +181,7 @@ import { finalize } from 'rxjs';
                   <div
                     class="absolute -top-24 -right-24 size-64 bg-indigo-600/5 blur-[100px]"
                   ></div>
+
                   <div class="relative z-10 space-y-8 md:space-y-10">
                     <div class="space-y-4">
                       <span
@@ -185,7 +189,7 @@ import { finalize } from 'rxjs';
                         >Registration</span
                       >
                       <div class="flex items-center">
-                        @if (course()!.accessTier === 'FREE') {
+                        @if (course()?.accessTier === 'FREE') {
                           <span
                             class="text-[11px] font-black italic text-white uppercase tracking-tighter leading-none"
                             >Free Access</span
@@ -198,26 +202,45 @@ import { finalize } from 'rxjs';
                             >
                             <span
                               class="text-[11px] font-black italic text-white uppercase tracking-tighter leading-none"
-                              >{{ '$' + course()!.price }}</span
+                              >{{ '$' + course()?.price }}</span
                             >
                           </div>
                         }
                       </div>
                     </div>
+
                     <button
                       (click)="enroll()"
-                      [disabled]="isEnrolled() || isEnrolling()"
-                      class="w-full py-5 rounded-2xl font-black uppercase tracking-[0.25em] text-[10px] transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-3 border-none outline-none"
+                      [disabled]="course()?.isEnrolled || isEnrolling()"
+                      class="w-full py-5 rounded-2xl font-black uppercase tracking-[0.25em] text-[10px] transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-3 border-none outline-none disabled:cursor-not-allowed"
                       [ngClass]="
-                        isEnrolled()
+                        course()?.isEnrolled
                           ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                          : 'bg-white text-black hover:bg-indigo-600 hover:text-white shadow-2xl shadow-indigo-500/40'
+                          : isEnrolling()
+                            ? 'bg-slate-800 text-slate-500 border border-white/5 opacity-50'
+                            : 'bg-white text-black hover:bg-indigo-600 hover:text-white shadow-2xl shadow-indigo-500/40'
                       "
                     >
-                      <span>{{
-                        isEnrolled() ? 'Enrolled' : isEnrolling() ? 'Verifying' : 'Enroll Now'
-                      }}</span>
-                      @if (!isEnrolled()) {
+                      <span>
+                        {{
+                          isEnrolling()
+                            ? 'Verifying...'
+                            : course()?.isEnrolled
+                              ? 'Enrolled'
+                              : 'Enroll Now'
+                        }}
+                      </span>
+
+                      @if (course()?.isEnrolled) {
+                        <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="3"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      } @else if (!isEnrolling()) {
                         <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-width="4" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
@@ -269,21 +292,61 @@ export class CourseDetailsComponent implements OnInit {
   private courseService = inject(CourseService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private tenantService = inject(TenantService);
+  private enrollmentService = inject(EnrollmentService);
 
   course = signal<CourseResponse | null>(null);
   isLoading = signal(true);
   isEnrolling = signal(false);
-  isEnrolled = signal(false);
 
   expandedModuleIds = signal<Set<string>>(new Set());
 
+  private destroy$ = new Subject<void>();
+
+  private tenant$ = toObservable(this.tenantService.tenantId);
+
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) this.loadCourse(id);
-    else this.isLoading.set(false);
+    this.route.paramMap
+      .pipe(
+        map((params) => params.get('id')),
+        // 1. Only proceed if we have an ID in the URL
+        filter((id) => !!id),
+        tap(() => {
+          this.isLoading.set(true);
+          this.course.set(null);
+        }),
+        switchMap((id) => {
+          // 2. Peek at the current tenant ID from the service
+          const currentTenant = this.tenantService.tenantId();
+
+          // 3. Perform the fetch
+          return this.courseService
+            .getCourseById(id!)
+            .pipe(finalize(() => this.isLoading.set(false)));
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: (data) => {
+          this.course.set(data);
+          if (data?.modules?.length) this.toggleModule(data.modules[0].id);
+        },
+        error: (err) => {
+          console.error('Fetch failed:', err);
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadCourse(id: string) {
+    this.isLoading.set(true); // ← important: reset loading
+    this.course.set(null);
+
     this.courseService
       .getCourseById(id)
       .pipe(finalize(() => this.isLoading.set(false)))
@@ -292,7 +355,10 @@ export class CourseDetailsComponent implements OnInit {
           this.course.set(data);
           if (data.modules?.length) this.toggleModule(data.modules[0].id);
         },
-        error: () => this.course.set(null),
+        error: (err) => {
+          console.error(err);
+          this.course.set(null);
+        },
       });
   }
 
@@ -309,16 +375,35 @@ export class CourseDetailsComponent implements OnInit {
     });
   }
 
-  enroll() {
-    if (this.isEnrolled() || this.isEnrolling()) return;
-    this.isEnrolling.set(true);
-    setTimeout(() => {
-      this.isEnrolling.set(false);
-      this.isEnrolled.set(true);
-    }, 1500);
-  }
-
   goBack() {
     this.router.navigate(['/learner/course-catalogue']);
+  }
+
+  enroll() {
+    const currentCourse = this.course();
+    if (!currentCourse || currentCourse.isEnrolled || this.isEnrolling()) return;
+
+    this.isEnrolling.set(true);
+
+    // Use the specific interface your backend expects
+    const request: EnrollmentRequest = { courseId: currentCourse.id };
+
+    this.enrollmentService
+      .enroll(request)
+      .pipe(
+        // CRITICAL: We fetch the course again to get the verified truth from DB
+        switchMap(() => this.courseService.getCourseById(currentCourse.id)),
+        finalize(() => this.isEnrolling.set(false)),
+      )
+      .subscribe({
+        next: (refreshedCourse) => {
+          // The signal is now updated with data verified by the backend
+          this.course.set(refreshedCourse);
+        },
+        error: (err) => {
+          console.error('Enrollment failed:', err);
+          // UI stays safe; signal remains unchanged
+        },
+      });
   }
 }

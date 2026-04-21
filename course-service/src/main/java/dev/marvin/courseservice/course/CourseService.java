@@ -466,6 +466,7 @@ public class CourseService {
                 .toList();
 
         if (courseIds.isEmpty()) {
+            log.info("No courses found in the page");
             return Page.empty();
         }
 
@@ -506,6 +507,9 @@ public class CourseService {
         // 3. Use your private reusable method to bulk-fetch counts and map to Response
         return mapCoursePageToResponseWithCounts(coursePage);
     }
+
+
+
 
 
 }

@@ -1,4 +1,4 @@
-package dev.marvin.enrollmentservice;
+package dev.marvin.enrollmentservice.enrollment;
 
 import jakarta.validation.constraints.NotNull;
 

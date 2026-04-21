@@ -1,5 +1,7 @@
-package dev.marvin.enrollmentservice;
+package dev.marvin.enrollmentservice.learningstepprogress;
 
+
+import dev.marvin.enrollmentservice.moduleprogress.ModuleProgressEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,13 +12,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "enrollments")
+@Table(name = "learning_step_progresses")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class EnrollmentEntity {
+public class LearningStepProgressEntity {
     @Id
     @GeneratedValue
     private UUID id;
@@ -24,15 +26,16 @@ public class EnrollmentEntity {
     @Version
     private Long version;
 
-    private UUID learnerId;
-    private UUID courseId;
     private boolean isCompleted;
-
-    @Enumerated(EnumType.STRING)
-    private EnrollmentStatus status;
+    private UUID learnerId;
+    private UUID learningStepId;
 
     private Instant startTime;
     private Instant endTime;
+
+    @ManyToOne
+    @JoinColumn(name = "module_progress_id")
+    private ModuleProgressEntity moduleProgress;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

@@ -1,4 +1,4 @@
-package dev.marvin.identityservice.security;
+package dev.marvin.enrollmentservice.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(c -> c
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/**")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(c -> c.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .build();
