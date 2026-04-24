@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import Keycloak from 'keycloak-js';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-admin-layout',
@@ -198,7 +199,26 @@ export class SuperAdminLayout {
     { label: 'Dashboard', path: '/super-admin/', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   ];
 
-  logout() {
-    this.keycloak.logout({ redirectUri: window.location.origin });
-  }
+  // logout() {
+  //   this.keycloak.logout({ redirectUri: window.location.origin });
+  // }
+
+  async logout() {
+  // 1. Get the ID Token from Keycloak
+  const idToken = this.keycloak.idToken;
+
+  // 2. Build the logout URL manually
+  const baseUrl = environment.keycloak.url;
+  const realm = environment.keycloak.realm;
+  const clientId = environment.keycloak.clientId;
+  const postLogoutUri = encodeURIComponent(window.location.origin);
+
+  // If we have an ID token, Keycloak skips the "Confirm Logout" screen
+  const logoutUrl = `${baseUrl}/realms/${realm}/protocol/openid-connect/logout?` + 
+                    `id_token_hint=${idToken}&` +
+                    `post_logout_redirect_uri=${postLogoutUri}`;
+
+  // 3. Perform the redirect
+  window.location.href = logoutUrl;
+}
 }

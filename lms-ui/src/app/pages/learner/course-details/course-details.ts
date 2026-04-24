@@ -6,6 +6,7 @@ import { filter, finalize, map, Subject, switchMap, takeUntil, tap } from 'rxjs'
 import { TenantService } from '../../../services/tenant.service';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { EnrollmentRequest, EnrollmentService } from '../../../services/enrollment.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-course-details',
@@ -294,6 +295,7 @@ export class CourseDetailsComponent implements OnInit {
   private router = inject(Router);
   private tenantService = inject(TenantService);
   private enrollmentService = inject(EnrollmentService);
+  private notificationService = inject(NotificationService);
 
   course = signal<CourseResponse | null>(null);
   isLoading = signal(true);
@@ -334,6 +336,7 @@ export class CourseDetailsComponent implements OnInit {
         error: (err) => {
           console.error('Fetch failed:', err);
           this.isLoading.set(false);
+          this.notificationService.error('Failed to load course');
         },
       });
   }
@@ -358,6 +361,8 @@ export class CourseDetailsComponent implements OnInit {
         error: (err) => {
           console.error(err);
           this.course.set(null);
+          this.notificationService.error('Failed to load course');
+
         },
       });
   }
@@ -397,11 +402,13 @@ export class CourseDetailsComponent implements OnInit {
       )
       .subscribe({
         next: (refreshedCourse) => {
+            this.notificationService.success('Enrolled to course successfully');
           // The signal is now updated with data verified by the backend
           this.course.set(refreshedCourse);
         },
         error: (err) => {
           console.error('Enrollment failed:', err);
+          this.notificationService.error(err?.error?.detail || 'Enrollment failed');
           // UI stays safe; signal remains unchanged
         },
       });

@@ -33,14 +33,9 @@ import { MuxService } from '../../../services/mux.service';
 import { S3Service } from '../../../services/s3.service';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import Keycloak from 'keycloak-js';
+import { NotificationService } from '../../../services/notification.service';
 
 type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QUIZ_EDITOR';
-
-interface StudioNotification {
-  message: string;
-  type: 'success' | 'error' | 'info';
-  visible: boolean;
-}
 
 @Component({
   selector: 'app-course-studio',
@@ -89,36 +84,6 @@ interface StudioNotification {
           </div>
         </div>
       }
-
-      @if (notification().visible) {
-        <div class="fixed top-6 right-6 z-100 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div
-            [class]="
-              'flex items-center gap-3 px-6 py-4 rounded-2xl border backdrop-blur-xl shadow-2xl ' +
-              (notification().type === 'success'
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                : notification().type === 'error'
-                  ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                  : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400')
-            "
-          >
-            <div
-              class="size-2 rounded-full animate-pulse"
-              [class]="
-                notification().type === 'success'
-                  ? 'bg-emerald-500'
-                  : notification().type === 'error'
-                    ? 'bg-rose-500'
-                    : 'bg-indigo-500'
-              "
-            ></div>
-            <span class="text-[11px] font-black uppercase tracking-[0.15em]">{{
-              notification().message
-            }}</span>
-          </div>
-        </div>
-      }
-
       <nav
         class="h-16 border-b border-white/5 flex items-center justify-between px-4 lg:px-8 bg-[#030712] shrink-0 z-20"
       >
@@ -2694,6 +2659,7 @@ export class CourseBuilder implements OnInit {
   muxService = inject(MuxService);
   s3Service = inject(S3Service);
   private readonly keycloak = inject(Keycloak);
+  private notificationService = inject(NotificationService);
 
   activeView = signal<StudioView>('COURSE_IDENTITY');
 
@@ -2707,12 +2673,6 @@ export class CourseBuilder implements OnInit {
   showValidationErrors = false;
 
   courseId = signal<string | null>(null);
-
-  notification = signal<StudioNotification>({
-    message: '',
-    type: 'info',
-    visible: false,
-  });
 
   // The raw data from the server (The Backup)
   private rawCourseResponse = signal<CourseResponse | null>(null);
@@ -2805,7 +2765,7 @@ export class CourseBuilder implements OnInit {
           this.syncSignals(response);
         },
         error: () => {
-          this.showToast('Could not find the requested course', 'error');
+          this.notificationService.error('Could not find the requested course');
           this.router.navigate(['/manager/courses']);
         },
       });
@@ -2813,7 +2773,7 @@ export class CourseBuilder implements OnInit {
 
   private syncSignals(response: CourseResponse | null) {
     if (!response) {
-      this.showToast('Failed to load course data', 'error');
+      this.notificationService.error('Failed to load course data');
       return;
     }
 
@@ -2860,14 +2820,6 @@ export class CourseBuilder implements OnInit {
       .getAllActiveCategories()
       .pipe(map((data) => data.map((cat) => ({ ...cat }))))
       .subscribe((formatted) => this.categories.set(formatted));
-  }
-
-  private showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
-    this.notification.set({ message, type, visible: true });
-
-    setTimeout(() => {
-      this.notification.update((n) => ({ ...n, visible: false }));
-    }, 4000);
   }
 
   updateSlug() {
@@ -2943,7 +2895,7 @@ export class CourseBuilder implements OnInit {
     // Validate course identity before creating/updating
     if (!this.isReadyToPublish() && this.activeView() === 'COURSE_IDENTITY') {
       this.showValidationErrors = true;
-      this.showToast('Please complete all required fields before continuing.', 'error');
+      this.notificationService.error('Please complete all required fields before continuing.');
       return;
     }
 
@@ -2975,17 +2927,19 @@ export class CourseBuilder implements OnInit {
 
         if (!isExisting) {
           // Friendly toast after creation, then redirect
-          this.showToast('Draft created successfully! Time to build your modules.', 'success');
+          this.notificationService.success(
+            'Draft created successfully! Time to build your modules.',
+          );
           setTimeout(() => {
             this.router.navigate(['/manager/courses/studio', response.id], { replaceUrl: true });
           }, 100); // short delay to allow toast to appear
         } else {
-          this.showToast('Your changes have been saved successfully.', 'success');
+          this.notificationService.success('Your changes have been saved successfully.');
         }
       },
       error: (err) => {
         const message = err.error?.detail || 'Failed to save course.';
-        this.showToast(`${message}`, 'error');
+        this.notificationService.error(`${message}`);
       },
     });
   }
@@ -3038,7 +2992,7 @@ export class CourseBuilder implements OnInit {
 
   addModule() {
     if (!this.courseId()) {
-      this.showToast('Please save course info first', 'info');
+      this.notificationService.info('Please save course info first');
       return;
     }
 
@@ -3068,16 +3022,16 @@ export class CourseBuilder implements OnInit {
           this.selectedModuleId.set(savedModule.id);
           this.isCreatingNew = false;
 
-          this.showToast('Your changes have been saved successfully.', 'success');
+          this.notificationService.success('Your changes have been saved successfully.');
         },
         error: (err) => {
           const message = err.error?.detail || 'Failed to save module.';
-          this.showToast(`${message}`, 'error');
+          this.notificationService.error(`${message}`);
         },
       });
     } else {
       // Logic for updating existing modules (PUT)
-      const moduleId = this.selectedId();
+      const moduleId = this.selectedModuleId();
 
       const titleUpdate: ModuleDetailsUpdate = {
         title: this.editingModuleTitle,
@@ -3102,7 +3056,7 @@ export class CourseBuilder implements OnInit {
             };
           });
 
-          this.showToast('Module details updated', 'success');
+          this.notificationService.success('Module details updated');
         },
       });
     }
@@ -3195,7 +3149,7 @@ export class CourseBuilder implements OnInit {
     } catch (error) {
       this.isSyncingToCloud.set(false);
       console.error('Upload failed', error);
-      this.showToast('Upload failed', 'error');
+      this.notificationService.error('Upload failed');
     }
   }
 
@@ -3224,10 +3178,10 @@ export class CourseBuilder implements OnInit {
         console.log('No assetId or uploadId found to delete.');
       }
 
-      this.showToast('Video removed from cloud', 'info');
+      this.notificationService.info('Video removed from cloud');
     } catch (error) {
       console.error('Failed to delete from Mux:', error);
-      this.showToast('Failed to delete video from cloud, but UI cleared', 'error');
+      this.notificationService.error('Failed to delete video from cloud, but UI cleared');
     } finally {
       // Always reset UI state even if delete failed
       this.isDeleting.set(false);
@@ -3287,7 +3241,7 @@ export class CourseBuilder implements OnInit {
       );
     } catch (error) {
       console.error('Material sync failed:', error);
-      this.showToast('Upload failed', 'error');
+      this.notificationService.error('Upload failed');
     } finally {
       // CONCEPT 6: Finalize State
       this.loadingStates.delete(resource);
@@ -3303,7 +3257,9 @@ export class CourseBuilder implements OnInit {
     );
 
     if (hasPendingUpload) {
-      this.showToast('Please confirm or cancel the current upload before adding another', 'info');
+      this.notificationService.info(
+        'Please confirm or cancel the current upload before adding another',
+      );
       return;
     }
 
@@ -3332,14 +3288,14 @@ export class CourseBuilder implements OnInit {
       // 2. Cloud Cleanup (if it exists in RustFS)
       if (resource.objectKey) {
         await firstValueFrom(this.s3Service.deleteFile(resource.objectKey));
-        this.showToast('Material purged from cloud', 'info');
+        this.notificationService.info('Material purged from cloud');
       }
 
       // 3. UI Cleanup
       this.editingResources.update((prev) => prev.filter((_, i) => i !== index));
     } catch (error) {
       console.error('Purge failed', error);
-      this.showToast('Could not clear cloud storage', 'error');
+      this.notificationService.error('Could not clear cloud storage');
     } finally {
       // 4. Always unmark (though if removed from array, the element disappears anyway)
       this.deletingStates.delete(resource);
@@ -3356,7 +3312,7 @@ export class CourseBuilder implements OnInit {
     const isValidType = allowedExtensions.some((ext) => fileName.endsWith(ext));
 
     if (!isValidType || file.size > 500 * 1024 * 1024) {
-      this.showToast('Invalid file or file too large (Max 10MB)', 'info');
+      this.notificationService.info('Invalid file or file too large (Max 10MB)');
       return;
     }
 
@@ -3426,13 +3382,15 @@ export class CourseBuilder implements OnInit {
   publishCourse() {
     const courseId = this.courseId();
     if (!courseId) {
-      this.showToast('Please save the course first', 'error');
+      this.notificationService.error('Please save the course first');
       return;
     }
 
     if (!this.isReadyToPublish()) {
       this.showValidationErrors = true;
-      this.showToast('Please complete all required fields before publishing the course', 'info');
+      this.notificationService.info(
+        'Please complete all required fields before publishing the course',
+      );
       return;
     }
 
@@ -3460,19 +3418,18 @@ export class CourseBuilder implements OnInit {
             );
           }
 
-          this.showToast('Course published successfully! It is now live.', 'success');
+          this.notificationService.success('Course published successfully! It is now live.');
 
           // Optional: Refresh the top nav button state
           this.isReadyToPublish(); // just to re-evaluate
         },
         error: (err: any) => {
           const message = err?.error?.detail || 'Failed to publish course. Please try again.';
-          this.showToast(message, 'error');
+          this.notificationService.error(message);
           console.error('Publish course error:', err);
         },
       });
   }
-
   /**
    *
    *
@@ -3498,7 +3455,7 @@ export class CourseBuilder implements OnInit {
     // Call the single API endpoint
     this.courseService.reorderModuleSequence(courseId!, reorderPayload).subscribe({
       next: () => {
-        this.showToast('Curriculum structure saved successfully', 'success');
+        this.notificationService.success('Curriculum structure saved successfully');
         // Update local state if the backend returns the new sorted list
 
         // 2. IMPORTANT: Update the internal sequence property of each module
@@ -3522,7 +3479,7 @@ export class CourseBuilder implements OnInit {
       },
       error: (err) => {
         console.log('Reorder failed. Error:', err);
-        this.showToast('Failed to reorder module sequence', 'error');
+        this.notificationService.error('Failed to reorder module sequence');
       },
     });
   }
@@ -3536,7 +3493,7 @@ export class CourseBuilder implements OnInit {
       const restored = [...backup.modules].sort((a, b) => a.sequence - b.sequence);
 
       this.modules.set(restored);
-      this.showToast('Reverted to last saved order', 'info');
+      this.notificationService.info('Reverted to last saved order');
     }
   }
 
@@ -3547,13 +3504,13 @@ export class CourseBuilder implements OnInit {
   publishModule(): void {
     const moduleId = this.selectedModuleId();
     if (!moduleId || moduleId === 'NEW') {
-      this.showToast('Please save the module first', 'error');
+      this.notificationService.error('Please save the module first');
       return;
     }
 
     const selectedModule = this.getSelectedModule();
     if (!selectedModule?.isReadyToPublish) {
-      this.showToast('Module is not ready to publish yet', 'error');
+      this.notificationService.error('Module is not ready to publish yet');
       return;
     }
 
@@ -3582,11 +3539,11 @@ export class CourseBuilder implements OnInit {
             };
           });
 
-          this.showToast('Module published successfully!', 'success');
+          this.notificationService.success('Module published successfully!');
           this.selectModule(updatedModule); // Refresh view
         },
         error: (err) => {
-          this.showToast(err?.error?.detail || 'Failed to publish module', 'error');
+          this.notificationService.error(err?.error?.detail || 'Failed to publish module');
         },
       });
   }
@@ -3595,7 +3552,7 @@ export class CourseBuilder implements OnInit {
   confirmDeleteModule(): void {
     const moduleId = this.selectedModuleId();
     if (!moduleId || moduleId === 'NEW') {
-      this.showToast('Cannot delete an unsaved module', 'error');
+      this.notificationService.error('Cannot delete an unsaved module');
       return;
     }
 
@@ -3643,10 +3600,10 @@ export class CourseBuilder implements OnInit {
             this.setView('COURSE_IDENTITY');
           }
 
-          this.showToast(`Module "${module.title}" and all its content deleted`, 'success');
+          this.notificationService.success(`Module "${module.title}" and all its content deleted`);
         },
         error: (err) => {
-          this.showToast(err?.error?.detail || 'Failed to delete module', 'error');
+          this.notificationService.error(err?.error?.detail || 'Failed to delete module');
         },
       });
   }
@@ -3664,7 +3621,7 @@ export class CourseBuilder implements OnInit {
 
   addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
     if (!moduleId) {
-      this.showToast('Please select a valid module', 'info');
+      this.notificationService.info('Please select a valid module');
       return;
     }
 
@@ -3820,9 +3777,9 @@ export class CourseBuilder implements OnInit {
           );
 
           this.setView('MODULE_STRUCTURE', this.selectedModuleId()); // Refresh the view to reflect changes
-          this.showToast('Step and cloud assets purged.', 'success');
+          this.notificationService.success('Step and cloud assets purged.');
         },
-        error: () => this.showToast('Cleanup failed.', 'error'),
+        error: () => this.notificationService.error('Cleanup failed.'),
       });
   }
 
@@ -3843,7 +3800,7 @@ export class CourseBuilder implements OnInit {
 
     this.moduleService.reOrderStepSequence(moduleId, payload).subscribe({
       next: () => {
-        this.showToast('Step sequence updated successfully', 'success');
+        this.notificationService.success('Step sequence updated successfully');
 
         // 3. Update the internal .sequence property of each step
         const updatedSteps = currentSteps.map((step, index) => ({
@@ -3870,7 +3827,7 @@ export class CourseBuilder implements OnInit {
         });
       },
       error: (err) => {
-        this.showToast(err.error?.detail || 'Failed to reorder steps', 'error');
+        this.notificationService.error(err.error?.detail || 'Failed to reorder steps');
       },
     });
   }
@@ -3895,7 +3852,7 @@ export class CourseBuilder implements OnInit {
         list.map((m) => (m.id === moduleId ? { ...m, learningSteps: originalStepOrder } : m)),
       );
 
-      this.showToast('Steps reverted to last saved order', 'info');
+      this.notificationService.info('Steps reverted to last saved order');
     }
   }
 
@@ -4015,12 +3972,12 @@ export class CourseBuilder implements OnInit {
   publishStep() {
     const step = this.getSelectedStep();
     if (!step) {
-      this.showToast('No step selected', 'error');
+      this.notificationService.error('No step selected');
       return;
     }
 
     if (!step.readyToPublish) {
-      this.showToast('This step is not ready to publish yet.', 'error');
+      this.notificationService.error('This step is not ready to publish yet.');
       return;
     }
 
@@ -4028,7 +3985,7 @@ export class CourseBuilder implements OnInit {
 
     this.learningStepService.publishLearningStep(step.id).subscribe({
       next: (updatedStep: LearningStepResponse) => {
-        this.showToast('Step published successfully!', 'success');
+        this.notificationService.success('Step published successfully!');
         this.isPublishing.set(false);
 
         // Update modules list
@@ -4055,7 +4012,7 @@ export class CourseBuilder implements OnInit {
       },
       error: (err: any) => {
         this.isPublishing.set(false);
-        this.showToast(err?.error?.detail || 'Failed to publish step', 'error');
+        this.notificationService.error(err?.error?.detail || 'Failed to publish step');
       },
     });
   }
@@ -4065,9 +4022,8 @@ export class CourseBuilder implements OnInit {
 
     // === NEW: BLOCK SAVE DURING UPLOADS ===
     if (this.hasPendingUploads()) {
-      this.showToast(
+      this.notificationService.info(
         'Please wait for all uploads (video and materials) to complete before saving.',
-        'info',
       );
       return;
     }
@@ -4087,7 +4043,7 @@ export class CourseBuilder implements OnInit {
 
     // === GUARD: Module Existence ===
     if (!moduleId) {
-      this.showToast('Please select a module before saving the step.', 'error');
+      this.notificationService.error('Please select a module before saving the step.');
       this.isSaving.set(false);
       return;
     }
@@ -4095,7 +4051,7 @@ export class CourseBuilder implements OnInit {
     // === COMMON VALIDATION ===
     if (!title) {
       this.showValidationErrors = true;
-      this.showToast('Title is required.', 'error');
+      this.notificationService.error('Title is required.');
       this.isSaving.set(false);
       return;
     }
@@ -4105,7 +4061,7 @@ export class CourseBuilder implements OnInit {
     if (type === 'LESSON') {
       // Cloud Sync Guard
       if (this.muxService.isUploading?.() || this.loadingStates.size > 0) {
-        this.showToast('Please wait for media uploads to finish.', 'info');
+        this.notificationService.info('Please wait for media uploads to finish.');
         this.isSaving.set(false);
         return;
       }
@@ -4120,7 +4076,7 @@ export class CourseBuilder implements OnInit {
       const hasValidMaterials = isMaterials && currentResources.length > 0;
 
       if (!hasValidVideo && !hasValidContent && !hasValidMaterials) {
-        this.showToast('A lesson must have at least one content section.', 'error');
+        this.notificationService.error('A lesson must have at least one content section.');
         this.isSaving.set(false);
         return;
       }
@@ -4128,7 +4084,9 @@ export class CourseBuilder implements OnInit {
       if (isMaterials) {
         const hasInvalid = currentResources.some((r) => !r.objectKey);
         if (hasInvalid) {
-          this.showToast('Some materials are missing upload data. Please re-upload them.', 'error');
+          this.notificationService.error(
+            'Some materials are missing upload data. Please re-upload them.',
+          );
           this.isSaving.set(false);
           return;
         }
@@ -4142,7 +4100,7 @@ export class CourseBuilder implements OnInit {
           if (this.currentUploadId()) {
             videoUploadIdToSend = this.currentUploadId()!;
           } else if (this.selectedVideoFile()) {
-            this.showToast('Please upload the new video first before saving.', 'error');
+            this.notificationService.error('Please upload the new video first before saving.');
             this.isSaving.set(false);
             return;
           }
@@ -4198,7 +4156,7 @@ export class CourseBuilder implements OnInit {
 
       // 1. Basic Validation
       if (!quizQuestions || quizQuestions.length === 0) {
-        this.showToast('A quiz must have at least one question.', 'error');
+        this.notificationService.error('A quiz must have at least one question.');
         this.isSaving.set(false);
         return;
       }
@@ -4210,14 +4168,16 @@ export class CourseBuilder implements OnInit {
 
         // Ensure question has text
         if (!q.questionText?.trim()) {
-          this.showToast(`Question ${index + 1} text is required.`, 'error');
+          this.notificationService.error(`Question ${index + 1} text is required.`);
           this.isSaving.set(false);
           return;
         }
 
         // Must have at least one correct answer
         if (correctCount === 0) {
-          this.showToast(`"${questionLabel}" must have at least one correct answer.`, 'error');
+          this.notificationService.error(
+            `"${questionLabel}" must have at least one correct answer.`,
+          );
           this.isSaving.set(false);
           return;
         }
@@ -4225,9 +4185,8 @@ export class CourseBuilder implements OnInit {
         // STRICT MULTI-ANSWER VALIDATION
         // If toggle is OFF (Single Choice), but user selected > 1 answer
         if (!q.hasMultipleAnswers && correctCount > 1) {
-          this.showToast(
+          this.notificationService.error(
             `"${questionLabel}" is set to single choice, but you've selected ${correctCount} correct answers.`,
-            'error',
           );
           this.isSaving.set(false);
           return;
@@ -4278,7 +4237,7 @@ export class CourseBuilder implements OnInit {
 
     operation$.pipe(finalize(() => this.isSaving.set(false))).subscribe({
       next: (res: LearningStepResponse) => {
-        this.showToast(`${type} ${isEdit ? 'updated' : 'created'} successfully`, 'success');
+        this.notificationService.success(`${type} ${isEdit ? 'updated' : 'created'} successfully`);
 
         // Update modules list + backup (your existing logic)
         this.modules.update((currentModules) =>
@@ -4335,9 +4294,8 @@ export class CourseBuilder implements OnInit {
         this.setView('MODULE_STRUCTURE', moduleId);
       },
       error: (err: any) => {
-        this.showToast(
+        this.notificationService.error(
           err?.error?.detail || `Failed to ${isEdit ? 'update' : 'create'} step.`,
-          'error',
         );
         console.error(err);
       },

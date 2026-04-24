@@ -17,6 +17,7 @@ import { finalize } from 'rxjs';
 import { CourseService, CourseResponse } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
 import { TenantService } from '../../../services/tenant.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-manager-courses',
@@ -342,6 +343,7 @@ export class ManagerCourses implements OnInit, AfterViewInit {
   private categoryService = inject(CategoryService);
   private scroller = inject(ViewportScroller);
   private tenantService = inject(TenantService);
+  private notificationService = inject(NotificationService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
   @ViewChild('confirmModal') confirmModal!: ElementRef<HTMLDialogElement>;
@@ -467,20 +469,39 @@ export class ManagerCourses implements OnInit, AfterViewInit {
     this.confirmModal.nativeElement.showModal();
   }
 
-  executeDelete() {
-    const course = this.courseToArchive();
-    if (course) {
-      this.courseService.deleteCourse(course.id).subscribe(() => {
-        this.courses.update((list) => list.filter((c) => c.id !== course.id));
-        this.confirmModal.nativeElement.close();
-        this.courseToArchive.set(null);
-      });
-    }
-  }
+executeDelete() {
+  const course = this.courseToArchive();
+  if (!course) return;
 
-  restoreCourse(id: string) {
-    this.courseService.restoreCourse(id).subscribe(() => {
+  this.courseService.deleteCourse(course.id).subscribe({
+    next: () => {
+      this.courses.update((list) => list.filter((c) => c.id !== course.id));
+      this.confirmModal.nativeElement.close();
+      this.courseToArchive.set(null);
+      this.notificationService.success(`Course deleted successfully`);
+    },
+    error: (err) => {
+      const errorMessage = err?.error?.detail || 'Failed to delete course. Please try again.';
+      this.notificationService.error(errorMessage);
+      console.error('Delete error:', err);
+    }
+  });
+}
+
+restoreCourse(id: string) {
+  // First, find the course to get its title for the notification
+  const course = this.courses().find(c => c.id === id);
+  
+  this.courseService.restoreCourse(id).subscribe({
+    next: () => {
       this.courses.update((list) => list.filter((c) => c.id !== id));
-    });
-  }
+      this.notificationService.success( 'Course restored successfully');
+    },
+    error: (err) => {
+      const errorMessage = err?.error?.detail || 'Failed to restore course. Please try again.';
+      this.notificationService.error(errorMessage);
+      console.error('Restore error:', err);
+    }
+  });
+}
 }
