@@ -13,9 +13,9 @@ import { NotificationService } from '../../../services/notification.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30">
+    <div class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30  p-4 lg:p-8">
       <nav
-        class="h-16 border-b border-white/5 bg-[#030712]/80 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
+        class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
       >
         <div class="max-w-7xl mx-auto h-full flex items-center justify-between">
           <div class="flex items-center gap-4 md:gap-6">
@@ -323,7 +323,7 @@ export class CourseDetailsComponent implements OnInit {
 
           // 3. Perform the fetch
           return this.courseService
-            .getCourseById(id!)
+            .getLearnerCourseView(id!)
             .pipe(finalize(() => this.isLoading.set(false)));
         }),
         takeUntil(this.destroy$),
@@ -362,7 +362,6 @@ export class CourseDetailsComponent implements OnInit {
           console.error(err);
           this.course.set(null);
           this.notificationService.error('Failed to load course');
-
         },
       });
   }
@@ -402,7 +401,7 @@ export class CourseDetailsComponent implements OnInit {
       )
       .subscribe({
         next: (refreshedCourse) => {
-            this.notificationService.success('Enrolled to course successfully');
+          this.notificationService.success('Enrolled to course successfully');
           // The signal is now updated with data verified by the backend
           this.course.set(refreshedCourse);
         },

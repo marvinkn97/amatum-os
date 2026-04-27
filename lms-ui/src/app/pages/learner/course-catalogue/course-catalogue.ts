@@ -23,13 +23,13 @@ import { TenantService } from '../../../services/tenant.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20 px-6">
+    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
       <header
         class="relative z-50 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
       >
         <div class="space-y-1">
           <h1 class="text-md font-black text-white italic tracking-tighter uppercase">
-            Curriculum
+            Courses
           </h1>
           <p class="text-slate-500 text-sm font-medium">
             Explore professional pathways and certify your skills.

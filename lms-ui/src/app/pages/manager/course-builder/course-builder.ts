@@ -2048,7 +2048,7 @@ type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QU
                       <button
                         (click)="publishStep()"
                         [disabled]="
-                          isPublishing() || !getSelectedStep()?.readyToPublish || isSaving()
+                          isPublishing() || !getSelectedStep()?.isReadyToPublish || isSaving()
                         "
                         class="group flex items-center justify-center gap-2 w-full px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
@@ -2400,7 +2400,7 @@ type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QU
                       <button
                         (click)="publishStep()"
                         [disabled]="
-                          isPublishing() || !getSelectedStep()?.readyToPublish || isSaving()
+                          isPublishing() || !getSelectedStep()?.isReadyToPublish || isSaving()
                         "
                         class="group flex items-center justify-center gap-2 w-full px-7 py-3.5 border-2 border-emerald-500 text-emerald-400 hover:text-white hover:bg-emerald-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
@@ -3976,7 +3976,7 @@ export class CourseBuilder implements OnInit {
       return;
     }
 
-    if (!step.readyToPublish) {
+    if (!step.isReadyToPublish) {
       this.notificationService.error('This step is not ready to publish yet.');
       return;
     }

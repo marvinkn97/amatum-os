@@ -350,7 +350,7 @@ public class CourseService {
                 .collect(Collectors.toMap(
                         lesson -> lesson.getLearningStepEntity().getId(), // Key: The UUID of the Step
                         Function.identity(),                        // Value: The LessonEntity itself
-                        (existing, replacement) -> existing         // Merge function to prevent duplicates
+                        (existing, _) -> existing         // Merge function to prevent duplicates
                 ));
 
         // Fetch the Quiz headers
@@ -509,7 +509,129 @@ public class CourseService {
     }
 
 
+    @Transactional(readOnly = true)
+    public CourseResponse getLearnerCourseView(UUID id) {
+        log.info("Fetching learner course with id: {}", id);
 
+        // Fetch Course
+        CourseEntity course = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
 
+        // Fetch Modules
+        List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_IdOrderBySequenceAsc(course.getId());
+        List<UUID> moduleIds = moduleEntities.stream().map(ModuleEntity::getId).toList();
+
+        // Fetch All Steps
+        List<LearningStepEntity> stepEntities = learningStepRepository.findByModule_IdIn(moduleIds);
+        List<UUID> stepIds = stepEntities.stream().map(LearningStepEntity::getId).toList();
+
+        // Bulk fetch resources
+        List<LearningStepResourceEntity> resourceEntities =
+                learningStepResourceRepository.findByLearningStepEntity_IdIn(stepIds);
+
+        // Group resources by step ID for easy lookup
+        Map<UUID, List<LearningStepResourceResponse>> resourcesByStepId =
+                resourceEntities.stream()
+                        .collect(Collectors.groupingBy(
+                                r -> r.getLearningStepEntity().getId(),
+                                Collectors.mapping(r ->
+                                                new LearningStepResourceResponse(
+                                                        r.getId(),
+                                                        r.getName(),
+                                                        s3Service.generatePresignedUrl(r.getObjectKey()),
+                                                        r.getContentType(),
+                                                        r.getSize()
+                                                ),
+                                        Collectors.toList()
+                                )
+                        ));
+
+        // --- NEW: FETCH LESSONS IN BULK (Using Entities) ---
+        Map<UUID, LessonEntity> lessonsByStepId = lessonRepository.findByLearningStepEntity_IdIn(stepIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        lesson -> lesson.getLearningStepEntity().getId(), // Key: The UUID of the Step
+                        Function.identity(),                        // Value: The LessonEntity itself
+                        (existing, _) -> existing         // Merge function to prevent duplicates
+                ));
+
+        // Fetch the Quiz headers
+        List<QuizEntity> quizEntities = quizRepository.findByLearningStepEntity_IdIn(stepIds);
+        List<UUID> quizIds = quizEntities.stream().map(QuizEntity::getId).toList();
+
+        // Fetch all Questions for these Quizzes
+        //  (Assuming you have a QuizQuestionRepository)
+        Map<UUID, List<QuizQuestion>> questionsByQuizId =
+                quizQuestionRepository.findByQuizEntity_IdIn(quizIds).stream()
+                        .collect(Collectors.groupingBy(q -> q.getQuizEntity().getId()));
+
+        // Fetch all Answer Options for these Questions
+        List<UUID> questionIds = questionsByQuizId.values().stream()
+                .flatMap(List::stream)
+                .map(QuizQuestion::getId)
+                .toList();
+
+        Map<UUID, List<QuizAnswerOption>> optionsByQuestionId =
+                quizAnswerOptionRepository.findByQuizQuestion_IdIn(questionIds).stream()
+                        .collect(Collectors.groupingBy(opt -> opt.getQuizQuestion().getId()));
+
+        //  Assemble the QuizResponse Map
+        Map<UUID, QuizResponse> quizzesByStepId = quizEntities.stream()
+                .collect(Collectors.toMap(
+                        quiz -> quiz.getLearningStepEntity().getId(),
+                        quiz -> {
+                            List<QuizQuestion> questions = questionsByQuizId.getOrDefault(quiz.getId(), List.of());
+
+                            List<QuizQuestionResponse> questionResponses = questions.stream()
+                                    .map(q -> {
+                                        List<QuizAnswerOptionResponse> optionResponses = optionsByQuestionId.getOrDefault(q.getId(), List.of())
+                                                .stream()
+                                                .map(opt -> new QuizAnswerOptionResponse(opt.getId(), opt.getAnswerText()))
+                                                .toList();
+
+                                        return new QuizQuestionResponse(q.getId(), q.getQuestionText(), q.isHasMultipleAnswers(), optionResponses);
+                                    }).toList();
+
+                            return new QuizResponse(quiz.getId(), questionResponses);
+                        }
+                ));
+
+        //  Group Steps by Module ID and Flatten Lesson Data
+        Map<UUID, List<LearningStepResponse>> stepsByModuleId = stepEntities.stream()
+                .map(entity -> {
+                    if (entity.getType().equals(LearningStepType.LESSON)) {
+                        // Get the lesson entity from the map
+                        LessonEntity lesson = lessonsByStepId.get(entity.getId());
+                        // Use the two-argument mapper to flatten lesson fields
+
+                        List<LearningStepResourceResponse> resources =
+                                resourcesByStepId.getOrDefault(entity.getId(), List.of());
+
+                        return LearningStepMapper.mapToLearnerResponse(entity, lesson, resources, null);
+                    }
+
+                    if (entity.getType().equals(LearningStepType.QUIZ)) {
+                        QuizResponse quizResponse = quizzesByStepId.get(entity.getId());
+                        return LearningStepMapper.mapToLearnerResponse(entity, null, null, quizResponse);
+                    }
+
+                    // Fallback for QUIZ or other types: use the standard one-argument mapper
+                    return LearningStepMapper.mapToResponse(entity);
+                })
+                .collect(Collectors.groupingBy(LearningStepResponse::getModuleId));
+
+        // Build ModuleResponses
+        List<ModuleResponse> moduleResponses = moduleEntities.stream()
+                .map(m -> new ModuleResponse(
+                        m.getId(),
+                        m.getTitle(),
+                        m.getSequence(),
+                        stepsByModuleId.getOrDefault(m.getId(), List.of())
+                ))
+                .toList();
+
+        return CourseMapper.mapToResponseWithModulesAndLessons(course, moduleResponses, moduleEntities.size(), stepEntities.size());
+
+    }
 
 }

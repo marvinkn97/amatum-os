@@ -11,7 +11,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,12 +23,12 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
 
     @Transactional
-    public EnrollmentResponse enroll(EnrollmentRequest enrollmentRequest, Authentication authentication){
+    public EnrollmentResponse enroll(EnrollmentRequest enrollmentRequest, Authentication authentication) {
         UUID learnerId = UUID.fromString(authentication.getName());
         UUID courseId = enrollmentRequest.courseId();
         log.info("Enrolling learner {} for course {}", learnerId, courseId);
 
-        if(enrollmentRepository.existsByLearnerIdAndCourseId(learnerId, courseId)){
+        if (enrollmentRepository.existsByLearnerIdAndCourseId(learnerId, courseId)) {
             log.info("Learner {} already enrolled in course {}", learnerId, courseId);
             throw new BadRequestException("Learner already enrolled in course");
         }
@@ -42,7 +45,7 @@ public class EnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<EnrollmentResponse> getAllEnrollmentsByLearnerId(Authentication authentication, Pageable pageable){
+    public Page<EnrollmentResponse> getAllEnrollmentsByLearnerId(Authentication authentication, Pageable pageable) {
         UUID learnerId = UUID.fromString(authentication.getName());
         log.info("Getting all enrollments for learner {}", learnerId);
 
@@ -54,17 +57,50 @@ public class EnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<EnrollmentResponse> getActiveEnrollmentsByLearnerId(Authentication authentication, Pageable pageable){
+    public Page<EnrollmentResponse> getActiveEnrollmentsByLearnerId(Authentication authentication, Pageable pageable) {
         UUID learnerId = UUID.fromString(authentication.getName());
         log.info("Getting active enrollments for learner {}", learnerId);
         return null;
     }
 
     @Transactional(readOnly = true)
-    public Page<EnrollmentResponse> getCompletedEnrollmentsByLearnerId(Authentication authentication, Pageable pageable){
+    public Page<EnrollmentResponse> getCompletedEnrollmentsByLearnerId(Authentication authentication, Pageable pageable) {
         UUID learnerId = UUID.fromString(authentication.getName());
         log.info("Getting completed enrollments for learner {}", learnerId);
         return null;
+    }
+
+    @Transactional(readOnly = true)
+    public List<EnrollmentCheckResponse> getEnrollmentStatus(List<UUID> courseIds, Authentication authentication) {
+        UUID learnerId = UUID.fromString(authentication.getName());
+
+        log.info("Getting enrollment status for courses {} and learner {}", courseIds, learnerId);
+
+        // fetch all enrolled courses in one query
+        List<EnrollmentEntity> enrollments =
+                enrollmentRepository.findByLearnerIdAndCourseIdIn(learnerId, courseIds);
+
+        Set<UUID> enrolledCourseIds = enrollments.stream()
+                .map(EnrollmentEntity::getCourseId)
+                .collect(Collectors.toSet());
+
+        // map all requested courses -> response
+        return courseIds.stream()
+                .map(courseId -> new EnrollmentCheckResponse(
+                        courseId,
+                        enrolledCourseIds.contains(courseId)
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public EnrollmentCheckResponse checkEnrollmentStatus(UUID courseId, Authentication authentication) {
+        UUID learnerId = UUID.fromString(authentication.getName());
+        log.info("Checking enrollment status for course {} and learner {}", courseId, learnerId);
+        boolean exists = enrollmentRepository.existsByLearnerIdAndCourseId(learnerId, courseId);
+
+        log.debug("Enrollment status for course {} and learner {} is {}", courseId, learnerId, exists);
+        return new EnrollmentCheckResponse(courseId, exists);
     }
 
 }

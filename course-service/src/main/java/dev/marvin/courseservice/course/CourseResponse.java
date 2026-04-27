@@ -57,8 +57,23 @@ public record CourseResponse(
             Integer moduleCount,
             Integer learningStepCount
     ) {
-        this(id, title, slug, description, tags, isPublic , accessTier, price, categoryId, status, null, null, moduleCount, learningStepCount);
+        this(id, title, slug, description, tags, isPublic, accessTier, price, categoryId, status, null, null, moduleCount, learningStepCount);
     }
 
+
+    public CourseResponse(
+            UUID id,
+            String title,
+            String slug,
+            String description,
+            Set<String> tags,
+            CourseAccessTier accessTier,
+            BigDecimal price,
+            List<ModuleResponse> modules,
+            Integer moduleCount,
+            Integer learningStepCount
+    ) {
+        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, modules, moduleCount, learningStepCount);
+    }
 
 }

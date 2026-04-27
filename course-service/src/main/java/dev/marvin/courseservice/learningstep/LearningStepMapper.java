@@ -25,7 +25,7 @@ public class LearningStepMapper {
         response.setVideoEnabled(entity.isVideoEnabled());
         response.setContentEnabled(entity.isContentEnabled());
         response.setMaterialsEnabled(entity.isMaterialsEnabled());
-        response.setReadyToPublish(entity.isReadyToPublish());
+        response.setIsReadyToPublish(entity.isReadyToPublish());
         response.setStatus(entity.getStatus());
 
         if (lesson != null && entity.getType().equals(LearningStepType.LESSON)) {
@@ -44,4 +44,28 @@ public class LearningStepMapper {
 
         return response;
     }
+
+    public static LearningStepResponse mapToLearnerResponse(LearningStepEntity entity, LessonEntity lesson, List<LearningStepResourceResponse> resources, QuizResponse quiz) {
+        LearningStepResponse response = mapToResponse(entity); // your existing basic map
+
+        response.setVideoEnabled(entity.isVideoEnabled());
+        response.setContentEnabled(entity.isContentEnabled());
+        response.setMaterialsEnabled(entity.isMaterialsEnabled());
+
+        if (lesson != null && entity.getType().equals(LearningStepType.LESSON)) {
+            response.setContent(lesson.getContent());
+            response.setVideoPlaybackId(lesson.getVideoPlaybackId());
+            response.setResources(resources);
+        }
+
+        if(quiz != null && entity.getType().equals(LearningStepType.QUIZ)) {
+            response.setQuiz(quiz);
+            response.setContent(null);
+            response.setVideoPlaybackId(null);
+            response.setVideoAssetId(null);
+        }
+
+        return response;
+    }
+
 }

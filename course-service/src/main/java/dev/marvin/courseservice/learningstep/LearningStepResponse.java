@@ -24,7 +24,7 @@ public class LearningStepResponse {
     private Integer sequence;
     private Status status;
 
-    private boolean isReadyToPublish;
+    private Boolean isReadyToPublish;
 
     private boolean videoEnabled;
     private boolean contentEnabled;

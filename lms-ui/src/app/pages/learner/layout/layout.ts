@@ -156,7 +156,7 @@ interface Organization {
               >
                 <path stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span class="text-xs font-bold hidden sm:block">AMAI</span>
+              <span class="text-xs font-bold hidden md:block">TALEMAI</span>
             </button>
 
             <div class="h-6 w-px bg-white/10 mx-1"></div>
@@ -283,7 +283,7 @@ interface Organization {
           </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 lg:p-8 relative z-0">
+        <main class="flex-1 overflow-y-auto relative z-0">
           <router-outlet />
         </main>
       </div>

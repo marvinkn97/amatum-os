@@ -5,9 +5,10 @@ import dev.marvin.courseservice.module.ModuleResponse;
 import java.util.List;
 
 public class CourseMapper {
-    private CourseMapper(){}
+    private CourseMapper() {
+    }
 
-    public static CourseResponse mapToResponse(CourseEntity courseEntity){
+    public static CourseResponse mapToResponse(CourseEntity courseEntity) {
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
@@ -23,7 +24,7 @@ public class CourseMapper {
     }
 
 
-    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity,boolean isReadyToPublish, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount){
+    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity, boolean isReadyToPublish, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount) {
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
@@ -42,8 +43,23 @@ public class CourseMapper {
         );
     }
 
+    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount) {
+        return new CourseResponse(
+                courseEntity.getId(),
+                courseEntity.getTitle(),
+                courseEntity.getSlug(),
+                courseEntity.getDescription(),
+                courseEntity.getTags(),
+                courseEntity.getAccessTier(),
+                courseEntity.getPrice(),
+                moduleResponses,
+                moduleCount,
+                learningStepCount
+        );
+    }
 
-    public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount){
+
+    public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount) {
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
@@ -59,7 +75,6 @@ public class CourseMapper {
                 learningStepCount
         );
     }
-
 
 
 }
