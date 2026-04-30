@@ -42,6 +42,10 @@ public class TenantFilter implements Filter {
 
             List<String> tenantIds = extractTenantIdsFromToken(jwt);
             String requestedTenantId = req.getHeader("x-tenant-id");
+            requestedTenantId =
+                    (requestedTenantId == null || requestedTenantId.isBlank())
+                            ? null
+                            : requestedTenantId.trim();
 
             if (requestedTenantId != null && !tenantIds.contains(requestedTenantId)) {
                 sendProblem(res, HttpStatus.FORBIDDEN, "Requested tenant is not authorized for this user");

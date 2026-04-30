@@ -13,13 +13,15 @@ import {
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import { CourseService, CourseResponse } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
 import { TenantService } from '../../../services/tenant.service';
+import { EnrollmentRequest, EnrollmentService } from '../../../services/enrollment.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
-  selector: 'app-course-marketplace',
+  selector: 'app-course-catalogue',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
@@ -28,9 +30,7 @@ import { TenantService } from '../../../services/tenant.service';
         class="relative z-50 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
       >
         <div class="space-y-1">
-          <h1 class="text-md font-black text-white italic tracking-tighter uppercase">
-            Courses
-          </h1>
+          <h1 class="text-md font-black text-white italic tracking-tighter uppercase">Courses</h1>
           <p class="text-slate-500 text-sm font-medium">
             Explore professional pathways and certify your skills.
           </p>
@@ -115,12 +115,44 @@ import { TenantService } from '../../../services/tenant.service';
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
         @for (course of courses(); track course.id) {
           <div
+            [class.border-indigo-500/30]="course.isEnrolled"
+            [class.bg-indigo-500/5]="course.isEnrolled"
             class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
           >
+            <!-- Card Header Area -->
             <div [class]="'h-40 relative ' + getAccent(course.categoryId)">
               <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
+
+              <!-- Course Rating (Far Left) -->
+              <div class="absolute top-6 left-8">
+                <div
+                  class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md"
+                >
+                  <svg class="size-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
+                    <path
+                      d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                    />
+                  </svg>
+                  <span class="text-[11px] font-black text-white tracking-tighter">
+                    {{ course.rating || '0.0' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Enrolled Badge (Right) -->
+              @if (course.isEnrolled) {
+                <div class="absolute top-6 right-8">
+                  <span
+                    class="px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-[8px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2 backdrop-blur-md"
+                  >
+                    <div class="size-1 rounded-full bg-indigo-400 animate-pulse"></div>
+                    Enrolled
+                  </span>
+                </div>
+              }
             </div>
 
+            <!-- Card Body -->
             <div class="p-8 pt-4 flex flex-col flex-1">
               <div class="flex items-center gap-2 mb-4">
                 <span class="text-[8px] font-black text-indigo-400 uppercase tracking-widest"
@@ -148,6 +180,7 @@ import { TenantService } from '../../../services/tenant.service';
                 }
               </div>
 
+              <!-- Footer Actions -->
               <div class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5">
                 <div class="mr-auto flex flex-col items-start">
                   @if (course.accessTier === 'PREMIUM') {
@@ -185,18 +218,39 @@ import { TenantService } from '../../../services/tenant.service';
                 </a>
 
                 <button
-                  title="Enroll"
-                  (click)="enroll(course)"
-                  class="size-11 bg-white/5 border border-white/10 text-slate-500 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white rounded-2xl flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                  [title]="course.isEnrolled ? 'Open Course' : 'Enroll'"
+                  (click)="course.isEnrolled ? openCourse(course) : enroll(course)"
+                  [class]="
+                    course.isEnrolled
+                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                      : 'bg-white/5 border-white/10 text-slate-500 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white'
+                  "
+                  class="size-11 rounded-2xl flex items-center justify-center transition-all active:scale-90 cursor-pointer border"
                 >
-                  <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                  @if (course.isEnrolled) {
+                    <svg
+                      class="size-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                       stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                      />
+                    </svg>
+                  } @else {
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  }
                 </button>
               </div>
             </div>
@@ -213,6 +267,7 @@ import { TenantService } from '../../../services/tenant.service';
           }
         }
 
+        <!-- Skeleton Loading State -->
         @if (isLoading()) {
           @for (i of [1, 2, 3]; track i) {
             <div
@@ -238,8 +293,10 @@ import { TenantService } from '../../../services/tenant.service';
         }
       </div>
 
+      <!-- Infinite Scroll Sentinel -->
       <div #scrollSentinel class="h-20 w-full pointer-events-none"></div>
 
+      <!-- Back to Top Button -->
       <button
         (click)="scrollToTop()"
         [class.opacity-100]="showBackToTop()"
@@ -260,27 +317,31 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   private categoryService = inject(CategoryService);
   private scroller = inject(ViewportScroller);
   private tenantService = inject(TenantService);
+  private enrollmentService = inject(EnrollmentService);
+  private notificationService = inject(NotificationService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
 
+  // Signals
   searchQuery = signal('');
   activeCategoryId = signal('');
   activeCategoryName = signal('All Categories');
-
-  courses = signal<CourseResponse[]>([]);
+  courses = signal<any[]>([]);
   currentPage = signal(0);
   hasNextPage = signal(true);
   isLoading = signal(false);
-
   categoriesData = signal<any[]>([]);
   isDropdownOpen = signal(false);
   showBackToTop = signal(false);
 
+  isEnrolling = signal(false);
+
   constructor() {
     effect(() => {
+      // Re-trigger reload when filter signals change
       this.searchQuery();
       this.activeCategoryId();
-      this.tenantService.tenantId(); // Tracks tenant ID changes
+      this.tenantService.tenantId();
       untracked(() => this.resetAndReload());
     });
   }
@@ -366,6 +427,34 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   }
 
   enroll(course: CourseResponse) {
-    console.log('Enrolling in:', course.title);
+    if (course.isEnrolled || this.isEnrolling()) return;
+
+    this.isEnrolling.set(true);
+
+    // Use the specific interface your backend expects
+    const request: EnrollmentRequest = { courseId: course.id };
+
+    this.enrollmentService
+      .enroll(request)
+      .pipe(
+        // CRITICAL: We fetch the course again to get the verified truth from DB
+        switchMap(() => this.courseService.getCourseById(course.id)),
+        finalize(() => this.isEnrolling.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.success('Enrolled to course successfully');
+        },
+        error: (err) => {
+          console.error('Enrollment failed:', err);
+          this.notificationService.error(err?.error?.detail || 'Enrollment failed');
+          // UI stays safe; signal remains unchanged
+        },
+      });
+  }
+
+  openCourse(course: any) {
+    console.log('Opening active course player for:', course.title);
+    // Add navigation logic here, e.g., this.router.navigate(['/player', course.id]);
   }
 }

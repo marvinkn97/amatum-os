@@ -19,6 +19,12 @@ spring:
         jwt:
           issuer-uri: http://localhost:9000/realms/amatum
 
+  grpc:
+    client:
+      enrollment-service:
+        address: localhost
+        port: 9093
+
 mux:
   api:
     base-url: https://api.mux.com

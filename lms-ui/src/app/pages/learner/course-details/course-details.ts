@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CourseService, CourseResponse } from '../../../services/course.service';
@@ -7,13 +7,16 @@ import { TenantService } from '../../../services/tenant.service';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { EnrollmentRequest, EnrollmentService } from '../../../services/enrollment.service';
 import { NotificationService } from '../../../services/notification.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-course-details',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30  p-4 lg:p-8">
+    <div
+      class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30  p-4 lg:p-8"
+    >
       <nav
         class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
       >
@@ -87,8 +90,8 @@ import { NotificationService } from '../../../services/notification.service';
                   </span>
                 </div>
                 <div
-                  class="flex flex-col text-slate-400 text-[13px] font-medium leading-relaxed border-l border-white/10 pl-5 md:pl-8 py-1 wrap-break-word overflow-hidden"
-                  [innerHTML]="course()!.description"
+                  class="ql-editor prose prose-invert max-w-none text-slate-300 leading-relaxed"
+                  [innerHTML]="safeDescription"
                 ></div>
               </section>
 
@@ -286,6 +289,24 @@ import { NotificationService } from '../../../services/notification.service';
       :host {
         display: block;
       }
+
+      .ql-editor p {
+        margin: 0.75rem 0;
+      }
+
+      .ql-editor ul {
+        padding-left: 1.5rem;
+        list-style-type: disc;
+      }
+
+      .ql-editor li {
+        margin: 0.25rem 0;
+      }
+
+      .ql-editor {
+        line-height: 1.7;
+        font-size: 14px;
+      }
     `,
   ],
 })
@@ -306,6 +327,9 @@ export class CourseDetailsComponent implements OnInit {
   private destroy$ = new Subject<void>();
 
   private tenant$ = toObservable(this.tenantService.tenantId);
+
+  safeDescription!: SafeHtml;
+  private sanitizer = inject(DomSanitizer);
 
   ngOnInit() {
     this.route.paramMap
@@ -331,6 +355,9 @@ export class CourseDetailsComponent implements OnInit {
       .subscribe({
         next: (data) => {
           this.course.set(data);
+
+          this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(data?.description ?? '');
+
           if (data?.modules?.length) this.toggleModule(data.modules[0].id);
         },
         error: (err) => {
@@ -380,6 +407,7 @@ export class CourseDetailsComponent implements OnInit {
   }
 
   goBack() {
+    console.log(this.course()?.description);
     this.router.navigate(['/learner/course-catalogue']);
   }
 

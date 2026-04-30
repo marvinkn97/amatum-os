@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -14,6 +15,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -157,10 +159,12 @@ public class CourseController {
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "categoryId", required = false) UUID categoryId,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @NonNull Authentication authentication
+
     ) {
         Page<CourseResponse> coursePage =
-                courseService.getLearnerCatalog(name, categoryId, PageRequest.of(page, size));
+                courseService.getLearnerCatalog(name, categoryId, PageRequest.of(page, size), authentication);
 
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(coursePage, EntityModel::of));
     }
@@ -168,8 +172,8 @@ public class CourseController {
     @PreAuthorize("hasRole('LEARNER')")
     @Operation(summary = "Get learner course view")
     @GetMapping("/{id}/learner")
-    public ResponseEntity<CourseResponse> getLearnerCourseView(@PathVariable("id") UUID courseId) {
-        return ResponseEntity.ok(courseService.getLearnerCourseView(courseId));
+    public ResponseEntity<CourseResponse> getLearnerCourseView(@PathVariable("id") UUID courseId, @NonNull Authentication authentication) {
+        return ResponseEntity.ok(courseService.getLearnerCourseView(courseId, authentication));
     }
 
 

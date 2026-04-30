@@ -10,6 +10,9 @@ public record EnrollmentResponse(
         UUID id,
         EnrollmentStatus status,
         Boolean isCompleted,
-        Integer progress
+        Integer progress,
+        Object course
         ) {
 }
+
+

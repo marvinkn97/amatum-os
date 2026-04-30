@@ -71,9 +71,7 @@ public class EnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<EnrollmentCheckResponse> getEnrollmentStatus(List<UUID> courseIds, Authentication authentication) {
-        UUID learnerId = UUID.fromString(authentication.getName());
-
+    public List<EnrollmentCheckResponse> getEnrollmentStatus(List<UUID> courseIds, UUID learnerId) {
         log.info("Getting enrollment status for courses {} and learner {}", courseIds, learnerId);
 
         // fetch all enrolled courses in one query
@@ -94,8 +92,7 @@ public class EnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public EnrollmentCheckResponse checkEnrollmentStatus(UUID courseId, Authentication authentication) {
-        UUID learnerId = UUID.fromString(authentication.getName());
+    public EnrollmentCheckResponse checkEnrollmentStatus(UUID courseId, UUID learnerId) {
         log.info("Checking enrollment status for course {} and learner {}", courseId, learnerId);
         boolean exists = enrollmentRepository.existsByLearnerIdAndCourseId(learnerId, courseId);
 

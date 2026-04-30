@@ -86,7 +86,7 @@ public class MuxVideoUploadService {
 
                 // Mux sends an array of playback IDs; usually we want the first public one
                 String playbackId = data.get("playback_ids").get(0).get("id").asString();
-                String assetId = data.get("id").asText(); // ✅ ADD THIS
+                String assetId = data.get("id").asString(); // ✅ ADD THIS
                 updateLessonData(uploadId, assetId, playbackId); // ✅ USE ONE METHOD
             }
             return true;

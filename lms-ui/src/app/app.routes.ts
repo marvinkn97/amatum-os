@@ -15,6 +15,7 @@ import { SuperAdminLayout } from './pages/super-admin/layout/layout';
 import { CourseCategoriesComponent } from './pages/super-admin/categories/categories';
 import { RoleSelectionComponent } from './auth/role-selection';
 import { CourseDetailsComponent } from './pages/learner/course-details/course-details';
+import { EnrollmentViewComponent } from './pages/learner/enrollment-view/enrollment-view';
 
 export const routes: Routes = [
   {
@@ -25,10 +26,6 @@ export const routes: Routes = [
   {
     path: 'explore',
     loadComponent: () => import('./pages/public/explore/explore').then((m) => m.Explore),
-  },
-  {
-    path: 'curriculum',
-    loadComponent: () => import('./pages/curriculum/curriculum').then((m) => m.Curriculum),
   },
   {
     path: 'onboarding',
@@ -61,6 +58,7 @@ export const routes: Routes = [
       { path: 'course-catalogue', component: CourseCatalogueComponent },
       { path: 'course-catalogue/:id', component: CourseDetailsComponent },
       { path: 'certificates', component: MyCertificatesComponent },
+      { path: 'enrollment', component: EnrollmentViewComponent },
     ],
   },
 

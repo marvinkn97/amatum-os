@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package enrollment;
+
+option java_multiple_files = true;
+option java_package = "enrollment.proto";
+option java_outer_classname = "EnrollmentProto";
+
+service EnrollmentService {
+
+  // Single course
+  rpc CheckEnrollmentStatus(EnrollmentCheckRequest) returns (EnrollmentCheckResponse);
+
+  // Multiple courses
+  rpc CheckEnrollmentStatuses(BulkEnrollmentCheckRequest) returns (BulkEnrollmentCheckResponse);
+}
+
+message EnrollmentCheckRequest {
+  string learnerId = 1;
+  string courseId = 2;
+}
+
+message BulkEnrollmentCheckRequest {
+  string learnerId = 1;
+  repeated string courseIds = 2;
+}
+
+message EnrollmentCheckResponse {
+  string courseId = 1;
+  bool enrolled = 2;
+}
+
+message BulkEnrollmentCheckResponse {
+  repeated EnrollmentCheckResponse results = 1;
+}

@@ -10,10 +10,10 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -32,20 +32,4 @@ public class EnrollmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(enrollmentResponse);
     }
 
-    @Operation(summary = "Check enrollment status for multiple courses")
-    @GetMapping(value = "/check-status", params = "courseIds")
-    public ResponseEntity<List<EnrollmentCheckResponse>> getEnrollmentStatus(@RequestParam List<UUID> courseIds, @NonNull Authentication authentication){
-        log.info("Received enrollment check request for courses {}", courseIds);
-        List<EnrollmentCheckResponse> checkResponseList = enrollmentService.getEnrollmentStatus(courseIds, authentication);
-        return ResponseEntity.ok(checkResponseList);
-    }
-
-
-    @Operation(summary = "Check enrollment status for a single course")
-    @GetMapping(value = "/check-status", params = "courseId")
-    public ResponseEntity<EnrollmentCheckResponse> checkEnrollmentStatus(@RequestParam UUID courseId, @NonNull Authentication authentication){
-        log.info("Received enrollment check request for course {}", courseId);
-        EnrollmentCheckResponse checkResponse = enrollmentService.checkEnrollmentStatus(courseId, authentication);
-        return ResponseEntity.ok(checkResponse);
-    }
 }

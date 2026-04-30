@@ -373,7 +373,10 @@ export class LearnerLayout {
 
   constructor() {
     const orgs = this.availableOrgs();
-    if (orgs.length > 0) this.activeOrg.set(orgs[0]);
+    if (orgs.length > 0) {
+      this.activeOrg.set(orgs[0]);
+      this.tenantService.setTenantId(orgs[0].id); // critical
+    }
   }
 
   switchWorkspace(org: Organization) {

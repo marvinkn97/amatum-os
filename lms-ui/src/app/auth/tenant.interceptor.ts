@@ -8,6 +8,8 @@ export const tenantInterceptor: HttpInterceptorFn = (req, next) => {
   const tenantService = inject(TenantService);
   const id = tenantService.tenantId(); // Get value from service
 
+  console.log("Tenant header:", id);
+
   if (id) {
     return next(req.clone({
       setHeaders: { 'X-Tenant-ID': id }
