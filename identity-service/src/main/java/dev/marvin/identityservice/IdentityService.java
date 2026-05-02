@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +29,14 @@ public class IdentityService {
         if (!(authentication instanceof JwtAuthenticationToken jwtAuthenticationToken)) {
             log.info("Authentication is not a JWT token, skipping learner onboarding");
             return; // skip processing instead of throwing
+        }
+
+        boolean alreadyLearner = authentication.getAuthorities().stream()
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_LEARNER"));
+
+        if (alreadyLearner) {
+            log.info("User already has ROLE_LEARNER, skipping onboarding");
+            return;
         }
 
         var tokenAttributes = jwtAuthenticationToken.getTokenAttributes();
@@ -94,6 +103,14 @@ public class IdentityService {
         if (!(authentication instanceof JwtAuthenticationToken jwtAuthenticationToken)) {
             log.warn("Authentication is not a JWT token, skipping manager onboarding");
             return; // skip processing instead of throwing
+        }
+
+        boolean alreadyLearner = authentication.getAuthorities().stream()
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_MANAGER"));
+
+        if (alreadyLearner) {
+            log.info("User already has ROLE_MANAGER, skipping onboarding");
+            return;
         }
 
         var tokenAttributes = jwtAuthenticationToken.getTokenAttributes();

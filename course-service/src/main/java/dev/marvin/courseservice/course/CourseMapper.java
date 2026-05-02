@@ -93,4 +93,14 @@ public class CourseMapper {
                 isEnrolled
         );
     }
+
+    public static CourseResponse mapToDTO(CourseEntity courseEntity) {
+        return new CourseResponse(
+                courseEntity.getId(),
+                courseEntity.getTitle(),
+                courseEntity.getSlug(),
+                courseEntity.getDescription()
+
+        );
+    }
 }

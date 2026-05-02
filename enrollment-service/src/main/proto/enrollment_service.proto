@@ -3,7 +3,7 @@ syntax = "proto3";
 package enrollment;
 
 option java_multiple_files = true;
-option java_package = "enrollment.proto";
+option java_package = "dev.marvin.enrollment.proto";
 option java_outer_classname = "EnrollmentProto";
 
 service EnrollmentService {

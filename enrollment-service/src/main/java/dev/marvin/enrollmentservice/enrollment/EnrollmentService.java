@@ -33,10 +33,13 @@ public class EnrollmentService {
             throw new BadRequestException("Learner already enrolled in course");
         }
 
+        String activeTenantId = TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : null;
+
         EnrollmentEntity enrollmentEntity = EnrollmentEntity.builder()
                 .courseId(courseId)
                 .learnerId(learnerId)
                 .status(EnrollmentStatus.ENROLLED)
+                .tenantId(activeTenantId)
                 .build();
 
         EnrollmentEntity savedEnrollment = enrollmentRepository.save(enrollmentEntity);
@@ -44,30 +47,26 @@ public class EnrollmentService {
         return EnrollmentMapper.mapToResponse(savedEnrollment);
     }
 
-    @Transactional(readOnly = true)
-    public Page<EnrollmentResponse> getAllEnrollmentsByLearnerId(Authentication authentication, Pageable pageable) {
-        UUID learnerId = UUID.fromString(authentication.getName());
-        log.info("Getting all enrollments for learner {}", learnerId);
 
-        // 1. Get tenantId from context if it exists (for corporate learners),
-        //    otherwise null (for independent marketplace learners).
+    @Transactional(readOnly = true)
+    public Page<EnrollmentResponse> getActiveEnrollmentsByLearnerIdAndTenantId(Authentication authentication, Pageable pageable) {
+        UUID learnerId = UUID.fromString(authentication.getName());
         String activeTenantId = TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : null;
 
-        return null;
-    }
-
-    @Transactional(readOnly = true)
-    public Page<EnrollmentResponse> getActiveEnrollmentsByLearnerId(Authentication authentication, Pageable pageable) {
-        UUID learnerId = UUID.fromString(authentication.getName());
-        log.info("Getting active enrollments for learner {}", learnerId);
-        return null;
+        log.info("Getting active enrollments for learner {} and tenant {}", learnerId, activeTenantId);
+        return enrollmentRepository.findByLearnerIdAndTenantIdAndStatus(learnerId, activeTenantId, EnrollmentStatus.ENROLLED, pageable)
+                .map(EnrollmentMapper::mapToResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<EnrollmentResponse> getCompletedEnrollmentsByLearnerId(Authentication authentication, Pageable pageable) {
         UUID learnerId = UUID.fromString(authentication.getName());
-        log.info("Getting completed enrollments for learner {}", learnerId);
-        return null;
+        String activeTenantId = TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : null;
+
+        log.info("Getting completed enrollments for learner {} and tenant {}", learnerId, activeTenantId);
+
+        return enrollmentRepository.findByLearnerIdAndTenantIdAndStatus(learnerId, activeTenantId, EnrollmentStatus.COMPLETED, pageable)
+                .map(EnrollmentMapper::mapToResponse);
     }
 
     @Transactional(readOnly = true)

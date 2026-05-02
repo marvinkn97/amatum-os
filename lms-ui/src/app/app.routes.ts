@@ -16,6 +16,7 @@ import { CourseCategoriesComponent } from './pages/super-admin/categories/catego
 import { RoleSelectionComponent } from './auth/role-selection';
 import { CourseDetailsComponent } from './pages/learner/course-details/course-details';
 import { EnrollmentViewComponent } from './pages/learner/enrollment-view/enrollment-view';
+import { EnrollmentsComponent } from './pages/learner/enrollments/enrollments';
 
 export const routes: Routes = [
   {
@@ -58,7 +59,9 @@ export const routes: Routes = [
       { path: 'course-catalogue', component: CourseCatalogueComponent },
       { path: 'course-catalogue/:id', component: CourseDetailsComponent },
       { path: 'certificates', component: MyCertificatesComponent },
-      { path: 'enrollment', component: EnrollmentViewComponent },
+       { path: 'enrollments', component: EnrollmentsComponent },
+      { path: 'enrollment/:id', component: EnrollmentViewComponent }
+     
     ],
   },
 

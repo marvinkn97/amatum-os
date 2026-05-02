@@ -1,5 +1,8 @@
 package dev.marvin.enrollmentservice.enrollment;
 
+import dev.marvin.enrollmentservice.exception.EnrollmentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +14,7 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, UU
     boolean existsByLearnerIdAndCourseId(UUID learnerId, UUID courseId);
 
     List<EnrollmentEntity> findByLearnerIdAndCourseIdIn(UUID learnerId, List<UUID> courseIds);
+
+    Page<EnrollmentEntity> findByLearnerIdAndTenantIdAndStatus(UUID learnerId, String tenantId, EnrollmentStatus status, Pageable pageable);
 
 }

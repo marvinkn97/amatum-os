@@ -11,7 +11,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "enrollments")
+@Table(
+        name = "enrollments",
+        indexes = {
+                @Index(name = "idx_enrollment_tenant", columnList = "tenantId"),
+                @Index(name = "idx_enrollment_learner", columnList = "learnerId"),
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_enrollment_learner_course",
+                        columnNames = {"learnerId", "courseId"}
+                )
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -39,4 +51,6 @@ public class EnrollmentEntity {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    private String tenantId;
 }

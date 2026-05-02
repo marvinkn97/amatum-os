@@ -1,11 +1,11 @@
 package dev.marvin.enrollmentservice.grpc;
 
+import dev.marvin.enrollment.proto.BulkEnrollmentCheckRequest;
+import dev.marvin.enrollment.proto.BulkEnrollmentCheckResponse;
+import dev.marvin.enrollment.proto.EnrollmentCheckRequest;
+import dev.marvin.enrollment.proto.EnrollmentCheckResponse;
 import dev.marvin.enrollmentservice.enrollment.EnrollmentService;
-import enrollment.proto.BulkEnrollmentCheckRequest;
-import enrollment.proto.BulkEnrollmentCheckResponse;
-import enrollment.proto.EnrollmentCheckRequest;
-import enrollment.proto.EnrollmentCheckResponse;
-import enrollment.proto.EnrollmentServiceGrpc.EnrollmentServiceImplBase;
+import dev.marvin.enrollment.proto.EnrollmentServiceGrpc.EnrollmentServiceImplBase;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

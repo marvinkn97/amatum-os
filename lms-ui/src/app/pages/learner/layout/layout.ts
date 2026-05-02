@@ -139,6 +139,17 @@ interface Organization {
                     <span class="text-xs font-bold">{{ org.name }}</span>
                   </button>
                 }
+                <div class="border-t border-white/5 mt-2 pt-2">
+                  <button
+                    routerLink="/onboarding"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-white transition-all"
+                  >
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Request Access
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -396,11 +407,16 @@ export class LearnerLayout {
       path: '/learner/course-catalogue',
       icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
     },
+     {
+      label: 'My Learning',
+      path: '/learner/enrollments',
+      icon: 'M4.26 10.147L12 15l7.74-4.853a1 1 0 000-1.706L12 3.588l-7.74 4.853a1 1 0 000 1.706z M5 13.129v3.375A3.375 3.375 0 008.375 19.875h7.25a3.375 3.375 0 003.375-3.375v-3.375l-7 4.375-7-4.375z',
+    },
     {
       label: 'Certifications',
       path: '/learner/certificates',
       icon: 'M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z',
-    },
+    }
   ];
 
   logout() {

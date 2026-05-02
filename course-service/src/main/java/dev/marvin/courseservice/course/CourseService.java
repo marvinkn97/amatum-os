@@ -24,8 +24,8 @@ import dev.marvin.courseservice.quiz.quiz.QuizRepository;
 import dev.marvin.courseservice.quiz.quiz.QuizResponse;
 import dev.marvin.courseservice.security.TenantContext;
 import dev.marvin.courseservice.storage.rustfs.S3Service;
-import enrollment.proto.BulkEnrollmentCheckResponse;
-import enrollment.proto.EnrollmentCheckResponse;
+import dev.marvin.enrollment.proto.BulkEnrollmentCheckResponse;
+import dev.marvin.enrollment.proto.EnrollmentCheckResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -496,6 +496,16 @@ public class CourseService {
         return CourseMapper.mapToResponseWithModulesAndLessons(course, moduleResponses, moduleEntities.size(), stepEntities.size(), checkResponse.getEnrolled());
 
     }
+
+    @Transactional(readOnly = true)
+    public List<CourseResponse> getCourseSummaryResponses(List<UUID> courseIds) {
+        log.info("Fetching course summary responses for courses: {}", courseIds);
+
+        return courseRepository.findByIdIn(courseIds).stream()
+                .map(CourseMapper::mapToDTO)
+                .toList();
+    }
+
 
     private Page<CourseResponse> mapCoursePageToResponseWithCounts(Page<CourseEntity> coursePage) {
         List<UUID> courseIds = coursePage.getContent().stream()

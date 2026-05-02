@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package course;
+
+option java_multiple_files = true;
+option java_package = "dev.marvin.course.proto";
+option java_outer_classname = "CourseProto";
+
+service CourseService {
+  //Single course details
+  rpc GetCourseDetails(CourseRequest) returns (CourseResponse);
+
+  // Multiple course summaries
+  rpc GetMultipleCourseSummaries(BulkCourseRequest) returns (BulkCourseSummaryResponse);
+}
+
+message CourseRequest {
+  string course_id = 1;
+}
+
+message BulkCourseRequest {
+  repeated string course_ids = 1;
+}
+
+message CourseSummaryResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  string description = 4;
+}
+
+message BulkCourseSummaryResponse {
+  repeated CourseSummaryResponse courses = 1;
+}
+
+message CourseResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  string description = 4;
+  repeated ModuleResponse modules = 5;
+}
+
+message ModuleResponse {
+  string id = 1;
+  string title = 2;
+  int32 sequence = 3;
+  repeated LearningStepResponse learning_steps = 4;
+}
+
+message LearningStepResponse {
+  string id = 1;
+  string title = 2;
+  LearningStepType type = 3;
+  int32 sequence = 4;
+
+  bool video_enabled = 5;
+  bool content_enabled = 6;
+  bool materials_enabled = 7;
+
+  string content = 8;
+  string video_playback_id = 9;
+  repeated LearningStepResourceResponse resources = 10;
+
+  QuizResponse quiz = 11;
+}
+
+enum LearningStepType {
+  LEARNING_STEP_TYPE_UNSPECIFIED = 0;
+  LESSON = 1;
+  QUIZ = 2;
+}
+
+message LearningStepResourceResponse {
+  string id = 1;
+  string name = 2;
+  string s3_pre_signed_url = 3;
+  string content_type = 4;
+  int64 size = 5;
+}
+
+message QuizResponse {
+  string id = 1;
+  repeated QuizQuestionResponse questions = 2;
+}
+
+message QuizQuestionResponse {
+  string id = 1;
+  string question_text = 2;
+  bool has_multiple_correct_answers = 3;
+  repeated QuizAnswerResponse answers = 4;
+}
+
+message QuizAnswerResponse {
+  string id = 1;
+  string answer_text = 2;
+  bool is_correct = 3;
+}
+

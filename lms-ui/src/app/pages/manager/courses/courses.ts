@@ -168,7 +168,7 @@ import { NotificationService } from '../../../services/notification.service';
 
             <div class="p-8 pt-4 flex flex-col flex-1">
               <div class="flex items-center gap-2 mb-4">
-                <span class="text-[8px] font-black text-indigo-400 uppercase tracking-widest"
+                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
                   >{{course?.moduleCount}} Modules</span
                 >
                 <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
