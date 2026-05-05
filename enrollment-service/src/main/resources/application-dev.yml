@@ -26,6 +26,10 @@ spring:
     server:
       enabled: true
       port: 9093
+    client:
+      course-service:
+        address: localhost
+        port: 9092
 
 keycloak:
   clients:

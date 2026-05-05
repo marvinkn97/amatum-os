@@ -43,7 +43,7 @@ public class CourseMapper {
         );
     }
 
-    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount, boolean isEnrolled) {
+    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount, Boolean isEnrolled) {
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
@@ -77,6 +77,21 @@ public class CourseMapper {
         );
     }
 
+    public static CourseResponse mapToResponseWithModulesAndLessons(CourseEntity courseEntity, List<ModuleResponse> moduleResponses, Integer moduleCount, Integer learningStepCount) {
+        return new CourseResponse(
+                courseEntity.getId(),
+                courseEntity.getTitle(),
+                courseEntity.getSlug(),
+                courseEntity.getDescription(),
+                courseEntity.getTags(),
+                courseEntity.getAccessTier(),
+                courseEntity.getPrice(),
+                moduleResponses,
+                moduleCount,
+                learningStepCount
+        );
+    }
+
 
 
     public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount, boolean isEnrolled) {
@@ -100,7 +115,6 @@ public class CourseMapper {
                 courseEntity.getTitle(),
                 courseEntity.getSlug(),
                 courseEntity.getDescription()
-
         );
     }
 }

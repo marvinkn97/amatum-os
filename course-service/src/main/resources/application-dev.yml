@@ -1,3 +1,6 @@
+server:
+  port: 8082
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -20,6 +23,9 @@ spring:
           issuer-uri: http://localhost:9000/realms/amatum
 
   grpc:
+    server:
+      enabled: true
+      port: 9092
     client:
       enrollment-service:
         address: localhost

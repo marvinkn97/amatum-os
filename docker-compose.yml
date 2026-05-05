@@ -20,7 +20,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-#    pull_policy: always
+    pull_policy: always
     container_name: amatum-keycloak
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin

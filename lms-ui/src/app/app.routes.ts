@@ -4,7 +4,6 @@ import { canActivateAuth } from './auth/auth.guard';
 import { ProfileComponent } from './auth/profile';
 import { LearnerLayout } from './pages/learner/layout/layout';
 import { LearnerDashboardComponent } from './pages/learner/dashboard/dashboard';
-import { LessonComponent } from './pages/learner/lesson/lesson';
 import { CourseCatalogueComponent } from './pages/learner/course-catalogue/course-catalogue';
 import { MyCertificatesComponent } from './pages/learner/certificates/certificates';
 import { ManagerLayout } from './pages/manager/layout/layout';
@@ -55,12 +54,11 @@ export const routes: Routes = [
     children: [
       { path: '', component: LearnerDashboardComponent, pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
-      { path: 'lesson', component: LessonComponent },
       { path: 'course-catalogue', component: CourseCatalogueComponent },
       { path: 'course-catalogue/:id', component: CourseDetailsComponent },
       { path: 'certificates', component: MyCertificatesComponent },
        { path: 'enrollments', component: EnrollmentsComponent },
-      { path: 'enrollment/:id', component: EnrollmentViewComponent }
+      { path: 'enrollments/:id', component: EnrollmentViewComponent }
      
     ],
   },

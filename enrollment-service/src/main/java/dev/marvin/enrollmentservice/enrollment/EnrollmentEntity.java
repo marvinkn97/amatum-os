@@ -53,4 +53,6 @@ public class EnrollmentEntity {
     private LocalDateTime updatedAt;
 
     private String tenantId;
+
+    private UUID lastLearningStepId;
 }

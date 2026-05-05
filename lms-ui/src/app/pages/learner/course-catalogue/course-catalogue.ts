@@ -216,42 +216,6 @@ import { NotificationService } from '../../../services/notification.service';
                     />
                   </svg>
                 </a>
-
-                <!-- <button
-                  [title]="course.isEnrolled ? 'Open Course' : 'Enroll'"
-                  (click)="course.isEnrolled ? openCourse(course) : enroll(course)"
-                  [class]="
-                    course.isEnrolled
-                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                      : 'bg-white/5 border-white/10 text-slate-500 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white'
-                  "
-                  class="size-11 rounded-2xl flex items-center justify-center transition-all active:scale-90 cursor-pointer border"
-                >
-                  @if (course.isEnrolled) {
-                    <svg
-                      class="size-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-                      />
-                    </svg>
-                  } @else {
-                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                  }
-                </button> -->
               </div>
             </div>
           </div>
@@ -424,33 +388,6 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
 
   scrollToTop() {
     this.scroller.scrollToPosition([0, 0]);
-  }
-
-  enroll(course: CourseResponse) {
-    if (course.isEnrolled || this.isEnrolling()) return;
-
-    this.isEnrolling.set(true);
-
-    // Use the specific interface your backend expects
-    const request: EnrollmentRequest = { courseId: course.id };
-
-    this.enrollmentService
-      .enroll(request)
-      .pipe(
-        // CRITICAL: We fetch the course again to get the verified truth from DB
-        switchMap(() => this.courseService.getCourseById(course.id)),
-        finalize(() => this.isEnrolling.set(false)),
-      )
-      .subscribe({
-        next: () => {
-          this.notificationService.success('Enrolled to course successfully');
-        },
-        error: (err) => {
-          console.error('Enrollment failed:', err);
-          this.notificationService.error(err?.error?.detail || 'Enrollment failed');
-          // UI stays safe; signal remains unchanged
-        },
-      });
   }
 
   openCourse(course: any) {

@@ -128,6 +128,8 @@ public record CourseResponse(
         this(id, title, slug, description, tags, null, accessTier, price, null, null, null, null, moduleCount, learningStepCount, isEnrolled);
     }
 
+
+
     public CourseResponse(
             UUID id,
             String title,
@@ -136,5 +138,21 @@ public record CourseResponse(
     ) {
         this(id, title, slug, description, null, null, null, null, null, null, null, null, null, null, null);
     }
+
+    public CourseResponse(
+            UUID id,
+            String title,
+            String slug,
+            String description,
+            Set<String> tags,
+            CourseAccessTier accessTier,
+            BigDecimal price,
+            List<ModuleResponse> modules,
+            Integer moduleCount,
+            Integer learningStepCount
+    ) {
+        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, modules , moduleCount, learningStepCount, null);
+    }
+
 
 }

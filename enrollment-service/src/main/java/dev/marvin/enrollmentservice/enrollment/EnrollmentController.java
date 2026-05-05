@@ -1,19 +1,24 @@
 package dev.marvin.enrollmentservice.enrollment;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -24,12 +29,48 @@ public class EnrollmentController {
     private final EnrollmentService enrollmentService;
     private final PagedResourcesAssembler<EnrollmentResponse> pagedResourcesAssembler;
 
+    @PreAuthorize("hasRole('LEARNER')")
     @Operation(summary = "Enroll a learner")
     @PostMapping
     public ResponseEntity<EnrollmentResponse> enroll(@Valid @RequestBody EnrollmentRequest enrollmentRequest, @NonNull Authentication authentication) {
         log.info("Received enrollment request {}", enrollmentRequest);
         EnrollmentResponse enrollmentResponse = enrollmentService.enroll(enrollmentRequest, authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(enrollmentResponse);
+    }
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Get active enrollments for the authenticated learner")
+    @GetMapping("/active")
+    public ResponseEntity<PagedModel<EntityModel<EnrollmentResponse>>> getActiveEnrollments(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @NonNull Authentication authentication
+    ) {
+        Page<EnrollmentResponse> enrollmentResponsePage =
+                enrollmentService.getActiveEnrollmentsByLearnerIdAndTenantId(authentication, PageRequest.of(page, size));
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(enrollmentResponsePage, EntityModel::of));
+    }
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Get completed enrollments for the authenticated learner")
+    @GetMapping("/completed")
+    public ResponseEntity<PagedModel<EntityModel<EnrollmentResponse>>> getCompletedEnrollments(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @NonNull Authentication authentication
+    ) {
+        Page<EnrollmentResponse> enrollmentResponsePage =
+                enrollmentService.getCompletedEnrollmentsByLearnerId(authentication, PageRequest.of(page, size));
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(enrollmentResponsePage, EntityModel::of));
+    }
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Get a enrollment by ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<EnrollmentResponse> getEnrollmentById(@Parameter @PathVariable("id") UUID enrollmentId, @NonNull Authentication authentication) {
+        return ResponseEntity.ok(enrollmentService.getEnrollmentById(enrollmentId, authentication));
     }
 
 }

@@ -1,6 +1,6 @@
 package dev.marvin.courseservice.grpc;
 
-import enrollment.proto.*;
+import dev.marvin.enrollment.proto.*;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -25,7 +25,7 @@ public class EnrollmentServiceGrpcClient {
             @Value("${spring.grpc.client.enrollment-service.address}") String serverAddress,
             @Value("${spring.grpc.client.enrollment-service.port}") int serverPort
     ) {
-        log.info("Connecting to enrollment grpc server at {}:{}", serverAddress, serverPort);
+        log.info("Connecting to enrollment service grpc server at {}:{}", serverAddress, serverPort);
         ManagedChannel channel = ManagedChannelBuilder.forAddress(serverAddress, serverPort)
                 .usePlaintext()
                 .build();

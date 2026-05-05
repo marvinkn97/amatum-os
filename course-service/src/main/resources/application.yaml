@@ -1,5 +1,4 @@
 server:
-  port: 8082
   tomcat:
     max-part-count: 1000
 
