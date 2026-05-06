@@ -5,6 +5,9 @@ import dev.marvin.enrollmentservice.exception.BadRequestException;
 import dev.marvin.enrollmentservice.exception.EnrollmentStatus;
 import dev.marvin.enrollmentservice.exception.ResourceNotFoundException;
 import dev.marvin.enrollmentservice.grpc.CourseServiceGrpcClient;
+import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressEntity;
+import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressRepository;
+import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressResponse;
 import dev.marvin.enrollmentservice.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +30,7 @@ import java.util.stream.Collectors;
 public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseServiceGrpcClient courseServiceGrpcClient;
+    private final LearningStepProgressRepository learningStepProgressRepository;
 
     @Transactional
     public EnrollmentResponse enroll(EnrollmentRequest enrollmentRequest, Authentication authentication) {
@@ -164,92 +169,164 @@ public class EnrollmentService {
         log.info("Getting enrollment with id {}", enrollmentId);
         UUID learnerId = UUID.fromString(authentication.getName());
 
-        return enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
-                .map(enrollment -> {
-
-                    //gRPC call
-                    var course = courseServiceGrpcClient.getCourseDetails(enrollment.getCourseId().toString());
-
-                    log.info("Course details fetched for course {}", enrollment.getCourseId());
-
-                    // Build CourseResponse inline
-                    EnrollmentResponse.CourseResponse courseResponse =
-                            new EnrollmentResponse.CourseResponse(
-                                    UUID.fromString(course.getId()),
-                                    course.getTitle(),
-                                    course.getSlug(),
-                                    course.getDescription(),
-
-                                    course.getModulesList().stream().map(module ->
-                                            new EnrollmentResponse.ModuleResponse(
-                                                    UUID.fromString(module.getId()),
-                                                    module.getTitle(),
-                                                    module.getSequence(),
-
-                                                    module.getLearningStepsList().stream().map(step ->
-                                                            new EnrollmentResponse.LearningStepDto(
-                                                                    UUID.fromString(step.getId()),
-                                                                    step.getTitle(),
-                                                                    step.getType(),
-                                                                    step.getSequence(),
-                                                                    step.getVideoEnabled(),
-                                                                    step.getContentEnabled(),
-                                                                    step.getMaterialsEnabled(),
-                                                                    step.getContent(),
-                                                                    step.getVideoPlaybackId(),
-
-                                                                    // resources
-                                                                    step.getResourcesList().stream().map(r ->
-                                                                            new EnrollmentResponse.ResourceDto(
-                                                                                    UUID.fromString(r.getId()),
-                                                                                    r.getName(),
-                                                                                    r.getS3PreSignedUrl(),
-                                                                                    r.getContentType(),
-                                                                                    r.getSize()
-                                                                            )
-                                                                    ).toList(),
-
-                                                                    // quiz
-                                                                    step.hasQuiz()
-                                                                            ? new EnrollmentResponse.QuizDto(
-                                                                            UUID.fromString(step.getQuiz().getId()),
-                                                                            step.getQuiz().getQuestionsList().stream().map(q ->
-                                                                                                                           new EnrollmentResponse.QuestionDto(
-                                                                                                                                   UUID.fromString(q.getId()),
-                                                                                                                                   q.getQuestionText(),
-                                                                                                                                   q.getHasMultipleCorrectAnswers(),
-                                                                                                                                   q.getAnswersList().stream().map(a ->
-                                                                                                                                                                   new EnrollmentResponse.AnswerDto(
-                                                                                                                                                                           UUID.fromString(a.getId()),
-                                                                                                                                                                           a.getAnswerText()
-                                                                                                                                                                   )
-                                                                                                                                   ).toList()
-                                                                                                                           )
-                                                                            ).toList()
-                                                                    )
-                                                                            : null
-                                                            )
-                                                    ).toList()
-                                            )
-                                    ).toList()
-                            );
-
-                    //Final response
-                    return new EnrollmentResponse(
-                            enrollment.getId(),
-                            enrollment.getStatus(),
-                            enrollment.isCompleted(),
-                            0,
-                            enrollment.getLastLearningStepId(),
-                            enrollment.getUpdatedAt(),
-                            courseResponse
-                    );
-                })
+        // Load enrollment
+        EnrollmentEntity enrollment = enrollmentRepository
+                .findByIdAndLearnerId(enrollmentId, learnerId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Enrollment with given id [%s] not found".formatted(enrollmentId)
                         )
                 );
+
+        // gRPC call - course structure
+        var course = courseServiceGrpcClient
+                .getCourseDetails(enrollment.getCourseId().toString());
+
+        log.info("Course details fetched for course {}", enrollment.getCourseId());
+
+        // Load the progress map (stepId -> progress entity)
+        Map<UUID, LearningStepProgressEntity> progressMap =
+                learningStepProgressRepository
+                        .findByEnrollment_IdAndLearnerId(enrollmentId, learnerId)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                LearningStepProgressEntity::getLearningStepId,
+                                p -> p,
+                                (a, b) -> a // safety in case of duplicates
+                        ));
+
+        // Build course response with progress injection
+        EnrollmentResponse.CourseResponse courseResponse =
+                new EnrollmentResponse.CourseResponse(
+                        UUID.fromString(course.getId()),
+                        course.getTitle(),
+                        course.getSlug(),
+                        course.getDescription(),
+
+                        course.getModulesList().stream().map(module ->
+                                new EnrollmentResponse.ModuleResponse(
+                                        UUID.fromString(module.getId()),
+                                        module.getTitle(),
+                                        module.getSequence(),
+
+                                        module.getLearningStepsList().stream().map(step -> {
+
+                                            UUID stepId = UUID.fromString(step.getId());
+                                            LearningStepProgressEntity progress = progressMap.get(stepId);
+
+                                            return new EnrollmentResponse.LearningStepDto(
+                                                    stepId,
+                                                    step.getTitle(),
+                                                    step.getType(),
+                                                    step.getSequence(),
+                                                    step.getVideoEnabled(),
+                                                    step.getContentEnabled(),
+                                                    step.getMaterialsEnabled(),
+                                                    step.getContent(),
+                                                    step.getVideoPlaybackId(),
+
+                                                    // resources
+                                                    step.getResourcesList().stream().map(r ->
+                                                            new EnrollmentResponse.ResourceDto(
+                                                                    UUID.fromString(r.getId()),
+                                                                    r.getName(),
+                                                                    r.getS3PreSignedUrl(),
+                                                                    r.getContentType(),
+                                                                    r.getSize()
+                                                            )
+                                                    ).toList(),
+
+                                                    // quiz
+                                                    step.hasQuiz()
+                                                            ? new EnrollmentResponse.QuizDto(
+                                                            UUID.fromString(step.getQuiz().getId()),
+                                                            step.getQuiz().getQuestionsList().stream().map(q ->
+                                                                                                           new EnrollmentResponse.QuestionDto(
+                                                                                                                   UUID.fromString(q.getId()),
+                                                                                                                   q.getQuestionText(),
+                                                                                                                   q.getHasMultipleCorrectAnswers(),
+                                                                                                                   q.getAnswersList().stream().map(a ->
+                                                                                                                                                   new EnrollmentResponse.AnswerDto(
+                                                                                                                                                           UUID.fromString(a.getId()),
+                                                                                                                                                           a.getAnswerText()
+                                                                                                                                                   )
+                                                                                                                   ).toList()
+                                                                                                           )
+                                                            ).toList()
+                                                    )
+                                                            : null,
+
+                                                    // progress injection (THIS is the new life layer)
+                                                    progress != null
+                                                            ? new LearningStepProgressResponse(
+                                                            true,
+                                                            progress.getCompletedAt()
+                                                    )
+                                                            : new LearningStepProgressResponse(false, null)
+                                            );
+                                        }).toList()
+                                )
+                        ).toList()
+                );
+
+        // 5. Final response
+        return new EnrollmentResponse(
+                enrollment.getId(),
+                enrollment.getStatus(),
+                enrollment.isCompleted(),
+                enrollment.getProgress(),
+                enrollment.getLastLearningStepId(),
+                enrollment.getUpdatedAt(),
+                courseResponse
+        );
+    }
+
+    @Transactional
+    public void markLearningStepAsCompleted(UUID enrollmentId, UUID stepId, Authentication authentication) {
+        log.info("Marking learning step {} as completed for enrollment {}", stepId, enrollmentId);
+        UUID learnerId = UUID.fromString(authentication.getName());
+
+        EnrollmentEntity enrollmentEntity = enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
+                .orElseThrow(() -> new BadRequestException("Enrollment with given id [%s] not found".formatted(enrollmentId)));
+
+        if (learningStepProgressRepository.existsByEnrollment_IdAndLearnerIdAndLearningStepIdAndIsCompleted(enrollmentId, learnerId, stepId, true)) {
+            throw new BadRequestException("Learning step already marked as completed");
+        }
+
+        LearningStepProgressEntity progress = new LearningStepProgressEntity();
+        progress.setEnrollment(enrollmentEntity);
+        progress.setLearnerId(learnerId);
+        progress.setLearningStepId(stepId);
+        progress.setCompleted(true);
+        progress.setCompletedAt(Instant.now());
+        learningStepProgressRepository.save(progress);
+
+        enrollmentEntity.setLastLearningStepId(stepId);
+        enrollmentEntity.setCompletedSteps(enrollmentEntity.getCompletedSteps() + 1);
+
+        long totalSteps = courseServiceGrpcClient
+                .getCourseTotalSteps(enrollmentEntity.getCourseId().toString())
+                .getTotalSteps();
+
+        long completedSteps = enrollmentEntity.getCompletedSteps();
+
+        int progressValue = 0;
+        if (totalSteps > 0) {
+            progressValue = (int) Math.min(
+                    Math.round((completedSteps * 100.0) / totalSteps),
+                    100
+            );
+        }
+
+        enrollmentEntity.setProgress(progressValue);
+
+        if (!enrollmentEntity.isCompleted() && completedSteps >= totalSteps) {
+            enrollmentEntity.setCompleted(true);
+            enrollmentEntity.setStatus(EnrollmentStatus.COMPLETED);
+            enrollmentEntity.setCompletedAt(Instant.now());
+        }
+
+        enrollmentRepository.save(enrollmentEntity);
     }
 
 }

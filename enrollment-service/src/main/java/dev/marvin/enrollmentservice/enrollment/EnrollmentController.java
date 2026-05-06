@@ -73,4 +73,13 @@ public class EnrollmentController {
         return ResponseEntity.ok(enrollmentService.getEnrollmentById(enrollmentId, authentication));
     }
 
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Mark a learning step as completed")
+    @PatchMapping("/{enrollmentId}/steps/{stepId}/complete")
+    public ResponseEntity<Void> markLearningStepAsCompleted(@Parameter @PathVariable String enrollmentId, @Parameter @PathVariable String stepId, @NonNull Authentication authentication) {
+        enrollmentService.markLearningStepAsCompleted(UUID.fromString(enrollmentId), UUID.fromString(stepId), authentication);
+        return ResponseEntity.ok().build();
+    }
+
 }

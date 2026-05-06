@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { CourseResponse } from './course.service';
 
 export interface EnrollmentRequest {
   courseId: string;
@@ -14,74 +15,18 @@ export interface EnrollmentResponse {
   progress: number;
   lastLearningStepId: string | null;
   lastActivityAt: string; // ISO date string
-  course: CourseDto;
-}
-
-export interface CourseDto {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  modules: ModuleDto[];
-}
-
-export interface ModuleDto {
-  id: string;
-  title: string;
-  sequence: number;
-  learningSteps: LearningStepDto[];
-}
-
-export interface LearningStepDto {
-  id: string;
-  title: string;
-  type: 'LESSON' | 'QUIZ';
-  sequence: number;
-
-  videoEnabled: boolean;
-  contentEnabled: boolean;
-  materialsEnabled: boolean;
-
-  content?: string;
-  videoPlaybackId?: string;
-
-  resources?: ResourceDto[];
-  quiz?: QuizDto;
-
-  isCompleted: boolean; // Indicates if the learner has completed this step
-}
-
-export interface ResourceDto {
-  id: string;
-  name: string;
-  s3PreSignedUrl: string;
-  contentType: string;
-  size: number;
-}
-
-export interface QuizDto {
-  id: string;
-  questions: QuestionDto[];
-}
-
-export interface QuestionDto {
-  id: string;
-  questionText: string;
-  hasMultipleCorrectAnswers: boolean;
-  answers: AnswerDto[];
-}
-
-export interface AnswerDto {
-  id: string;
-  answerText: string;
-  isCorrect: boolean;
+  course: CourseResponse;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class EnrollmentService {
-  updateProgress(arg0: { learningStepId: string; completed: boolean; timeSpentSeconds: number; }): Observable<unknown> {
+  updateProgress(arg0: {
+    learningStepId: string;
+    completed: boolean;
+    timeSpentSeconds: number;
+  }): Observable<unknown> {
     throw new Error('Method not implemented.');
   }
   private http = inject(HttpClient);
@@ -102,10 +47,10 @@ export class EnrollmentService {
   }
 
   getEnrollmentById(id: string): Observable<EnrollmentResponse> {
-  return this.http.get<EnrollmentResponse>(`${this.API_URL}/${id}`);
-}
+    return this.http.get<EnrollmentResponse>(`${this.API_URL}/${id}`);
+  }
 
- markStepComplete(id: string): Observable<any> {
-    throw new Error('Method not implemented.');
+  markStepComplete(enrollmentId: string, stepId: string): Observable<void> {
+    return this.http.patch<void>(`${this.API_URL}/${enrollmentId}/steps/${stepId}/complete`, {});
   }
 }

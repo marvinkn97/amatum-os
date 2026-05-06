@@ -9,5 +9,6 @@ import java.util.UUID;
 @Repository
 public interface LearningStepResourceRepository extends JpaRepository<LearningStepResourceEntity, UUID> {
     List<LearningStepResourceEntity> findByLearningStepEntity_Id(UUID learningStepEntityId);
+
     List<LearningStepResourceEntity> findByLearningStepEntity_IdIn(List<UUID> learningStepEntityIds);
 }

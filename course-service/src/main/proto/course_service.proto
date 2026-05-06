@@ -12,6 +12,9 @@ service CourseService {
 
   // Multiple course summaries
   rpc GetMultipleCourseSummaries(BulkCourseRequest) returns (BulkCourseSummaryResponse);
+
+
+  rpc GetCourseTotalSteps(CourseRequest) returns (CourseTotalStepsResponse);
 }
 
 message CourseRequest {
@@ -93,4 +96,8 @@ message CourseSummaryResponse {
 
 message BulkCourseSummaryResponse {
   repeated CourseSummaryResponse courses = 1;
+}
+
+message CourseTotalStepsResponse {
+  int64 total_steps = 1;
 }

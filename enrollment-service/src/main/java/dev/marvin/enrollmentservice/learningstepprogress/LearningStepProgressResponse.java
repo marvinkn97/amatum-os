@@ -1,9 +1,9 @@
 package dev.marvin.enrollmentservice.learningstepprogress;
 
-import java.util.UUID;
+import java.time.Instant;
 
 public record LearningStepProgressResponse(
-        UUID id,
-        Boolean isCompleted
+        Boolean isCompleted,
+        Instant completedAt
 ) {
 }

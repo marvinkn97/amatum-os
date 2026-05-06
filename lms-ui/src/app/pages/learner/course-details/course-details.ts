@@ -407,7 +407,6 @@ export class CourseDetailsComponent implements OnInit {
   }
 
   goBack() {
-    console.log(this.course()?.description);
     this.router.navigate(['/learner/course-catalogue']);
   }
 
@@ -424,7 +423,7 @@ export class CourseDetailsComponent implements OnInit {
       .enroll(request)
       .pipe(
         // CRITICAL: We fetch the course again to get the verified truth from DB
-        switchMap(() => this.courseService.getCourseById(currentCourse.id)),
+        switchMap(() => this.courseService.getLearnerCourseView(currentCourse.id)),
         finalize(() => this.isEnrolling.set(false)),
       )
       .subscribe({

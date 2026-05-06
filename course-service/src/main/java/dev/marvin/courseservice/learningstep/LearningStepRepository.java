@@ -18,4 +18,6 @@ public interface LearningStepRepository extends JpaRepository<LearningStepEntity
 
     @Query("SELECT s.module.course.id, COUNT(s) FROM LearningStepEntity s WHERE s.module.course.id IN :courseIds GROUP BY s.module.course.id")
     List<Object[]> countStepsByCourseIds(@Param("courseIds") List<UUID> courseIds);
+
+    long countByModule_Course_Id(UUID courseId);
 }

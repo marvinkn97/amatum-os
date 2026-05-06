@@ -44,8 +44,7 @@ public class EnrollmentEntity {
     @Enumerated(EnumType.STRING)
     private EnrollmentStatus status;
 
-    private Instant startTime;
-    private Instant endTime;
+    private Instant completedAt;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -55,4 +54,7 @@ public class EnrollmentEntity {
     private String tenantId;
 
     private UUID lastLearningStepId;
+
+    private int progress = 0;
+    private int completedSteps = 0;
 }

@@ -3,6 +3,7 @@ package dev.marvin.enrollmentservice.enrollment;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.marvin.course.proto.LearningStepType;
 import dev.marvin.enrollmentservice.exception.EnrollmentStatus;
+import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,7 +48,6 @@ public record EnrollmentResponse(
                 String title,
                 Integer sequence,
                 List<LearningStepDto> learningSteps
-//                ModuleProgressResponse progress
         ) {}
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -62,7 +62,8 @@ public record EnrollmentResponse(
                 String content,
                 String videoPlaybackId,
                 List<ResourceDto> resources,
-                QuizDto quiz
+                QuizDto quiz,
+                LearningStepProgressResponse progress
         ) {}
 
         public record ResourceDto(
@@ -81,8 +82,8 @@ public record EnrollmentResponse(
         public record QuestionDto(
                 UUID id,
                 String questionText,
-                Boolean hasMultipleCorrectAnswers,
-                List<AnswerDto> answers
+                Boolean hasMultipleAnswers,
+                List<AnswerDto> answerOptions
         ) {}
 
         public record AnswerDto(

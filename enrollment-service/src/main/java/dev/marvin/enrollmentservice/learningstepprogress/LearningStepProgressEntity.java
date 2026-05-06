@@ -1,7 +1,7 @@
 package dev.marvin.enrollmentservice.learningstepprogress;
 
 
-import dev.marvin.enrollmentservice.moduleprogress.ModuleProgressEntity;
+import dev.marvin.enrollmentservice.enrollment.EnrollmentEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,7 +12,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "learning_step_progresses")
+@Table(
+        name = "learning_step_progresses",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_enrollment_learner_step",
+                        columnNames = {"enrollment_id", "learnerId", "learningStepId"}
+                )
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,12 +38,11 @@ public class LearningStepProgressEntity {
     private UUID learnerId;
     private UUID learningStepId;
 
-    private Instant startTime;
-    private Instant endTime;
+    private Instant completedAt;
 
     @ManyToOne
-    @JoinColumn(name = "module_progress_id")
-    private ModuleProgressEntity moduleProgress;
+    @JoinColumn(name = "enrollment_id")
+    private EnrollmentEntity enrollment;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

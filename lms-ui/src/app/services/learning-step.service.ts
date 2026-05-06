@@ -47,6 +47,12 @@ export interface LearningStepResponse {
 
   // Resources (if applicable)
   resources?: LearningStepResource[];
+
+  progress: {
+    isCompleted: boolean;
+    completedAt: string | null; // ISO date string
+  }
+
 }
 
 export interface LearningStepRequest {

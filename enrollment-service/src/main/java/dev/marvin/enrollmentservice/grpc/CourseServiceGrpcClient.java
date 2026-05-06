@@ -1,9 +1,6 @@
 package dev.marvin.enrollmentservice.grpc;
 
-import dev.marvin.course.proto.BulkCourseRequest;
-import dev.marvin.course.proto.BulkCourseSummaryResponse;
-import dev.marvin.course.proto.CourseResponse;
-import dev.marvin.course.proto.CourseServiceGrpc;
+import dev.marvin.course.proto.*;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -84,6 +81,23 @@ public class CourseServiceGrpcClient {
             );
             log.info("Received course details response: {}", courseResponse);
             return courseResponse;
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public CourseTotalStepsResponse getCourseTotalSteps(String courseId) {
+        log.info("Fetching course total steps for courseId: {}", courseId);
+        try {
+            CourseTotalStepsResponse courseTotalStepsResponse = authenticatedStub().getCourseTotalSteps(
+                    dev.marvin.course.proto.CourseRequest.newBuilder()
+                            .setCourseId(courseId)
+                            .build()
+            );
+            log.info("Received course total steps response: {}", courseTotalStepsResponse);
+            return courseTotalStepsResponse;
 
         } catch (Exception e) {
             log.error(e.getMessage());

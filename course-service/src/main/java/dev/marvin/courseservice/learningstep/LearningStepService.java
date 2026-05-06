@@ -423,5 +423,10 @@ public class LearningStepService {
         return LearningStepMapper.mapToResponse(learningStep);
     }
 
+    @Transactional(readOnly = true)
+    public long getCourseTotalSteps(UUID courseId){
+        return learningStepRepository.countByModule_Course_Id(courseId);
+    }
+
 }
 
