@@ -5,8 +5,17 @@ spring:
   profiles:
     active: dev
 
+  threads:
+    virtual:
+      enabled: true
+
 logging:
   level:
     root: info
+
+app:
+  domain:
+    quiz-attempt:
+      passmark: 50
 
 

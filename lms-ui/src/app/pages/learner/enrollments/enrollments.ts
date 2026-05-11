@@ -229,7 +229,7 @@ export class EnrollmentsComponent implements OnInit, AfterViewInit {
       error: () => {
         this.hasNextPage.set(false);
         if (reset) this.enrollments.set([]);
-        this.notificationService.error('Could not load your courses');
+        this.notificationService.error('Failed to load your courses. Please try again later.');
       },
     });
   }

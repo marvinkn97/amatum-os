@@ -1,6 +1,8 @@
-package dev.marvin.enrollmentservice.quizattempt;
+package dev.marvin.enrollmentservice.certificate;
 
-import jakarta.persistence.*;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -9,14 +11,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 
-@Entity
-@Table(name = "quiz_attempts")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Getter
 @Setter
-@Builder
-public class QuizAttemptEntity {
+public class CertificateEntity {
     @Id
     @GeneratedValue
     private UUID id;
@@ -24,17 +24,13 @@ public class QuizAttemptEntity {
     @Version
     private Long version;
 
-    private UUID learnerId;
-    private UUID learningStepId;
+    private UUID enrollmentId;
 
-    private UUID quizId;
-    private int score;
-    private Integer correctCount;
-    private Integer totalQuestions;
+    private UUID learnerId;
+    private String certificateUrl;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
 }

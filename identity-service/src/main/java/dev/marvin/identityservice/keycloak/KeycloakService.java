@@ -173,4 +173,26 @@ public class KeycloakService {
             throw new ServiceException(e.getMessage());
         }
     }
+
+    public OrganizationRepresentation getOrganizationById(String orgId) {
+        try {
+            log.info("Fetching organization {} from realm {}", orgId, realm);
+
+            // Access the organizations resource
+            OrganizationRepresentation orgRep = keycloak.realm(realm)
+                    .organizations()
+                    .get(orgId)
+                    .toRepresentation();
+
+            if (orgRep == null) {
+                log.warn("Organization {} not found in realm {}", orgId, realm);
+                throw new ServiceException("Organization not found");
+            }
+
+            return orgRep;
+        } catch (Exception e) {
+            log.error("Failed to fetch organization {}: {}", orgId, e.getMessage());
+            throw new ServiceException(e.getMessage());
+        }
+    }
 }

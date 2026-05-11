@@ -55,6 +55,6 @@ public class EnrollmentEntity {
 
     private UUID lastLearningStepId;
 
-    private int progress = 0;
-    private int completedSteps = 0;
+    private int progress;
+    private int completedSteps;
 }

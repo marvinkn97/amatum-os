@@ -1,5 +1,7 @@
 package dev.marvin.enrollmentservice.enrollment;
 
+import dev.marvin.enrollmentservice.quizattempt.QuizAttemptRequest;
+import dev.marvin.enrollmentservice.quizattempt.QuizAttemptResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +30,8 @@ import java.util.UUID;
 public class EnrollmentController {
     private final EnrollmentService enrollmentService;
     private final PagedResourcesAssembler<EnrollmentResponse> pagedResourcesAssembler;
+    private final PagedResourcesAssembler<QuizAttemptResponse> attemptResponsePagedResourcesAssembler;
+
 
     @PreAuthorize("hasRole('LEARNER')")
     @Operation(summary = "Enroll a learner")
@@ -80,6 +84,18 @@ public class EnrollmentController {
     public ResponseEntity<Void> markLearningStepAsCompleted(@Parameter @PathVariable String enrollmentId, @Parameter @PathVariable String stepId, @NonNull Authentication authentication) {
         enrollmentService.markLearningStepAsCompleted(UUID.fromString(enrollmentId), UUID.fromString(stepId), authentication);
         return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Submit a quiz attempt for a learning step")
+    @PostMapping("/{enrollmentId}/steps/{stepId}/submit")
+    public ResponseEntity<QuizAttemptResponse> submitQuiz(
+            @Parameter @PathVariable UUID enrollmentId,
+            @Parameter @PathVariable UUID stepId,
+           @Valid @RequestBody QuizAttemptRequest quizAttemptRequest,
+            @NonNull Authentication authentication){
+        QuizAttemptResponse attemptResponse = enrollmentService.submitQuiz(enrollmentId, stepId, quizAttemptRequest, authentication);
+        return ResponseEntity.ok(attemptResponse);
     }
 
 }

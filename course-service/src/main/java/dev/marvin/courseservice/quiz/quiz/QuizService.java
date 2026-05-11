@@ -1,6 +1,8 @@
 package dev.marvin.courseservice.quiz.quiz;
 
 
+import dev.marvin.course.proto.QuizAnswerResponse;
+import dev.marvin.courseservice.exception.ResourceNotFoundException;
 import dev.marvin.courseservice.learningstep.LearningStepEntity;
 import dev.marvin.courseservice.quiz.answer.QuizAnswerOption;
 import dev.marvin.courseservice.quiz.answer.QuizAnswerOptionRepository;
@@ -16,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +87,71 @@ public class QuizService {
         }
 
         return new QuizResponse(quiz.getId(), questionResponses);
+    }
+
+    @Transactional(readOnly = true)
+    public dev.marvin.course.proto.QuizResponse getGrpcQuizById(UUID quizId) {
+
+        log.info("Fetching quiz with id: {}", quizId);
+
+        QuizEntity quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz with id [%s] not found".formatted(quizId)));
+
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizEntity_Id(quizId);
+
+        List<UUID> questionIds = questions.stream()
+                .map(QuizQuestion::getId)
+                .toList();
+
+        List<QuizAnswerOption> answerOptions = quizAnswerOptionRepository.findByQuizQuestion_IdIn(questionIds);
+
+        Map<UUID, List<QuizAnswerOption>> answersPerQuestion = answerOptions.stream()
+                        .collect(Collectors.groupingBy(
+                                option -> option.getQuizQuestion().getId()
+                        ));
+
+        List<dev.marvin.course.proto.QuizQuestionResponse> questionResponses =
+                questions.stream()
+                        .map(question -> {
+
+                            List<QuizAnswerResponse> answerResponses =
+                                    answersPerQuestion.getOrDefault(
+                                                    question.getId(),
+                                                    List.of()
+                                            )
+                                            .stream()
+                                            .map(option ->
+                                                    QuizAnswerResponse.newBuilder()
+                                                            .setId(
+                                                                    option.getId().toString()
+                                                            )
+                                                            .setAnswerText(
+                                                                    option.getAnswerText()
+                                                            )
+                                                            .setIsCorrect(
+                                                                    option.isCorrect()
+                                                            )
+                                                            .build()
+                                            )
+                                            .toList();
+
+                            return dev.marvin.course.proto.QuizQuestionResponse.newBuilder()
+                                    .setId(question.getId().toString())
+                                    .setQuestionText(
+                                            question.getQuestionText()
+                                    )
+                                    .setHasMultipleCorrectAnswers(
+                                            question.isHasMultipleAnswers()
+                                    )
+                                    .addAllAnswers(answerResponses)
+                                    .build();
+                        })
+                        .toList();
+
+        return dev.marvin.course.proto.QuizResponse.newBuilder()
+                .setId(quiz.getId().toString())
+                .addAllQuestions(questionResponses)
+                .build();
     }
 
 }

@@ -13,4 +13,6 @@ public interface QuizAnswerOptionRepository extends JpaRepository<QuizAnswerOpti
     void deleteAllByQuizQuestionIn(Collection<QuizQuestion> quizQuestions);
 
     List<QuizAnswerOption> findByQuizQuestion_IdIn(Collection<UUID> quizQuestionIds);
+
+
 }

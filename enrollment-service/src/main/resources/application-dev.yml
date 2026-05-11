@@ -35,3 +35,6 @@ keycloak:
   clients:
     lumina-client-id: lms-ui
     opus-client-id: opus-ui
+
+gotenberg:
+  url: http://localhost:3000

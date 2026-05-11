@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @page {
+            size: landscape;
+            margin: 0;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #030712;
+            overflow: hidden;
+        }
+    </style>
+    <title>Certificate of Completion</title>
+</head>
+<body class="text-white antialiased h-screen">
+
+<div class="main-container h-full w-full flex items-center justify-center relative">
+
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(79,70,229,0.12)_0%,_rgba(3,7,18,0)_75%)]"></div>
+
+    <div class="relative w-[90%] max-w-[1100px] h-[85%] max-h-[750px] border border-white/10 rounded-[3.5rem] bg-white/[0.01] backdrop-blur-sm flex flex-col items-center justify-between py-16 px-12 shadow-2xl">
+
+        <div class="absolute inset-4 border border-white/5 rounded-[3rem] pointer-events-none"></div>
+
+        <div class="flex flex-col items-center gap-4">
+            <div class="size-20 relative flex items-center justify-center">
+                <div class="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full"></div>
+
+                <div class="relative size-16 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl rotate-45 flex items-center justify-center shadow-2xl shadow-indigo-500/40 border border-white/20">
+                    <div class="size-12 border border-white/10 rounded-xl flex items-center justify-center -rotate-45">
+                        <svg class="size-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-[0.6em] text-indigo-500">
+                Official Certification
+            </p>
+        </div>
+
+        <div class="flex flex-col items-center gap-8 text-center">
+            <div class="space-y-3">
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.4em]">
+                    This certificate is proudly presented to
+                </p>
+                <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">
+                    {{learnerName}}
+                </h1>
+            </div>
+
+            <div class="flex items-center gap-4 w-full justify-center">
+                <div class="h-px w-12 bg-gradient-to-r from-transparent to-indigo-500/50"></div>
+                <div class="size-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"></div>
+                <div class="h-px w-12 bg-gradient-to-l from-transparent to-indigo-500/50"></div>
+            </div>
+
+            <div class="space-y-4">
+                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-[0.4em]">
+                    For successfully completing the course
+                </p>
+                <h2 class="text-3xl font-bold text-white tracking-tight uppercase leading-tight">
+                    {{courseTitle}}
+                </h2>
+            </div>
+        </div>
+
+        <div class="w-full flex justify-between items-end px-10">
+            <div class="text-left">
+                <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Issue Date</p>
+                <p class="text-xs font-mono text-slate-300 uppercase">{{issuedDate}}</p>
+            </div>
+
+            <div class="text-center">
+                <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Issued By</p>
+                <p class="text-xs font-mono text-indigo-400 uppercase tracking-tighter">{{companyName}}</p>
+            </div>
+
+            <div class="text-right">
+                <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Cert ID</p>
+                <p class="text-[10px] font-mono text-slate-400 tracking-tighter">{{certId}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

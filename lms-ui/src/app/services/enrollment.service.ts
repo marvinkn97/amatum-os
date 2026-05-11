@@ -18,6 +18,32 @@ export interface EnrollmentResponse {
   course: CourseResponse;
 }
 
+export interface QuizAttemptRequest {
+  quizId: string;
+  selectedAnswers: QuizAttemptAnswerRequest[];
+}
+
+export interface QuizAttemptAnswerRequest {
+  questionId: string; 
+  selectedAnswerIds: string[];
+}
+
+export interface QuizAttemptAnswerResponse {
+  questionText: string;
+  selectedOptions: string[];
+  correctOptions: string[];
+  isCorrect: boolean;
+}
+
+export interface QuizAttemptResponse {
+  id: string;
+  totalQuestions: number;
+  correctCount: number;
+  score: number;
+  passed: boolean;
+  evaluatedAnswers: QuizAttemptAnswerResponse[]; // Added this
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -53,4 +79,9 @@ export class EnrollmentService {
   markStepComplete(enrollmentId: string, stepId: string): Observable<void> {
     return this.http.patch<void>(`${this.API_URL}/${enrollmentId}/steps/${stepId}/complete`, {});
   }
+
+  submitQuiz(enrollmentId: string, stepId: string, request: QuizAttemptRequest): Observable<QuizAttemptResponse> {
+  const url = `${this.API_URL}/${enrollmentId}/steps/${stepId}/submit`;
+  return this.http.post<QuizAttemptResponse>(url, request);
+}
 }

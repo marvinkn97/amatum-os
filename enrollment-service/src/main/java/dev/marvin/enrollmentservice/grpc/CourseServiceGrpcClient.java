@@ -104,4 +104,21 @@ public class CourseServiceGrpcClient {
             throw e;
         }
     }
+
+    public QuizResponse getQuizDetails(String quizId) {
+        log.info("Fetching quiz details for quizId: {}", quizId);
+        try {
+            QuizResponse quizResponse = authenticatedStub().getQuizDetails(
+                    dev.marvin.course.proto.QuizRequest.newBuilder()
+                            .setQuizId(quizId)
+                            .build()
+            );
+            log.info("Received quiz details response: {}", quizResponse);
+            return quizResponse;
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
 }

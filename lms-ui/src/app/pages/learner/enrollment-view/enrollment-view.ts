@@ -9,7 +9,12 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { EnrollmentResponse, EnrollmentService } from '../../../services/enrollment.service';
+import {
+  EnrollmentResponse,
+  EnrollmentService,
+  QuizAttemptRequest,
+  QuizAttemptResponse,
+} from '../../../services/enrollment.service';
 import { finalize, map, Subject, takeUntil, filter } from 'rxjs';
 import { NotificationService } from '../../../services/notification.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -147,7 +152,7 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
                 <header class="flex flex-col gap-4">
                   <button
                     (click)="selectedStep.set(null)"
-                    class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-500 transition-colors cursor-pointer border-none bg-transparent outline-none w-fit"
+                    class="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-500 transition-colors cursor-pointer border-none bg-transparent outline-none w-fit"
                   >
                     <svg
                       class="size-3"
@@ -278,10 +283,10 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
                         class="bg-white/2 border border-white/5 rounded-[2.5rem] p-12 text-center space-y-8 animate-in zoom-in-95 duration-500"
                       >
                         <div
-                          class="size-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-500"
+                          class="size-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto"
                         >
                           <svg
-                            class="size-12"
+                            class="size-8"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -290,16 +295,18 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
                             <path d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
+
                         <div class="space-y-2">
                           <h2
-                            class="text-3xl font-black text-white italic tracking-tighter uppercase"
+                            class="text-md font-black text-white italic tracking-tighter uppercase"
                           >
-                            Quiz Passed
+                            Quiz Attempted!
                           </h2>
-                          <p class="text-slate-400">
-                            Great job! You have successfully completed this quiz.
+                          <p class="text-slate-400 text-sm">
+                            Congratulations! You've finished the quiz.
                           </p>
                         </div>
+
                         <div
                           class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
                         >
@@ -308,12 +315,6 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
                             class="px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
                           >
                             Retake Quiz
-                          </button>
-                          <button
-                            (click)="selectedStep.set(null)"
-                            class="px-8 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
-                          >
-                            Continue to Next Lesson
                           </button>
                         </div>
                       </div>
@@ -479,43 +480,99 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
             } @else {
               <!-- COURSE OVERVIEW -->
               <div class="p-6 md:p-12 max-w-5xl mx-auto animate-in fade-in duration-700">
-                @if (lastActivity(); as last) {
-                  <div class="mb-12 group relative cursor-pointer" (click)="selectStep(last)">
+                @if (enrollment()?.isCompleted) {
+                  <div class="mb-12 group relative">
                     <div
-                      class="absolute -inset-4 bg-indigo-500/5 rounded-4xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+                      class="absolute -inset-4 bg-linear-to-r from-indigo-500/10 to-fuchsia-500/10 rounded-4xl blur-2xl opacity-100 transition-opacity"
                     ></div>
+
                     <div
-                      class="relative bg-white/2 border border-white/5 rounded-2xl p-6 md:p-8 overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
+                      class="relative bg-white/2 border border-indigo-500/20 rounded-2xl p-6 md:p-8 overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 backdrop-blur-xl"
                     >
-                      <div class="flex items-center gap-5">
+                      <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full -mr-16 -mt-16"
+                      ></div>
+
+                      <div class="flex items-center gap-5 relative z-10">
                         <div
-                          class="size-11 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xl shadow-white/5 group-hover:scale-105 transition-transform"
+                          class="size-14 rounded-2xl bg-linear-to-br from-indigo-500 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-2xl shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-500"
                         >
-                          <svg class="size-4 text-black ml-0.5 fill-current" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
+                          <svg
+                            class="size-7 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296a3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043a3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296a3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043a3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"
+                            />
                           </svg>
                         </div>
+
                         <div class="flex flex-col gap-1">
                           <span
-                            class="text-[8px] font-black text-indigo-500 uppercase tracking-[0.3em]"
+                            class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] animate-pulse"
                           >
-                            {{ enrollment()?.lastLearningStepId ? 'Resume Activity' : 'Up Next' }}
+                            Mission Accomplished
                           </span>
-                          <h2
-                            class="text-sm md:text-sm font-black text-white uppercase italic tracking-tighter leading-tight"
+                          <p
+                            class="text-slate-500 text-[10px] font-medium uppercase tracking-widest"
                           >
-                            {{ last.title }}
-                          </h2>
+                            Your official certification is ready for issuance
+                          </p>
                         </div>
                       </div>
+
                       <button
-                        class="px-5 py-2 bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-md hover:bg-white hover:text-black transition-all w-fit cursor-pointer"
+                        class="relative z-10 px-8 py-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-indigo-50 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10"
                       >
-                        {{ enrollment()?.lastLearningStepId ? 'Continue' : 'Start Learning' }}
+                        Claim Certificate
                       </button>
                     </div>
                   </div>
+                } @else {
+                  @if (lastActivity(); as last) {
+                    <div class="mb-12 group relative cursor-pointer" (click)="selectStep(last)">
+                      <div
+                        class="absolute -inset-4 bg-indigo-500/5 rounded-4xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+                      ></div>
+                      <div
+                        class="relative bg-white/2 border border-white/5 rounded-2xl p-6 md:p-8 overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
+                      >
+                        <div class="flex items-center gap-5">
+                          <div
+                            class="size-11 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xl shadow-white/5 group-hover:scale-105 transition-transform"
+                          >
+                            <svg class="size-4 text-black ml-0.5 fill-current" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <span
+                              class="text-[8px] font-black text-indigo-500 uppercase tracking-[0.3em]"
+                            >
+                              {{ enrollment()?.lastLearningStepId ? 'Resume Activity' : 'Up Next' }}
+                            </span>
+                            <h2
+                              class="text-sm md:text-sm font-black text-white uppercase italic tracking-tighter leading-tight"
+                            >
+                              {{ last.title }}
+                            </h2>
+                          </div>
+                        </div>
+                        <button
+                          class="px-5 py-2 bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-md hover:bg-white hover:text-black transition-all w-fit cursor-pointer"
+                        >
+                          {{ enrollment()?.lastLearningStepId ? 'Continue' : 'Start Learning' }}
+                        </button>
+                      </div>
+                    </div>
+                  }
                 }
+
                 <section class="flex flex-col gap-6">
                   <h1
                     class="text-md md:text-md font-black text-white uppercase italic tracking-tighter leading-tight"
@@ -574,7 +631,7 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
                   activeTab() === 'assistant' ? 'text-white' : 'text-slate-500 hover:text-slate-300'
                 "
               >
-                Assistant
+                AI Tutor
                 @if (activeTab() === 'assistant') {
                   <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500"></div>
                 }
@@ -725,6 +782,144 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
               </div>
             }
           </aside>
+
+          @if (showResultsModal()) {
+            <div
+              class="absolute inset-0 z-140 flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md animate-in fade-in duration-300"
+            >
+              <div
+                class="bg-[#030712] border border-white/5 w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-[2.5rem] flex flex-col shadow-2xl"
+              >
+                <div class="p-8 md:p-10 border-b border-white/5 flex items-center justify-between">
+                  <div>
+                    <h2 class="text-md font-black text-white uppercase italic tracking-tighter">
+                      {{ quizResult()?.passed ? 'Quiz Passed' : 'Quiz Failed' }}
+                    </h2>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                      You scored {{ quizResult()?.score }}% — {{ quizResult()?.correctCount }} of
+                      {{ quizResult()?.totalQuestions }} correct
+                    </p>
+                  </div>
+
+                  <button
+                    (click)="showResultsModal.set(false)"
+                    class="text-slate-500 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <svg
+                      class="size-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div
+                  class="px-10 py-4 border-b border-white/5 text-center"
+                  [class]="quizResult()?.passed ? 'bg-emerald-500/5' : 'bg-red-500/5'"
+                >
+                  <p
+                    class="text-[10px] font-black uppercase tracking-widest"
+                    [class]="quizResult()?.passed ? 'text-emerald-500' : 'text-red-500'"
+                  >
+                    {{
+                      quizResult()?.passed
+                        ? 'Passing score reached! You can proceed to the next lesson or retake the quiz to improve your score.'
+                        : 'You did not reach the passing score. Please review the answers below.'
+                    }}
+                  </p>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-10 space-y-12 custom-scrollbar">
+                  @for (result of quizResult()?.evaluatedAnswers; track $index) {
+                    <div class="space-y-4">
+                      <div class="flex items-start justify-between gap-6">
+                        <div class="flex gap-4">
+                          <span class="text-indigo-500 font-black text-sm mt-0.5"
+                            >{{ $index + 1 }}.</span
+                          >
+                          <p class="text-md font-medium text-slate-200 leading-relaxed">
+                            {{ result.questionText }}
+                          </p>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                          <span
+                            class="text-[9px] font-black uppercase tracking-tighter"
+                            [class]="result.isCorrect ? 'text-emerald-500' : 'text-red-500'"
+                          >
+                            {{ result.isCorrect ? 'Correct' : 'Incorrect' }}
+                          </span>
+                          <div
+                            class="size-1.5 rounded-full"
+                            [class]="result.isCorrect ? 'bg-emerald-500' : 'bg-red-500'"
+                          ></div>
+                        </div>
+                      </div>
+
+                      <div class="ml-10 flex items-center gap-3">
+                        <div
+                          class="size-4 rounded border flex items-center justify-center shrink-0"
+                          [class]="
+                            result.isCorrect
+                              ? 'bg-emerald-500 border-emerald-500'
+                              : 'bg-red-500 border-red-500'
+                          "
+                        >
+                          <svg
+                            class="size-3 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          >
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <span class="text-sm text-slate-400">{{
+                          result.selectedOptions.join(', ') || 'No answer'
+                        }}</span>
+                      </div>
+
+                      @if (!result.isCorrect) {
+                        <div class="ml-10 p-5 rounded-2xl bg-white/3 border border-white/5">
+                          <p
+                            class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1"
+                          >
+                            Correct Answer
+                          </p>
+                          <p class="text-sm text-slate-300">
+                            {{ result.correctOptions.join(', ') }}
+                          </p>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div
+                  class="p-6 md:p-8 bg-white/2 border-t border-white/5 flex flex-col-reverse md:flex-row md:justify-end gap-3 shrink-0"
+                >
+                  <button
+                    (click)="retakeQuiz()"
+                    class="w-full md:w-auto px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
+                  >
+                    Retake Quiz
+                  </button>
+
+                  <button
+                    (click)="showResultsModal.set(false)"
+                    class="w-full md:w-auto px-10 py-3 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
         </main>
       }
     </div>
@@ -774,6 +969,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
   expandedModuleIds = signal<Set<string>>(new Set());
   activeTab = signal<'content' | 'assistant'>('content');
   sidebarVisible = signal(true);
+  quizResult = signal<QuizAttemptResponse | null>(null);
 
   // Quiz State
   currentQuestionIndex = signal(0);
@@ -853,7 +1049,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
           this.enrollment.set(data);
           this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(cleanDesc);
           if (data.course.modules?.length > 0) {
-            this.toggleModule(data.course.modules[0].id);
+            this.expandRelevantModule(data);
           }
         },
         error: () => this.notificationService.error('Failed to load course'),
@@ -912,16 +1108,6 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  submitQuiz() {
-    this.quizSubmitted.set(true);
-  }
-
-  retakeQuiz() {
-    this.quizSubmitted.set(false);
-    this.currentQuestionIndex.set(0);
-    this.userAnswers.set(new Map());
-  }
-
   toggleModule(id: string) {
     this.expandedModuleIds.update((prev) => {
       const next = new Set(prev);
@@ -960,20 +1146,15 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
 
     this.enrollmentService.markStepComplete(currentEnrollment.id, currentStep.id).subscribe({
       next: () => {
-        // Step 1: Success notification
         this.notificationService.success('Step marked as completed');
 
-        // Step 2: Call the backend again to get the fresh EnrollmentResponse
         this.enrollmentService
           .getEnrollmentById(currentEnrollment.id)
           .pipe(finalize(() => this.isProcessing.set(false))) // Reset processing state after completion
           .subscribe({
             next: (freshEnrollment) => {
-              // Update the signal with the server-side truth
               this.enrollment.set(freshEnrollment);
 
-              // Step 3: Synchronize the selectedStep reference
-              // Find the updated version of the current step in the new data
               const updatedStep = freshEnrollment.course.modules
                 .flatMap((m) => m.learningSteps)
                 .find((s) => s.id === currentStep.id);
@@ -991,4 +1172,92 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  showResultsModal = signal(false);
+
+  submitQuiz() {
+    const currentEnrollment = this.enrollment();
+    const step = this.selectedStep();
+
+    if (this.isProcessing() || !currentEnrollment || !step || !this.allQuestionsAnswered()) return;
+
+    this.isProcessing.set(true);
+
+    const payload: QuizAttemptRequest = {
+      quizId: step.quiz?.id ?? '',
+      selectedAnswers: Array.from(this.userAnswers().entries()).map(([qId, aIds]) => ({
+        questionId: qId,
+        selectedAnswerIds: aIds, // Already an array of strings (UUIDs)
+      })),
+    };
+
+    this.enrollmentService
+      .submitQuiz(currentEnrollment.id, step.id, payload)
+      .pipe(finalize(() => this.isProcessing.set(false)))
+      .subscribe({
+        next: (response) => {
+          // Update UI with backend evaluation
+          this.quizResult.set(response);
+          this.quizSubmitted.set(true);
+          this.showResultsModal.set(true);
+
+          if (response.passed) {
+            this.notificationService.success('Quiz Passed!');
+            this.loadEnrollment(currentEnrollment.id);
+          } else {
+            this.notificationService.error('Quiz Failed. Review your answers and try again.');
+          }
+        },
+        error: (err) => {
+          this.notificationService.error(err?.error?.detail || 'Failed to submit quiz');
+          console.error('Quiz error:', err);
+        },
+      });
+  }
+  retakeQuiz() {
+    this.quizSubmitted.set(false);
+    this.showResultsModal.set(false); // Close the modal
+    this.quizResult.set(null); // Clear previous evaluation
+    this.currentQuestionIndex.set(0);
+    this.userAnswers.set(new Map());
+  }
+
+  private expandRelevantModule(enrollment: EnrollmentResponse) {
+    const modules = enrollment.course?.modules || [];
+    if (modules.length === 0) return;
+
+    // 1. If we have a selected step, expand its module
+    const currentStep = this.selectedStep();
+    if (currentStep) {
+      const moduleWithStep = modules.find((m) =>
+        m.learningSteps?.some((s) => s.id === currentStep.id),
+      );
+      if (moduleWithStep && !this.isExpanded(moduleWithStep.id)) {
+        this.toggleModule(moduleWithStep.id);
+        return;
+      }
+    }
+
+    // 2. Otherwise expand first module only if none are expanded
+    const firstModule = modules[0];
+    if (this.expandedModuleIds().size === 0 && !this.isExpanded(firstModule.id)) {
+      this.toggleModule(firstModule.id);
+    }
+  }
+
+
+  public claimCertificate(): void {
+  const enrollmentId = this.enrollment()?.id;
+  // if (!enrollmentId) return;
+
+  // // 1. Show a loading state (maybe change button text to 'Generating...')
+  // // 2. Call your enrollment service
+  // this.enrollmentService.issueCertificate(enrollmentId).subscribe({
+  //   next: (certificate) => {
+  //     // 3. Navigate to the certificate view or open the RustFS URL directly
+  //     window.open(certificate.certificateUrl, '_blank');
+  //   },
+  //   error: (err) => console.error('Certificate issuance failed', err)
+  // });
+}
 }

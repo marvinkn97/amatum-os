@@ -121,7 +121,7 @@ export interface QuizQuestionResponse {
 }
 
 export interface QuizResponse {
-  quizId: string;
+  id: string;
   questions: QuizQuestionResponse[];
 }
 

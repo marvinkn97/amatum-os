@@ -3,6 +3,7 @@ package dev.marvin.courseservice.grpc;
 import dev.marvin.course.proto.*;
 import dev.marvin.courseservice.course.CourseService;
 import dev.marvin.courseservice.learningstep.LearningStepService;
+import dev.marvin.courseservice.quiz.quiz.QuizService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import static dev.marvin.courseservice.learningstep.LearningStepType.QUIZ;
 public class CourseGrpcService extends CourseServiceImplBase {
     private final CourseService courseService;
     private final LearningStepService learningStepService;
+    private final QuizService quizService;
 
     @Override
     public void getCourseDetails(CourseRequest request, StreamObserver<CourseResponse> responseObserver) {
@@ -180,5 +182,25 @@ public class CourseGrpcService extends CourseServiceImplBase {
             log.error("Error fetching course total steps", e);
             responseObserver.onError(e);
         }
+    }
+
+    @Override
+    public void getQuizDetails(QuizRequest request, StreamObserver<QuizResponse> responseObserver) {
+        try {
+            log.info("Received quiz request: {}", request);
+            UUID quizId = UUID.fromString(request.getQuizId());
+
+            QuizResponse quiz = quizService.getGrpcQuizById(quizId);
+
+            log.info("Sending quiz response: {}", quiz);
+
+            responseObserver.onNext(quiz);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            log.error("Error fetching quiz details", e);
+            responseObserver.onError(e);
+        }
+
     }
 }

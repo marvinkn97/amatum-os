@@ -8,6 +8,9 @@ import dev.marvin.enrollmentservice.grpc.CourseServiceGrpcClient;
 import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressEntity;
 import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressRepository;
 import dev.marvin.enrollmentservice.learningstepprogress.LearningStepProgressResponse;
+import dev.marvin.enrollmentservice.quizattempt.QuizAttemptRequest;
+import dev.marvin.enrollmentservice.quizattempt.QuizAttemptResponse;
+import dev.marvin.enrollmentservice.quizattempt.QuizAttemptService;
 import dev.marvin.enrollmentservice.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,7 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseServiceGrpcClient courseServiceGrpcClient;
     private final LearningStepProgressRepository learningStepProgressRepository;
+    private final QuizAttemptService quizAttemptService;
 
     @Transactional
     public EnrollmentResponse enroll(EnrollmentRequest enrollmentRequest, Authentication authentication) {
@@ -293,14 +297,46 @@ public class EnrollmentService {
             throw new BadRequestException("Learning step already marked as completed");
         }
 
+        createStepProgress(enrollmentEntity, learnerId, stepId);
+        updateEnrollmentProgress(enrollmentEntity, stepId);
+    }
+
+    @Transactional
+    public QuizAttemptResponse submitQuiz(UUID enrollmentId, UUID stepId, QuizAttemptRequest quizAttemptRequest, Authentication authentication) {
+        log.info("Submitting quiz attempt for enrollment {}", enrollmentId);
+
+        UUID learnerId = UUID.fromString(authentication.getName());
+
+        EnrollmentEntity enrollmentEntity = enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
+                .orElseThrow(() -> new BadRequestException("Enrollment with given id [%s] not found".formatted(enrollmentId)));
+
+
+        if (!learningStepProgressRepository.existsByEnrollment_IdAndLearnerIdAndLearningStepIdAndIsCompleted(enrollmentId, learnerId, stepId, true)) {
+            createStepProgress(enrollmentEntity, learnerId, stepId);
+            updateEnrollmentProgress(enrollmentEntity, stepId);
+        }
+
+        QuizAttemptResponse attemptResponse =  quizAttemptService.submitQuizAttempt(stepId, quizAttemptRequest, learnerId);
+
+        log.info("Quiz attempt submitted for enrollment {} and learner {}", enrollmentId, learnerId);
+
+        return attemptResponse;
+    }
+
+
+    private void createStepProgress(EnrollmentEntity enrollment, UUID learnerId, UUID stepId) {
+        log.info("Creating step progress for enrollment {} and learner {}", enrollment.getId(), learnerId);
         LearningStepProgressEntity progress = new LearningStepProgressEntity();
-        progress.setEnrollment(enrollmentEntity);
+        progress.setEnrollment(enrollment);
         progress.setLearnerId(learnerId);
         progress.setLearningStepId(stepId);
         progress.setCompleted(true);
         progress.setCompletedAt(Instant.now());
         learningStepProgressRepository.save(progress);
+    }
 
+    private void updateEnrollmentProgress(EnrollmentEntity enrollmentEntity, UUID stepId) {
+        log.info("Updating enrollment progress for enrollment {}", enrollmentEntity.getId());
         enrollmentEntity.setLastLearningStepId(stepId);
         enrollmentEntity.setCompletedSteps(enrollmentEntity.getCompletedSteps() + 1);
 
@@ -312,10 +348,7 @@ public class EnrollmentService {
 
         int progressValue = 0;
         if (totalSteps > 0) {
-            progressValue = (int) Math.min(
-                    Math.round((completedSteps * 100.0) / totalSteps),
-                    100
-            );
+            progressValue = (int) Math.min(Math.round((completedSteps * 100.0) / totalSteps), 100);
         }
 
         enrollmentEntity.setProgress(progressValue);

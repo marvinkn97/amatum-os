@@ -11,6 +11,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -178,11 +179,13 @@ public class IdentityService {
 
     }
 
+    @Transactional(readOnly = true)
     public IdentityResponse getCurrentUser(Authentication authentication) {
         return userRepository.findById(UUID.fromString((authentication.getName())))
                 .map(userEntity -> new IdentityResponse(userEntity.getId(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getEmail()))
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + authentication.getName() + " not found"));
     }
+
 
     public void updateAuthenticatedUserName(Authentication authentication, NameUpdateRequest nameUpdateRequest) {
         String userId = authentication.getName();
@@ -218,5 +221,15 @@ public class IdentityService {
         keycloakService.resetPassword(userId, passwordUpdateRequest);
         log.info("Password updated for user {}", userId);
     }
+
+    @Transactional(readOnly = true)
+    public IdentityResponse getGrpcUser(String userId) {
+        return userRepository.findById(UUID.fromString(userId))
+                .map(userEntity -> new IdentityResponse(userEntity.getId(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getEmail()))
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
+    }
+
+
+
 
 }

@@ -13,8 +13,9 @@ service CourseService {
   // Multiple course summaries
   rpc GetMultipleCourseSummaries(BulkCourseRequest) returns (BulkCourseSummaryResponse);
 
-
   rpc GetCourseTotalSteps(CourseRequest) returns (CourseTotalStepsResponse);
+
+  rpc GetQuizDetails(QuizRequest) returns (QuizResponse);
 }
 
 message CourseRequest {
@@ -82,6 +83,7 @@ message QuizQuestionResponse {
 message QuizAnswerResponse {
   string id = 1;
   string answer_text = 2;
+  bool is_correct = 3;
 }
 
 message BulkCourseRequest {
@@ -100,4 +102,8 @@ message BulkCourseSummaryResponse {
 
 message CourseTotalStepsResponse {
   int64 total_steps = 1;
+}
+
+message QuizRequest {
+  string quiz_id = 1;
 }

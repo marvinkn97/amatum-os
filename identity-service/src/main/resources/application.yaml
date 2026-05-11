@@ -5,6 +5,10 @@ spring:
   application:
     name: identity-service
 
+  threads:
+    virtual:
+      enabled: true
+
   profiles:
     active: dev
 

@@ -8,7 +8,7 @@ public class EnrollmentMapper {
                 enrollmentEntity.getId(),
                 enrollmentEntity.getStatus(),
                 enrollmentEntity.isCompleted(),
-                0,
+                enrollmentEntity.getProgress(),
                 enrollmentEntity.getLastLearningStepId(),
                 enrollmentEntity.getUpdatedAt());
     }
@@ -18,7 +18,7 @@ public class EnrollmentMapper {
                 enrollmentEntity.getId(),
                 enrollmentEntity.getStatus(),
                 enrollmentEntity.isCompleted(),
-                0,
+                enrollmentEntity.getProgress(),
                 enrollmentEntity.getLastLearningStepId(),
                 enrollmentEntity.getUpdatedAt(),
                 courseView);

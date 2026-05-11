@@ -359,6 +359,7 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
           this.hasNextPage.set(response.page.number < response.page.totalPages - 1);
         },
         error: () => {
+          this.notificationService.error('Failed to load courses. Please try again later.');
           this.hasNextPage.set(false);
           if (reset) this.courses.set([]);
         },
