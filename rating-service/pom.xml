@@ -5,14 +5,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.0.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>dev.marvin</groupId>
-    <artifactId>enrollment-service</artifactId>
+    <artifactId>rating-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>enrollment-service</name>
-    <description>enrollment-service</description>
+    <name>rating-service</name>
+    <description>rating-service</description>
     <url/>
     <licenses>
         <license/>
@@ -32,42 +32,10 @@
         <protobuf-java.version>4.33.4</protobuf-java.version>
         <spring-grpc.version>1.0.3</spring-grpc.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.grpc</groupId>
-                <artifactId>spring-grpc-dependencies</artifactId>
-                <version>${spring-grpc.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>2.42.21</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.jknack</groupId>
-            <artifactId>handlebars</artifactId>
-            <version>4.5.1</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-services</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -86,28 +54,27 @@
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-services</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>3.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.grpc</groupId>
+            <artifactId>spring-grpc-server-web-spring-boot-starter</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -132,45 +99,53 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.grpc</groupId>
-            <artifactId>spring-grpc-server-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.grpc</groupId>
             <artifactId>spring-grpc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.grpc</groupId>
-            <artifactId>spring-grpc-client-spring-boot-starter</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>annotationProcessor</scope>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.grpc</groupId>
+                <artifactId>spring-grpc-dependencies</artifactId>
+                <version>${spring-grpc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
-       <plugins>
-           <plugin>
-               <groupId>io.github.ascopes</groupId>
-               <artifactId>protobuf-maven-plugin</artifactId>
-               <version>4.0.3</version>
-               <configuration>
-                   <protoc>${protobuf-java.version}</protoc>
-                   <binaryMavenPlugins>
-                       <binaryMavenPlugin>
-                           <groupId>io.grpc</groupId>
-                           <artifactId>protoc-gen-grpc-java</artifactId>
-                           <version>${grpc.version}</version>
-                           <options>@generated=omit</options>
-                       </binaryMavenPlugin>
-                   </binaryMavenPlugins>
-               </configuration>
-               <executions>
-                   <execution>
-                       <id>generate</id>
-                       <goals>
-                           <goal>generate</goal>
-                       </goals>
-                   </execution>
-               </executions>
-           </plugin>
+        <plugins>
+            <plugin>
+                <groupId>io.github.ascopes</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>4.0.3</version>
+                <configuration>
+                    <protoc>${protobuf-java.version}</protoc>
+                    <binaryMavenPlugins>
+                        <binaryMavenPlugin>
+                            <groupId>io.grpc</groupId>
+                            <artifactId>protoc-gen-grpc-java</artifactId>
+                            <version>${grpc.version}</version>
+                            <options>@generated=omit</options>
+                        </binaryMavenPlugin>
+                    </binaryMavenPlugins>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -221,5 +196,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>

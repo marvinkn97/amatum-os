@@ -9,11 +9,11 @@ import dev.marvin.identityservice.organisation.OrganizationService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.grpc.server.service.GrpcService;
 
 import static dev.marvin.identity.proto.IdentityServiceGrpc.IdentityServiceImplBase;
 
-@Service
+@GrpcService
 @RequiredArgsConstructor
 @Slf4j
 public class IdentityGrpcService extends IdentityServiceImplBase {

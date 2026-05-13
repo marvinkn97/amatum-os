@@ -30,6 +30,9 @@ spring:
       course-service:
         address: localhost
         port: 9092
+      identity-service:
+        address: localhost
+        port: 9091
 
 keycloak:
   clients:
@@ -38,3 +41,16 @@ keycloak:
 
 gotenberg:
   url: http://localhost:3000
+
+app:
+  domain:
+    quiz-attempt:
+      passmark: 50
+
+storage:
+  rustfs:
+    endpoint: ${RUSTFS_ENDPOINT:http://localhost:9010}
+    region: ${RUSTFS_REGION:us-east-1}
+    bucket: ${RUSTFS_BUCKET:amatum}
+    access-key: ${RUSTFS_ACCESS_KEY}
+    secret-key: ${RUSTFS_SECRET_KEY}

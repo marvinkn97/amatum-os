@@ -1,5 +1,6 @@
 package dev.marvin.enrollmentservice.enrollment;
 
+import dev.marvin.enrollmentservice.certificate.CertificateResponse;
 import dev.marvin.enrollmentservice.quizattempt.QuizAttemptRequest;
 import dev.marvin.enrollmentservice.quizattempt.QuizAttemptResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -96,6 +97,17 @@ public class EnrollmentController {
             @NonNull Authentication authentication){
         QuizAttemptResponse attemptResponse = enrollmentService.submitQuiz(enrollmentId, stepId, quizAttemptRequest, authentication);
         return ResponseEntity.ok(attemptResponse);
+    }
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Claim/Issue a certificate for a completed enrollment")
+    @PostMapping("/{enrollmentId}/claim-certificate")
+    public ResponseEntity<CertificateResponse> claimCertificate(
+            @Parameter @PathVariable UUID enrollmentId,
+            @NonNull Authentication authentication) {
+        log.info("Claiming certificate for enrollment: {}", enrollmentId);
+        CertificateResponse certificateResponse = enrollmentService.claimCertificate(enrollmentId, authentication);
+        return ResponseEntity.accepted().body(certificateResponse);
     }
 
 }

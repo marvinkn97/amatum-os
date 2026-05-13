@@ -24,7 +24,7 @@ export interface QuizAttemptRequest {
 }
 
 export interface QuizAttemptAnswerRequest {
-  questionId: string; 
+  questionId: string;
   selectedAnswerIds: string[];
 }
 
@@ -42,6 +42,12 @@ export interface QuizAttemptResponse {
   score: number;
   passed: boolean;
   evaluatedAnswers: QuizAttemptAnswerResponse[]; // Added this
+}
+
+export interface CertificateResponse {
+  serialNumber: string;
+  certificateUrl: string;
+  issuedAt: string;
 }
 
 @Injectable({
@@ -80,8 +86,17 @@ export class EnrollmentService {
     return this.http.patch<void>(`${this.API_URL}/${enrollmentId}/steps/${stepId}/complete`, {});
   }
 
-  submitQuiz(enrollmentId: string, stepId: string, request: QuizAttemptRequest): Observable<QuizAttemptResponse> {
-  const url = `${this.API_URL}/${enrollmentId}/steps/${stepId}/submit`;
-  return this.http.post<QuizAttemptResponse>(url, request);
-}
+  submitQuiz(
+    enrollmentId: string,
+    stepId: string,
+    request: QuizAttemptRequest,
+  ): Observable<QuizAttemptResponse> {
+    const url = `${this.API_URL}/${enrollmentId}/steps/${stepId}/submit`;
+    return this.http.post<QuizAttemptResponse>(url, request);
+  }
+
+  claimCertificate(enrollmentId: string): Observable<CertificateResponse> {
+    const url = `${this.API_URL}/${enrollmentId}/claim-certificate`;
+    return this.http.post<CertificateResponse>(url, {});
+  }
 }

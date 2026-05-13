@@ -1,6 +1,9 @@
 package dev.marvin.enrollmentservice.enrollment;
 
 import dev.marvin.course.proto.BulkCourseSummaryResponse;
+import dev.marvin.enrollmentservice.certificate.CertificateRequest;
+import dev.marvin.enrollmentservice.certificate.CertificateResponse;
+import dev.marvin.enrollmentservice.certificate.CertificateService;
 import dev.marvin.enrollmentservice.exception.BadRequestException;
 import dev.marvin.enrollmentservice.exception.EnrollmentStatus;
 import dev.marvin.enrollmentservice.exception.ResourceNotFoundException;
@@ -35,6 +38,7 @@ public class EnrollmentService {
     private final CourseServiceGrpcClient courseServiceGrpcClient;
     private final LearningStepProgressRepository learningStepProgressRepository;
     private final QuizAttemptService quizAttemptService;
+    private final CertificateService certificateService;
 
     @Transactional
     public EnrollmentResponse enroll(EnrollmentRequest enrollmentRequest, Authentication authentication) {
@@ -360,6 +364,25 @@ public class EnrollmentService {
         }
 
         enrollmentRepository.save(enrollmentEntity);
+    }
+
+
+    public CertificateResponse claimCertificate(UUID enrollmentId, Authentication authentication) {
+        log.info("Claiming certificate for enrollment {}", enrollmentId);
+        UUID learnerId = UUID.fromString(authentication.getName());
+
+        EnrollmentEntity enrollmentEntity = enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
+                .orElseThrow(() -> new BadRequestException("Enrollment with given id [%s] not found".formatted(enrollmentId)));
+
+        if (!enrollmentEntity.isCompleted()) {
+            throw new BadRequestException("Course must be completed before claiming a certificate");
+        }
+
+        return certificateService.issueCertificate(new CertificateRequest(
+                learnerId,
+                enrollmentEntity.getCourseId(),
+                enrollmentId,
+                enrollmentEntity.getTenantId()));
     }
 
 }

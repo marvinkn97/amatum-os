@@ -4,9 +4,8 @@ import java.util.UUID;
 
 public record CertificateRequest(
         UUID learnerId,
-        String learnerName,
-
-        String enrollmentId,
-        UUID courseId
+        UUID courseId,
+        UUID enrollmentId,
+        String tenantId
 ) {
 }

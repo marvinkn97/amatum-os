@@ -10,6 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
+  CertificateResponse,
   EnrollmentResponse,
   EnrollmentService,
   QuizAttemptRequest,
@@ -19,11 +20,12 @@ import { finalize, map, Subject, takeUntil, filter } from 'rxjs';
 import { NotificationService } from '../../../services/notification.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LearningStepResponse } from '../../../services/learning-step.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-enrollment-view',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <!-- VIEWPORT WRAPPER -->
@@ -527,11 +529,46 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
                       </div>
 
                       <button
-                        class="relative z-10 px-8 py-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-indigo-50 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10"
+                        (click)="openRatingModal()"
+                        class="px-6 py-3 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-white/10 transition-all cursor-pointer"
                       >
-                        Claim Certificate
+                        Rate Experience
+                      </button>
+
+                      <button
+                        (click)="claimCertificate()"
+                        [disabled]="isProcessing()"
+                        class="relative z-10 px-8 py-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full transition-all shadow-xl shadow-white/10 
+         hover:bg-indigo-50 hover:scale-105 active:scale-95 
+         disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 cursor-pointer"
+                      >
+                        @if (isProcessing()) {
+                          <span class="flex items-center gap-2">
+                            <svg class="animate-spin h-3 w-3 text-black" viewBox="0 0 24 24">
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                                fill="none"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Processing...
+                          </span>
+                        } @else {
+                          Claim Certificate
+                        }
                       </button>
                     </div>
+
+                    <!-- Rating Stars & Feedback Input -->
                   </div>
                 } @else {
                   @if (lastActivity(); as last) {
@@ -920,6 +957,98 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
               </div>
             </div>
           }
+
+          @if (showRatingModal()) {
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <!-- Backdrop with heavy blur for focus -->
+              <div
+                class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300"
+                (click)="closeRatingModal()"
+              ></div>
+
+              <!-- Modal Content: Dark Slate/Indigo Theme -->
+              <div
+                class="relative w-full max-w-lg bg-slate-900 border border-white/10 rounded-[2.5rem] p-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden"
+              >
+                <!-- Subtle Decorative Glow -->
+                <div
+                  class="absolute -top-24 -right-24 size-48 bg-indigo-500/10 blur-3xl rounded-full"
+                ></div>
+
+                <div class="relative z-10 flex flex-col items-center text-center gap-8">
+                  <!-- Header -->
+                  <div class="flex flex-col items-center gap-1">
+                    <h2
+                      class="text-white text-md font-black uppercase italic tracking-tighter leading-tight"
+                    >
+                      Rate this Course
+                    </h2>
+                  </div>
+
+                  <!-- Star Rating: Balanced Spacing -->
+                  <div class="flex items-center gap-3">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <button
+                        (click)="setRating(star)"
+                        class="group cursor-pointer transition-transform active:scale-90 outline-none"
+                      >
+                        <svg
+                          [class]="
+                            star <= currentRating()
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-slate-700'
+                          "
+                          class="size-9 transition-all duration-300 group-hover:scale-110"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+                          />
+                        </svg>
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Feedback Input -->
+                  <div class="w-full space-y-2">
+                    <label
+                      class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left ml-2"
+                    >
+                      Additional Thoughts
+                    </label>
+                    <textarea
+                      [(ngModel)]="feedbackText"
+                      class="custom-scrollbar w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 min-h-32 transition-colors resize-none"
+                      placeholder="Tell us what you liked or what could be improved..."
+                    >
+                    </textarea>
+                  </div>
+
+                  <!-- Action Buttons: Unified Widths -->
+                  <div class="flex flex-col w-full gap-3">
+                    <button
+                      (click)="submitRating()"
+                      [disabled]="currentRating() === 0 || isSubmitting()"
+                      class="w-full py-4 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20 active:scale-[0.98] cursor-pointer"
+                    >
+                      {{ isSubmitting() ? 'Sending...' : 'Submit Review' }}
+                    </button>
+
+                    <button
+                      (click)="closeRatingModal()"
+                      class="w-full py-4 bg-white/5 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-white/10 transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
         </main>
       }
     </div>
@@ -952,6 +1081,24 @@ import { LearningStepResponse } from '../../../services/learning-step.service';
       .ql-editor {
         line-height: 1.7;
         font-size: 14px;
+      }
+
+      /* Target the textarea within your modal specifically */
+      textarea.custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      textarea.custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      textarea.custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.2); /* Subtle Indigo */
+        border-radius: 20px;
+      }
+
+      textarea.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.4); /* Brighter on hover */
       }
     `,
   ],
@@ -1245,19 +1392,97 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  certificate = signal<CertificateResponse | null>(null);
 
   public claimCertificate(): void {
-  const enrollmentId = this.enrollment()?.id;
-  // if (!enrollmentId) return;
+    const enrollmentId = this.enrollment()?.id;
+    if (!enrollmentId || this.isProcessing()) return;
 
-  // // 1. Show a loading state (maybe change button text to 'Generating...')
-  // // 2. Call your enrollment service
-  // this.enrollmentService.issueCertificate(enrollmentId).subscribe({
-  //   next: (certificate) => {
-  //     // 3. Navigate to the certificate view or open the RustFS URL directly
-  //     window.open(certificate.certificateUrl, '_blank');
-  //   },
-  //   error: (err) => console.error('Certificate issuance failed', err)
-  // });
-}
+    this.isProcessing.set(true);
+
+    this.enrollmentService.claimCertificate(enrollmentId).subscribe({
+      next: (certificate: CertificateResponse) => {
+        // 3. Navigate to the certificate view or open the RustFS URL directly
+        window.open(certificate.certificateUrl, '_blank');
+        this.isProcessing.set(false);
+      },
+      error: (err: any) => {
+        this.isProcessing.set(false);
+        console.error('Certificate issuance failed', err);
+        this.notificationService.error('Failed to claim certificate');
+      },
+    });
+  }
+
+  // --- Signals for State Management ---
+
+  // Controls the visibility of the rating modal
+  showRatingModal = signal<boolean>(false);
+
+  // Stores the current star selection (0-5)
+  currentRating = signal<number>(0);
+
+  // Tracks if a submission is currently in flight to the backend
+  isSubmitting = signal<boolean>(false);
+
+  // --- Regular Variables ---
+
+  // Bound to the textarea via [(ngModel)]
+  feedbackText: string = '';
+
+  // --- Methods ---
+
+  /**
+   * Opens the modal and resets the previous state
+   */
+  openRatingModal(): void {
+    this.currentRating.set(0);
+    this.feedbackText = '';
+    this.showRatingModal.set(true);
+  }
+
+  /**
+   * Closes the modal without saving
+   */
+  closeRatingModal(): void {
+    this.showRatingModal.set(false);
+  }
+
+  /**
+   * Sets the star rating value
+   * @param val The number of stars selected
+   */
+  setRating(val: number): void {
+    this.currentRating.set(val);
+  }
+
+  /**
+   * Handles the submission to your Spring Boot rating service
+   */
+  async submitRating(): Promise<void> {
+    if (this.currentRating() === 0) return;
+
+    this.isSubmitting.set(true);
+
+    try {
+      // Logic for POST request to your self-managed K8s cluster
+      const payload = {
+        rating: this.currentRating(),
+        comment: this.feedbackText,
+        courseId: 'your-course-id', // Replace with dynamic ID
+        learnerId: 'your-learner-id', // Managed via Keycloak identity
+      };
+
+      console.log('Sending to Rating Service:', payload);
+
+      // Simulate a network delay for the UI
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      this.closeRatingModal();
+    } catch (error) {
+      console.error('Rating failed:', error);
+    } finally {
+      this.isSubmitting.set(false);
+    }
+  }
 }

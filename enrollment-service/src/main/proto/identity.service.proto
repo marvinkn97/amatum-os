@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package identity;
+
+option java_multiple_files = true;
+option java_package = "dev.marvin.identity.proto";
+option java_outer_classname = "IdentityProto";
+
+service IdentityService {
+  rpc GetUserById (UserRequest) returns (UserResponse);
+
+  rpc GetOrganizationById (OrgRequest) returns (OrgResponse);
+}
+
+message UserRequest {
+  string user_id = 1;
+}
+
+message UserResponse {
+  string user_id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+}
+
+message OrgRequest {
+  string org_id = 1;
+}
+
+message OrgResponse {
+  string org_id = 1;
+  string name = 2;
+  string slug = 3;
+}

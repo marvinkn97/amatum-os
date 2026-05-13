@@ -12,4 +12,9 @@ spring:
   profiles:
     active: dev
 
+  grpc:
+    server:
+      enabled: true
+      port: 9091
+
 

@@ -13,9 +13,5 @@ logging:
   level:
     root: info
 
-app:
-  domain:
-    quiz-attempt:
-      passmark: 50
 
 
