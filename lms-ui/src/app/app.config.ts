@@ -13,7 +13,7 @@ import {
 
 // Only attach token for your backend
 const urlCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-  urlPattern: /^(http:\/\/localhost:(8081|8082|8083))(\/.*)?$/i,
+  urlPattern: /^(http:\/\/localhost:(8081|8082|8083|8084))(\/.*)?$/i,
   bearerPrefix: 'Bearer',
 });
 

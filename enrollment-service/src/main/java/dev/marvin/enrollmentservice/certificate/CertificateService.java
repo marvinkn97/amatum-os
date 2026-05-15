@@ -4,12 +4,17 @@ import com.github.jknack.handlebars.Template;
 import dev.marvin.enrollmentservice.exception.ServiceException;
 import dev.marvin.enrollmentservice.grpc.CourseServiceGrpcClient;
 import dev.marvin.enrollmentservice.grpc.IdentityServiceGrpcClient;
+import dev.marvin.enrollmentservice.security.TenantContext;
 import dev.marvin.enrollmentservice.storage.rustfs.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
@@ -42,6 +47,7 @@ public class CertificateService {
                 CertificateEntity cert = existingCert.get();
                 return new CertificateResponse(
                         cert.getSerialNumber(),
+                        cert.getTitle(),
                         cert.getCertificateUrl(),
                         cert.getIssuedAt()
                 );
@@ -81,17 +87,20 @@ public class CertificateService {
             String publicUrl = s3Service.uploadCertificate(pdfBytes, fileName);
 
             CertificateEntity certificate = CertificateEntity.builder()
+                    .title(course.getTitle())
                     .learnerId(request.learnerId())
                     .enrollmentId(request.enrollmentId())
                     .serialNumber(serialNumber)
                     .certificateUrl(publicUrl)
                     .issuedAt(now)
+                    .tenantId(request.tenantId())
                     .build();
 
             certificate = certificateRepository.save(certificate);
 
             return new CertificateResponse(
                     certificate.getSerialNumber(),
+                    certificate.getCertificateUrl(),
                     certificate.getCertificateUrl(),
                     certificate.getIssuedAt()
             );
@@ -128,5 +137,20 @@ public class CertificateService {
                 .body(body)
                 .retrieve()
                 .body(byte[].class);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CertificateResponse> getAll(Authentication authentication, Pageable pageable) {
+        UUID learnerId = UUID.fromString(authentication.getName());
+        String activeTenantId = TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : null;
+        log.info("Getting certificates for learner {} and tenant {}", learnerId, activeTenantId);
+
+        return certificateRepository.findByLearnerIdAndTenantId(learnerId, activeTenantId, pageable)
+                .map(cert -> new CertificateResponse(
+                        cert.getSerialNumber(),
+                        cert.getTitle(),
+                        cert.getCertificateUrl(),
+                        cert.getIssuedAt()
+                ));
     }
 }

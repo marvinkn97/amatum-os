@@ -7,23 +7,20 @@ import {
   inject,
   DestroyRef,
   signal,
+  effect,
+  untracked,
 } from '@angular/core';
-
-interface Certificate {
-  id: string;
-  courseTitle: string;
-  issueDate: string;
-  organization: string;
-  verificationId: string;
-  accentColor: string;
-}
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CertificateService } from '../../../services/certificate.service';
+import { CertificateResponse } from '../../../services/certificate.service';
+import { TenantService } from '../../../services/tenant.service';
 
 @Component({
   selector: 'app-my-certificates',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20 px-4 md:px-6">
+    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
       <header
         class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
       >
@@ -31,36 +28,26 @@ interface Certificate {
           <h1 class="text-md font-black text-white italic tracking-tighter mb-2 uppercase">
             Certifications
           </h1>
-          <p class="text-slate-500 text-xs md:text-sm font-medium uppercase tracking-widest">
-            Verified credentials.
-          </p>
-        </div>
-
-        <div
-          class="flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl px-6 py-3 backdrop-blur-3xl w-full md:w-auto"
-        >
-          <span
-            class="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest"
-          >
-            {{ certificates().length }} Records Found
-          </span>
+          <p class="text-slate-500 text-sm font-medium">Professional milestones achieved.</p>
         </div>
       </header>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        @for (cert of certificates(); track cert.id) {
+      <!-- Reduced max-width on the grid container to prevent empty space -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-5xl">
+        @for (cert of certificates(); track cert.serialNumber; let i = $index) {
           <div
-            class="group bg-white/2 border border-white/5 rounded-[2.5rem] p-6 md:p-8 backdrop-blur-md hover:border-indigo-500/40 transition-all duration-500 flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start lg:items-center"
+            class="group bg-white/2 border border-white/5 rounded-4xl p-5 md:p-6 backdrop-blur-md hover:border-indigo-500/40 transition-all duration-500 flex flex-col md:flex-row gap-5 md:gap-6 items-center md:items-start"
           >
+            <!-- Reduced container size (size-16) and SVG size (size-6) -->
             <div
               [class]="
-                'size-20 md:size-24 shrink-0 rounded-3xl flex items-center justify-center border border-white/10 relative overflow-hidden ' +
-                cert.accentColor
+                'size-16 md:size-20 shrink-0 rounded-2xl flex items-center justify-center border border-white/10 relative overflow-hidden ' +
+                getAccentColor(i)
               "
             >
               <div class="absolute inset-0 bg-linear-to-br from-white/10 to-transparent"></div>
               <svg
-                class="size-8 md:size-10 text-white/40 group-hover:text-white transition-colors relative z-10"
+                class="size-6 md:size-7 text-white/40 group-hover:text-white transition-colors relative z-10"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -75,31 +62,27 @@ interface Certificate {
             <div
               class="flex-1 flex flex-col items-center md:items-start text-center md:text-left justify-center"
             >
-              <div
-                class="flex flex-col md:flex-row md:items-center justify-between w-full mb-1 gap-1"
-              >
-                <span
-                  class="text-[8px] md:text-[9px] font-black text-indigo-400 uppercase tracking-widest"
-                  >{{ cert.organization }}</span
-                >
-                <span class="text-[8px] font-mono text-slate-600 tracking-tighter">{{
-                  cert.verificationId
-                }}</span>
+              <div class="mb-1">
+                <span class="text-[10px] font-mono text-slate-600 tracking-tighter">
+                  #{{ cert.serialNumber }}
+                </span>
               </div>
 
               <h3
-                class="text-lg md:text-xl font-black text-white italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors"
+                class="text-md font-black text-white italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors"
               >
-                {{ cert.courseTitle }}
+                {{ cert.title }}
               </h3>
 
-              <p class="text-[9px] text-slate-500 font-bold uppercase mt-2 tracking-widest italic">
-                Issued: {{ cert.issueDate }}
+              <p class="text-[9px] text-slate-500 font-bold uppercase mt-1 tracking-widest italic">
+                Issued: {{ cert.issuedAt | date: 'MMM dd, yyyy' }}
               </p>
 
-              <div class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6 mt-6">
-                <button
-                  class="text-[9px] font-black uppercase text-white hover:text-indigo-400 transition-all tracking-widest flex items-center gap-2 group/btn"
+              <div class="mt-4">
+                <a
+                  [href]="cert.certificateUrl"
+                  target="_blank"
+                  class="text-[9px] font-black uppercase text-white hover:text-indigo-400 transition-all tracking-widest flex items-center gap-2 group/btn no-underline"
                 >
                   <svg
                     class="size-4 text-slate-500 group-hover/btn:text-indigo-400"
@@ -112,24 +95,8 @@ interface Certificate {
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                     />
                   </svg>
-                  Download
-                </button>
-                <button
-                  class="text-[9px] font-black uppercase text-slate-500 hover:text-white transition-all tracking-widest flex items-center gap-2 group/btn"
-                >
-                  <svg
-                    class="size-4 text-slate-600 group-hover/btn:text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-width="2"
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                    />
-                  </svg>
-                  Verify
-                </button>
+                  Download Certificate
+                </a>
               </div>
             </div>
           </div>
@@ -164,62 +131,72 @@ interface Certificate {
 })
 export class MyCertificatesComponent implements AfterViewInit {
   @ViewChild('sentinel') sentinel!: ElementRef;
-  private destroyRef = inject(DestroyRef);
 
+  private certificateService = inject(CertificateService);
+  private destroyRef = inject(DestroyRef);
+  private tenantService = inject(TenantService);
+
+  certificates = signal<CertificateResponse[]>([]);
+  totalRecords = signal(0);
   isLoading = signal(false);
+  currentPage = signal(0);
   hasMore = signal(true);
 
-  certificates = signal<Certificate[]>([
-    {
-      id: '1',
-      courseTitle: 'Enterprise Spring Boot',
-      issueDate: 'JAN 2026',
-      organization: 'Amatum Academy',
-      verificationId: 'HEX-992-B',
-      accentColor: 'bg-emerald-500/10',
-    },
-    {
-      id: '2',
-      courseTitle: 'UI/UX Sovereign Systems',
-      issueDate: 'FEB 2026',
-      organization: 'Lumina Design',
-      verificationId: 'HEX-441-A',
-      accentColor: 'bg-indigo-500/10',
-    },
-    {
-      id: '3',
-      courseTitle: 'Multi-Tenant Security',
-      issueDate: 'MAR 2026',
-      organization: 'CyberArmor',
-      verificationId: 'HEX-102-C',
-      accentColor: 'bg-red-500/10',
-    },
-  ]);
+  constructor() {
+    effect(() => {
+      // Re-trigger reload when filter signals change
+      this.tenantService.tenantId();
+      untracked(() => this.resetAndReload());
+    });
+  }
+
+  private resetAndReload() {
+    this.certificates.set([]); // Clear current list
+    this.currentPage.set(0); // Reset to page 0
+    this.hasMore.set(true); // Reset pagination flag
+    this.fetchCertificates(); // Trigger fresh load
+  }
 
   ngAfterViewInit() {
     this.setupInfiniteScroll();
+  }
+
+  getAccentColor(index: number): string {
+    const colors = ['bg-emerald-500/10', 'bg-indigo-500/10', 'bg-rose-500/10', 'bg-amber-500/10'];
+    return colors[index % colors.length];
   }
 
   private setupInfiniteScroll() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !this.isLoading() && this.hasMore()) {
-          this.loadMore();
+          this.fetchCertificates();
         }
       },
-      { rootMargin: '100px' },
+      { rootMargin: '200px' },
     );
 
     observer.observe(this.sentinel.nativeElement);
     this.destroyRef.onDestroy(() => observer.disconnect());
   }
 
-  private loadMore() {
+  private fetchCertificates() {
     this.isLoading.set(true);
-    // Mocking Spring Boot latency
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.hasMore.set(false); // No more data for this demo
-    }, 1000);
+
+    this.certificateService
+      .getLearnerCertificates(this.currentPage(), 10)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const newCerts = response._embedded?.certificateResponseList || [];
+          this.certificates.update((current) => [...current, ...newCerts]);
+          this.totalRecords.set(response.page.totalElements);
+
+          this.hasMore.set(this.currentPage() < response.page.totalPages - 1);
+          this.currentPage.update((p) => p + 1);
+          this.isLoading.set(false);
+        },
+        error: () => this.isLoading.set(false),
+      });
   }
 }

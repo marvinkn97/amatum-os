@@ -31,11 +31,10 @@ services:
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: password
       KC_HEALTH_ENABLED: "true"
-      # FIX 1: Force health endpoints to port 8080 instead of 9000
       KC_HTTP_MANAGEMENT_HEALTH_ENABLED: "false"
     command: start-dev
     ports:
-      - "9000:8080" # Host 9000 -> Container 8080 (UI & Health)
+      - "9000:8080"
     depends_on:
       amatum-postgres-keycloak:
         condition: service_healthy
@@ -43,14 +42,6 @@ services:
       - keycloak-data:/opt/keycloak/data
     networks:
       - amatum-network
-    healthcheck:
-      # FIX 2: Use a TCP socket check (no curl/wget required)
-      # FIX 3: Check port 8080
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080; echo -e 'GET /health/live HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n' >&3; grep 'HTTP/1.1 200 OK' <&3" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
 
   identity-db:
     image: postgres:latest
@@ -115,6 +106,27 @@ services:
       retries: 5
       start_period: 5s
 
+  rating-db:
+    image: postgres:latest
+    container_name: rating-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rating_db
+    ports:
+      - "54324:5432"
+    networks:
+      - amatum-network
+    volumes:
+      - rating-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d rating_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   pgadmin:
     image: dpage/pgadmin4:7
     container_name: amatum-pgadmin
@@ -141,7 +153,7 @@ services:
     networks:
       - amatum-network
     volumes:
-      - rustfs-data:/data # This is the ONLY volume you need
+      - rustfs-data:/data
 
 
   gotenberg:
@@ -160,6 +172,50 @@ services:
         limits:
           memory: 512M
 
+  kafka:
+    image: apache/kafka-native:3.8.0
+    container_name: amatum-kafka
+    ports:
+      - "29092:29092"
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+    networks:
+      - amatum-network
+    volumes:
+      - ./kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # MODERN UI CLIENT (Kafka UI)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: amatum-kafka-ui
+    ports:
+      - "8088:8080" # Access UI at http://localhost:8088
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=amatum-cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092 # Uses INTERNAL listener
+      - DYNAMIC_CONFIG_ENABLED=true
+    networks:
+      - amatum-network
+    depends_on:
+      - kafka
+
 volumes:
   keycloak-data:
   postgres-keycloak-data:
@@ -168,6 +224,8 @@ volumes:
   pgadmin-data:
   rustfs-data:
   enrollment-db-data:
+  rating-db-data:
+  kafka-data:
 
 
 networks:

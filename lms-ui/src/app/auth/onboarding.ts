@@ -68,7 +68,7 @@ import { IdentityService } from '../services/identity.service';
               }
             </div>
 
-            <h2 class="text-3xl font-bold mb-3 text-white">
+            <h2 class="text-md font-bold mb-3 text-white">
               {{ loading && currentRole === 'learner' ? 'Setting up...' : "I'm here to learn" }}
             </h2>
 
@@ -128,7 +128,7 @@ import { IdentityService } from '../services/identity.service';
               }
             </div>
 
-            <h2 class="text-3xl font-bold mb-3 text-white">
+            <h2 class="text-md font-bold mb-3 text-white">
               {{
                 loading && currentRole === 'manager' && !showOrgDialog
                   ? 'Opening...'

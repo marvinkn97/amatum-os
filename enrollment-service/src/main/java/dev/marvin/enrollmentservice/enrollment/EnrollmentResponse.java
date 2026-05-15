@@ -17,11 +17,12 @@ public record EnrollmentResponse(
         Integer progress,
         UUID lastLearningStepId,
         LocalDateTime lastActivityAt,
+        Boolean isRated,
         CourseView course
         ) {
 
         public EnrollmentResponse(UUID id, EnrollmentStatus status, Boolean isCompleted, Integer progress, UUID lastLearningStepId, LocalDateTime lastActivityAt) {
-                this(id, status, isCompleted, progress,lastLearningStepId, lastActivityAt, null);
+                this(id, status, isCompleted, progress,lastLearningStepId, lastActivityAt,null, null);
         }
 
         public sealed interface CourseView permits CourseSummaryDto, CourseResponse {

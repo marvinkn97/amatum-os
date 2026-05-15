@@ -1,0 +1,46 @@
+server:
+  port: 8084
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:54324/rating_db
+    username: postgres
+    password: password
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000/realms/amatum
+
+  grpc:
+    server:
+      enabled: true
+      port: 9094
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: 1
+      retries: 3
+      properties:
+        linger.ms: 10
+    admin:
+      auto-create: true
+
+
+keycloak:
+  clients:
+    lumina-client-id: lms-ui
+    opus-client-id: opus-ui

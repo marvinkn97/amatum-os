@@ -21,6 +21,7 @@ public class EnrollmentMapper {
                 enrollmentEntity.getProgress(),
                 enrollmentEntity.getLastLearningStepId(),
                 enrollmentEntity.getUpdatedAt(),
+                enrollmentEntity.isRated(),
                 courseView);
     }
 }

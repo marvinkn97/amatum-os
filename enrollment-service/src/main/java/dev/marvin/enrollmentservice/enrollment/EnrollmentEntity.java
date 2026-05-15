@@ -57,4 +57,6 @@ public class EnrollmentEntity {
 
     private int progress;
     private int completedSteps;
+
+    private boolean isRated;
 }

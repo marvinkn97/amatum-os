@@ -34,6 +34,18 @@ spring:
         address: localhost
         port: 9091
 
+  kafka:
+    bootstrap-servers: 127.0.0.1:29092
+    consumer:
+      group-id: enrollment-service-consumer
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      properties:
+        session.timeout.ms: 45000
+        heartbeat.interval.ms: 15000
+
 keycloak:
   clients:
     lumina-client-id: lms-ui

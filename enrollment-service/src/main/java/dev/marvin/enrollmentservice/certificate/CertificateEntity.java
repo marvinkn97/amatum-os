@@ -23,11 +23,14 @@ public class CertificateEntity {
     @Version
     private Long version;
 
+    private String title;
+
     private UUID enrollmentId;
     private UUID learnerId;
     private String certificateUrl;
     private UUID serialNumber;
     private LocalDateTime issuedAt;
+    private String tenantId;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

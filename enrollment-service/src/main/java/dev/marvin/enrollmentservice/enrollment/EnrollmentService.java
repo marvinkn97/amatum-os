@@ -40,6 +40,8 @@ public class EnrollmentService {
     private final QuizAttemptService quizAttemptService;
     private final CertificateService certificateService;
 
+    private static final String ENROLLMENT_NOT_FOUND_MSG = "Enrollment with given id [%s] not found";
+
     @Transactional
     public EnrollmentResponse enroll(EnrollmentRequest enrollmentRequest, Authentication authentication) {
         UUID learnerId = UUID.fromString(authentication.getName());
@@ -180,19 +182,12 @@ public class EnrollmentService {
         // Load enrollment
         EnrollmentEntity enrollment = enrollmentRepository
                 .findByIdAndLearnerId(enrollmentId, learnerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Enrollment with given id [%s] not found".formatted(enrollmentId)
-                        )
-                );
+                .orElseThrow(() -> new ResourceNotFoundException(ENROLLMENT_NOT_FOUND_MSG.formatted(enrollmentId)));
 
-        // gRPC call - course structure
-        var course = courseServiceGrpcClient
-                .getCourseDetails(enrollment.getCourseId().toString());
+        var course = courseServiceGrpcClient.getCourseDetails(enrollment.getCourseId().toString());
 
         log.info("Course details fetched for course {}", enrollment.getCourseId());
 
-        // Load the progress map (stepId -> progress entity)
         Map<UUID, LearningStepProgressEntity> progressMap =
                 learningStepProgressRepository
                         .findByEnrollment_IdAndLearnerId(enrollmentId, learnerId)
@@ -200,10 +195,9 @@ public class EnrollmentService {
                         .collect(Collectors.toMap(
                                 LearningStepProgressEntity::getLearningStepId,
                                 p -> p,
-                                (a, b) -> a // safety in case of duplicates
+                                (a, _) -> a // safety in case of duplicates
                         ));
 
-        // Build course response with progress injection
         EnrollmentResponse.CourseResponse courseResponse =
                 new EnrollmentResponse.CourseResponse(
                         UUID.fromString(course.getId()),
@@ -277,7 +271,6 @@ public class EnrollmentService {
                         ).toList()
                 );
 
-        // 5. Final response
         return new EnrollmentResponse(
                 enrollment.getId(),
                 enrollment.getStatus(),
@@ -285,6 +278,7 @@ public class EnrollmentService {
                 enrollment.getProgress(),
                 enrollment.getLastLearningStepId(),
                 enrollment.getUpdatedAt(),
+                enrollment.isRated(),
                 courseResponse
         );
     }
@@ -295,7 +289,7 @@ public class EnrollmentService {
         UUID learnerId = UUID.fromString(authentication.getName());
 
         EnrollmentEntity enrollmentEntity = enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
-                .orElseThrow(() -> new BadRequestException("Enrollment with given id [%s] not found".formatted(enrollmentId)));
+                .orElseThrow(() -> new BadRequestException(ENROLLMENT_NOT_FOUND_MSG.formatted(enrollmentId)));
 
         if (learningStepProgressRepository.existsByEnrollment_IdAndLearnerIdAndLearningStepIdAndIsCompleted(enrollmentId, learnerId, stepId, true)) {
             throw new BadRequestException("Learning step already marked as completed");
@@ -312,7 +306,7 @@ public class EnrollmentService {
         UUID learnerId = UUID.fromString(authentication.getName());
 
         EnrollmentEntity enrollmentEntity = enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
-                .orElseThrow(() -> new BadRequestException("Enrollment with given id [%s] not found".formatted(enrollmentId)));
+                .orElseThrow(() -> new BadRequestException(ENROLLMENT_NOT_FOUND_MSG.formatted(enrollmentId)));
 
 
         if (!learningStepProgressRepository.existsByEnrollment_IdAndLearnerIdAndLearningStepIdAndIsCompleted(enrollmentId, learnerId, stepId, true)) {
@@ -372,7 +366,7 @@ public class EnrollmentService {
         UUID learnerId = UUID.fromString(authentication.getName());
 
         EnrollmentEntity enrollmentEntity = enrollmentRepository.findByIdAndLearnerId(enrollmentId, learnerId)
-                .orElseThrow(() -> new BadRequestException("Enrollment with given id [%s] not found".formatted(enrollmentId)));
+                .orElseThrow(() -> new BadRequestException(ENROLLMENT_NOT_FOUND_MSG.formatted(enrollmentId)));
 
         if (!enrollmentEntity.isCompleted()) {
             throw new BadRequestException("Course must be completed before claiming a certificate");
@@ -383,6 +377,22 @@ public class EnrollmentService {
                 enrollmentEntity.getCourseId(),
                 enrollmentId,
                 enrollmentEntity.getTenantId()));
+    }
+
+    @Transactional
+    public void markEnrollmentAsRated(UUID enrollmentId) {
+        log.info("Marking enrollment {} as rated", enrollmentId);
+
+        EnrollmentEntity enrollmentEntity = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new BadRequestException(ENROLLMENT_NOT_FOUND_MSG.formatted(enrollmentId)));
+
+        if(enrollmentEntity.isRated()) {
+            log.info("Enrollment {} is already rated", enrollmentId);
+            return;
+        }
+
+        enrollmentEntity.setRated(true);
+        enrollmentRepository.save(enrollmentEntity);
     }
 
 }

@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/identity-service/identity-service.iml" filepath="$PROJECT_DIR$/identity-service/identity-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/lms-ui/lms-ui.iml" filepath="$PROJECT_DIR$/lms-ui/lms-ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/opus-ui/opus-ui.iml" filepath="$PROJECT_DIR$/opus-ui/opus-ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rating-service/rating-service.iml" filepath="$PROJECT_DIR$/rating-service/rating-service.iml" />
     </modules>
   </component>
 </project>

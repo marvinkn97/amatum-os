@@ -135,9 +135,7 @@ public class QuizAttemptService {
 
         quizAttemptRepository.save(quizAttempt);
 
-        attemptAnswers.forEach(answer ->
-                answer.setQuizAttempt(quizAttempt)
-        );
+        attemptAnswers.forEach(answer -> answer.setQuizAttempt(quizAttempt));
 
         quizAttemptAnswerRepository.saveAll(attemptAnswers);
 

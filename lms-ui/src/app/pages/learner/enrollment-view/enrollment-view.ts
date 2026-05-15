@@ -16,11 +16,12 @@ import {
   QuizAttemptRequest,
   QuizAttemptResponse,
 } from '../../../services/enrollment.service';
-import { finalize, map, Subject, takeUntil, filter } from 'rxjs';
+import { finalize, map, Subject, takeUntil, filter, repeat, take, timeout } from 'rxjs';
 import { NotificationService } from '../../../services/notification.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LearningStepResponse } from '../../../services/learning-step.service';
 import { FormsModule } from '@angular/forms';
+import { RatingRequest, RatingService } from '../../../services/rating.service';
 
 @Component({
   selector: 'app-enrollment-view',
@@ -320,6 +321,87 @@ import { FormsModule } from '@angular/forms';
                           </button>
                         </div>
                       </div>
+                      <footer
+                        class="pt-10 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-8"
+                      >
+                        <!-- BACK BUTTON -->
+                        <div class="flex-1 flex justify-start order-2 sm:order-1">
+                          @if (previousStep(); as prev) {
+                            <button
+                              (click)="navigateToStep(prev)"
+                              class="group flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/10"
+                            >
+                              <div
+                                class="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-indigo-500/50 transition-colors"
+                              >
+                                <svg
+                                  class="size-3.5 text-slate-500 group-hover:text-indigo-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15.75 19.5L8.25 12l7.5-7.5"
+                                  />
+                                </svg>
+                              </div>
+                              <div class="flex flex-col items-start">
+                                <span
+                                  class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+                                  >Previous</span
+                                >
+                                <span
+                                  class="text-[11px] font-bold text-white/40 group-hover:text-white transition-colors max-w-32 truncate italic"
+                                >
+                                  {{ prev.title }}
+                                </span>
+                              </div>
+                            </button>
+                          }
+                        </div>
+
+                        <!-- NEXT BUTTON -->
+                        <div class="flex-1 flex justify-end order-3">
+                          @if (nextStep(); as next) {
+                            <button
+                              (click)="navigateToStep(next)"
+                              class="group flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/10 text-right"
+                            >
+                              <div class="flex flex-col items-end">
+                                <span
+                                  class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+                                  >Next</span
+                                >
+                                <span
+                                  class="text-[11px] font-bold text-white/40 group-hover:text-white transition-colors max-w-32 truncate italic"
+                                >
+                                  {{ next.title }}
+                                </span>
+                              </div>
+                              <div
+                                class="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-indigo-500/50 transition-colors"
+                              >
+                                <svg
+                                  class="size-3.5 text-slate-500 group-hover:text-indigo-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                                  />
+                                </svg>
+                              </div>
+                            </button>
+                          }
+                        </div>
+                      </footer>
                     }
                   </div>
                 }
@@ -417,65 +499,135 @@ import { FormsModule } from '@angular/forms';
                       </div>
                     </section>
                   }
-
-                  <footer class="pt-10 border-t border-white/5 flex justify-center">
-                    <button
-                      (click)="markAsCompleted()"
-                      [disabled]="isProcessing() || selectedStep()?.progress?.isCompleted"
-                      [class.bg-indigo-600]="!selectedStep()?.progress?.isCompleted"
-                      [class.hover:bg-indigo-500]="!selectedStep()?.progress?.isCompleted"
-                      [class.bg-emerald-500]="selectedStep()?.progress?.isCompleted"
-                      [class.cursor-not-allowed]="
-                        isProcessing() || selectedStep()?.progress?.isCompleted
-                      "
-                      [class.opacity-80]="isProcessing()"
-                      class="px-10 py-4 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-indigo-600/20 cursor-pointer flex items-center gap-3 min-w-45 justify-center"
-                    >
-                      @if (isProcessing()) {
-                        <!-- SPINNER -->
-                        <svg
-                          class="animate-spin h-4 w-4 text-white"
-                          fill="none"
-                          viewBox="0 0 24 24"
+                  <footer
+                    class="pt-10 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-8"
+                  >
+                    <!-- BACK BUTTON -->
+                    <div class="flex-1 flex justify-start order-2 sm:order-1">
+                      @if (previousStep(); as prev) {
+                        <button
+                          (click)="navigateToStep(prev)"
+                          class="group flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/10"
                         >
-                          <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                          ></circle>
-                          <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        <span>Updating...</span>
-                      } @else if (selectedStep()?.progress?.isCompleted) {
-                        <!-- COMPLETED STATE -->
-                        <div class="flex items-center gap-2">
-                          <svg
-                            class="size-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="3"
+                          <div
+                            class="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-indigo-500/50 transition-colors"
                           >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          <span>Step Completed</span>
-                        </div>
-                      } @else {
-                        <!-- DEFAULT STATE -->
-                        <span>Mark as Completed</span>
+                            <svg
+                              class="size-3.5 text-slate-500 group-hover:text-indigo-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              stroke-width="3"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15.75 19.5L8.25 12l7.5-7.5"
+                              />
+                            </svg>
+                          </div>
+                          <div class="flex flex-col items-start">
+                            <span
+                              class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+                              >Previous</span
+                            >
+                            <span
+                              class="text-[11px] font-bold text-white/40 group-hover:text-white transition-colors max-w-32 truncate italic"
+                            >
+                              {{ prev.title }}
+                            </span>
+                          </div>
+                        </button>
                       }
-                    </button>
+                    </div>
+
+                    <!-- CENTER: MARK AS COMPLETED -->
+                    <div class="flex justify-center order-1 sm:order-2 w-full sm:w-auto">
+                      <button
+                        (click)="markAsCompleted()"
+                        [disabled]="isProcessing() || selectedStep()?.progress?.isCompleted"
+                        [class.bg-indigo-600]="!selectedStep()?.progress?.isCompleted"
+                        [class.bg-emerald-500]="selectedStep()?.progress?.isCompleted"
+                        class="px-10 py-4 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-3 min-w-52 justify-center border border-white/10"
+                      >
+                        @if (isProcessing()) {
+                          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle
+                              class="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              stroke-width="4"
+                            ></circle>
+                            <path
+                              class="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          <span>Updating...</span>
+                        } @else if (selectedStep()?.progress?.isCompleted) {
+                          <div class="flex items-center gap-2">
+                            <svg
+                              class="size-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              stroke-width="3"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span>Step Completed</span>
+                          </div>
+                        } @else {
+                          <span>Mark as Completed</span>
+                        }
+                      </button>
+                    </div>
+
+                    <!-- NEXT BUTTON -->
+                    <div class="flex-1 flex justify-end order-3">
+                      @if (nextStep(); as next) {
+                        <button
+                          (click)="navigateToStep(next)"
+                          class="group flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/10 text-right"
+                        >
+                          <div class="flex flex-col items-end">
+                            <span
+                              class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+                              >Next</span
+                            >
+                            <span
+                              class="text-[11px] font-bold text-white/40 group-hover:text-white transition-colors max-w-32 truncate italic"
+                            >
+                              {{ next.title }}
+                            </span>
+                          </div>
+                          <div
+                            class="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-indigo-500/50 transition-colors"
+                          >
+                            <svg
+                              class="size-3.5 text-slate-500 group-hover:text-indigo-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              stroke-width="3"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                              />
+                            </svg>
+                          </div>
+                        </button>
+                      }
+                    </div>
                   </footer>
                 }
               </div>
@@ -518,7 +670,7 @@ import { FormsModule } from '@angular/forms';
                           <span
                             class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] animate-pulse"
                           >
-                            Mission Accomplished
+                            Milestone Achieved
                           </span>
                           <p
                             class="text-slate-500 text-[10px] font-medium uppercase tracking-widest"
@@ -528,12 +680,14 @@ import { FormsModule } from '@angular/forms';
                         </div>
                       </div>
 
-                      <button
-                        (click)="openRatingModal()"
-                        class="px-6 py-3 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-white/10 transition-all cursor-pointer"
-                      >
-                        Rate Experience
-                      </button>
+                      @if (!enrollment()?.isRated) {
+                        <button
+                          (click)="openRatingModal()"
+                          class="px-6 py-3 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-white/10 transition-all cursor-pointer"
+                        >
+                          Rate Experience
+                        </button>
+                      }
 
                       <button
                         (click)="claimCertificate()"
@@ -979,9 +1133,9 @@ import { FormsModule } from '@angular/forms';
                   <!-- Header -->
                   <div class="flex flex-col items-center gap-1">
                     <h2
-                      class="text-white text-md font-black uppercase italic tracking-tighter leading-tight"
+                      class="text-white text-xs font-black uppercase italic tracking-tighter leading-tight"
                     >
-                      Rate this Course
+                      Rating & Feedback
                     </h2>
                   </div>
 
@@ -1019,6 +1173,7 @@ import { FormsModule } from '@angular/forms';
                       class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left ml-2"
                     >
                       Additional Thoughts
+                      <span class="text-slate-700 italic lowercase font-medium">(Optional)</span>
                     </label>
                     <textarea
                       [(ngModel)]="feedbackText"
@@ -1035,7 +1190,7 @@ import { FormsModule } from '@angular/forms';
                       [disabled]="currentRating() === 0 || isSubmitting()"
                       class="w-full py-4 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20 active:scale-[0.98] cursor-pointer"
                     >
-                      {{ isSubmitting() ? 'Sending...' : 'Submit Review' }}
+                      {{ isSubmitting() ? 'Loading...' : 'Submit Review' }}
                     </button>
 
                     <button
@@ -1109,6 +1264,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
   private enrollmentService = inject(EnrollmentService);
   private notificationService = inject(NotificationService);
   public sanitizer = inject(DomSanitizer);
+  private ratingService = inject(RatingService);
 
   enrollment = signal<EnrollmentResponse | null>(null);
   isLoading = signal(true);
@@ -1185,16 +1341,32 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadEnrollment(id: string) {
-    this.isLoading.set(true);
+  private loadEnrollment(id: string, silent = false) {
+    if (!silent) this.isLoading.set(true);
     this.enrollmentService
       .getEnrollmentById(id)
-      .pipe(finalize(() => this.isLoading.set(false)))
+      .pipe(
+        finalize(() => {
+          if (!silent) this.isLoading.set(false);
+        }),
+      )
       .subscribe({
         next: (data) => {
           const cleanDesc = (data.course.description || '').replace(/\u00a0/g, ' ');
           this.enrollment.set(data);
           this.safeDescription = this.sanitizer.bypassSecurityTrustHtml(cleanDesc);
+
+          const currentlySelected = this.selectedStep();
+          if (currentlySelected) {
+            const freshStep = data.course.modules
+              .flatMap((m) => m.learningSteps)
+              .find((s) => s.id === currentlySelected.id);
+
+            if (freshStep) {
+              this.selectedStep.set(freshStep);
+            }
+          }
+
           if (data.course.modules?.length > 0) {
             this.expandRelevantModule(data);
           }
@@ -1202,10 +1374,10 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
         error: () => this.notificationService.error('Failed to load course'),
       });
   }
-
   selectStep(step: LearningStepResponse) {
     this.selectedStep.set(step);
-    // Reset Quiz State on selection
+
+    // Always reset quiz UI state when switching steps
     this.currentQuestionIndex.set(0);
     this.userAnswers.set(new Map());
     this.quizSubmitted.set(!!step?.progress?.isCompleted);
@@ -1361,12 +1533,29 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
         },
       });
   }
+
   retakeQuiz() {
+    const currentStep = this.selectedStep();
+
     this.quizSubmitted.set(false);
-    this.showResultsModal.set(false); // Close the modal
-    this.quizResult.set(null); // Clear previous evaluation
+    this.showResultsModal.set(false);
+    this.quizResult.set(null);
     this.currentQuestionIndex.set(0);
     this.userAnswers.set(new Map());
+
+    // Force refresh the step from latest enrollment data
+    if (currentStep) {
+      const freshEnrollment = this.enrollment();
+      if (freshEnrollment) {
+        const freshStep = freshEnrollment.course.modules
+          .flatMap((m) => m.learningSteps)
+          .find((s) => s.id === currentStep.id);
+
+        if (freshStep) {
+          this.selectedStep.set(freshStep);
+        }
+      }
+    }
   }
 
   private expandRelevantModule(enrollment: EnrollmentResponse) {
@@ -1414,75 +1603,108 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- Signals for State Management ---
+  // 1. Unified Source of Truth for Order
+  allSteps = computed(() => {
+    const enrollment = this.enrollment();
+    if (!enrollment?.course?.modules) return [];
 
-  // Controls the visibility of the rating modal
+    return [...enrollment.course.modules]
+      .sort((a, b) => a.sequence - b.sequence) // Sort Modules
+      .flatMap(
+        (m) => [...m.learningSteps].sort((a, b) => a.sequence - b.sequence), // Sort Steps inside
+      );
+  });
+
+  // 2. Current Index - The "Anchor"
+  currentIndex = computed(() => {
+    const steps = this.allSteps();
+    const current = this.selectedStep();
+    if (!current || steps.length === 0) return -1;
+    return steps.findIndex((s) => s.id === current.id);
+  });
+
+  // 3. Navigation Signals
+  previousStep = computed(() => {
+    const idx = this.currentIndex();
+    return idx > 0 ? this.allSteps()[idx - 1] : null;
+  });
+
+  nextStep = computed(() => {
+    const idx = this.currentIndex();
+    const steps = this.allSteps();
+    return idx !== -1 && idx < steps.length - 1 ? steps[idx + 1] : null;
+  });
+
+  navigateToStep(step: LearningStepResponse) {
+    this.selectStep(step);
+  }
+
   showRatingModal = signal<boolean>(false);
-
-  // Stores the current star selection (0-5)
   currentRating = signal<number>(0);
-
-  // Tracks if a submission is currently in flight to the backend
   isSubmitting = signal<boolean>(false);
-
-  // --- Regular Variables ---
-
-  // Bound to the textarea via [(ngModel)]
   feedbackText: string = '';
 
-  // --- Methods ---
-
-  /**
-   * Opens the modal and resets the previous state
-   */
   openRatingModal(): void {
     this.currentRating.set(0);
     this.feedbackText = '';
     this.showRatingModal.set(true);
   }
 
-  /**
-   * Closes the modal without saving
-   */
   closeRatingModal(): void {
     this.showRatingModal.set(false);
   }
 
-  /**
-   * Sets the star rating value
-   * @param val The number of stars selected
-   */
   setRating(val: number): void {
     this.currentRating.set(val);
   }
 
-  /**
-   * Handles the submission to your Spring Boot rating service
-   */
-  async submitRating(): Promise<void> {
-    if (this.currentRating() === 0) return;
+  submitRating(): void {
+    if (this.currentRating() === 0 || this.isSubmitting()) return;
+
+    const enrollment = this.enrollment();
+    if (!enrollment) {
+      this.notificationService.info('Enrollment data not available');
+      return;
+    }
 
     this.isSubmitting.set(true);
 
-    try {
-      // Logic for POST request to your self-managed K8s cluster
-      const payload = {
-        rating: this.currentRating(),
-        comment: this.feedbackText,
-        courseId: 'your-course-id', // Replace with dynamic ID
-        learnerId: 'your-learner-id', // Managed via Keycloak identity
-      };
+    const request: RatingRequest = {
+      enrollmentId: enrollment.id,
+      courseId: enrollment.course.id,
+      rating: this.currentRating(),
+      comment: this.feedbackText?.trim() || '',
+    };
 
-      console.log('Sending to Rating Service:', payload);
+    this.ratingService.submitRating(request).subscribe({
+      next: () => {
+        this.closeRatingModal();
+        this.notificationService.success('Thank you for your feedback!');
 
-      // Simulate a network delay for the UI
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      this.closeRatingModal();
-    } catch (error) {
-      console.error('Rating failed:', error);
-    } finally {
-      this.isSubmitting.set(false);
-    }
+        this.enrollmentService
+          .getEnrollmentById(enrollment.id)
+          .pipe(
+            repeat({ delay: 500 }), // Request every 0.5s
+            filter((data) => data.isRated), // Wait until isRated is true
+            take(1), // Stop polling immediately
+            timeout(5000), // Stop after 5s if Kafka hangs
+          )
+          .subscribe({
+            next: () => {
+              this.isSubmitting.set(false); // Kill the submitting spinner
+              this.loadEnrollment(enrollment.id, true); // Load data SILENTLY
+            },
+            error: () => {
+              this.isSubmitting.set(false);
+              this.loadEnrollment(enrollment.id); // Final fallback
+            },
+          });
+      },
+      error: (err: any) => {
+        console.error('Rating submission failed:', err);
+        this.notificationService.error('Failed to submit your rating');
+        this.isSubmitting.set(false);
+      },
+    });
   }
 }

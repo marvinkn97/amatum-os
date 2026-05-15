@@ -15,6 +15,7 @@ export interface EnrollmentResponse {
   progress: number;
   lastLearningStepId: string | null;
   lastActivityAt: string; // ISO date string
+  isRated: boolean;
   course: CourseResponse;
 }
 
