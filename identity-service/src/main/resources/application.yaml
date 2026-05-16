@@ -15,6 +15,5 @@ spring:
   grpc:
     server:
       enabled: true
-      port: 9091
 
 

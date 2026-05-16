@@ -47,8 +47,10 @@ public class RatingService {
         for (Object[] row : results) {
             UUID id = (UUID) row[0];
             // Note: AVG in Postgres usually returns a Double or BigDecimal
-            Double avg = (row[1] != null) ? ((Number) row[1]).doubleValue() : 0.0;
-            map.put(id, avg);
+            Double rawAvg = (row[1] != null) ? ((Number) row[1]).doubleValue() : 0.0;
+
+            Double roundedAvg = Math.round(rawAvg * 10.0) / 10.0;
+            map.put(id, roundedAvg);
         }
 
         // Ensure courses with zero ratings are included

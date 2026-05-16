@@ -20,4 +20,6 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, UU
 
     Optional<EnrollmentEntity> findByIdAndLearnerId(UUID id, UUID learnerId);
 
+    long countByLearnerIdAndTenantIdAndStatus(UUID learnerId, String tenantId, EnrollmentStatus status);
+
 }

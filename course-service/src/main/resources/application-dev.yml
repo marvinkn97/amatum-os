@@ -25,11 +25,13 @@ spring:
   grpc:
     server:
       enabled: true
-      port: 9092
     client:
       enrollment-service:
         address: localhost
-        port: 9093
+        port: 8083
+      rating-service:
+        address: localhost
+        port: 8084
 
 mux:
   api:

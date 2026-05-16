@@ -6,6 +6,7 @@ import dev.marvin.courseservice.common.Status;
 import dev.marvin.courseservice.exception.BadRequestException;
 import dev.marvin.courseservice.exception.ResourceNotFoundException;
 import dev.marvin.courseservice.grpc.EnrollmentServiceGrpcClient;
+import dev.marvin.courseservice.grpc.RatingServiceGrpcClient;
 import dev.marvin.courseservice.learningstep.*;
 import dev.marvin.courseservice.lesson.LessonEntity;
 import dev.marvin.courseservice.lesson.LessonRepository;
@@ -26,6 +27,7 @@ import dev.marvin.courseservice.security.TenantContext;
 import dev.marvin.courseservice.storage.rustfs.S3Service;
 import dev.marvin.enrollment.proto.BulkEnrollmentCheckResponse;
 import dev.marvin.enrollment.proto.EnrollmentCheckResponse;
+import dev.marvin.rating.proto.CourseRating;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -54,6 +56,7 @@ public class CourseService {
     private final QuizQuestionRepository quizQuestionRepository;
     private final QuizAnswerOptionRepository quizAnswerOptionRepository;
     private final EnrollmentServiceGrpcClient enrollmentServiceGrpcClient;
+    private final RatingServiceGrpcClient ratingServiceGrpcClient;
 
     @Transactional
     public CourseResponse create(CourseRequest request) {
@@ -338,6 +341,15 @@ public class CourseService {
                                 EnrollmentCheckResponse::getEnrolled
                         ));
 
+        List<CourseRating> ratingsList = ratingServiceGrpcClient.getBulkAverageRatings(courseIds);
+
+        Map<UUID, Double> ratingsMap = ratingsList.stream()
+                .collect(Collectors.toMap(
+                        item -> UUID.fromString(item.getCourseId()),
+                        CourseRating::getAverageRating,
+                        (existing, _) -> existing // Guard mapping merge anomalies
+                ));
+
         Map<UUID, Long> moduleCounts = moduleRepository.countModulesByCourseIds(courseIds)
                 .stream()
                 .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
@@ -353,7 +365,9 @@ public class CourseService {
             int moduleCount = moduleCounts.getOrDefault(courseId, 0L).intValue();
             int stepCount = stepCounts.getOrDefault(courseId, 0L).intValue();
             boolean isEnrolled = enrolledMap.getOrDefault(courseId, false);
-            return CourseMapper.mapToResponse(courseEntity, moduleCount, stepCount, isEnrolled);
+            double averageRating = ratingsMap.getOrDefault(courseId, 0.0);
+
+            return CourseMapper.mapToResponse(courseEntity, moduleCount, stepCount, isEnrolled, averageRating);
         });
     }
 

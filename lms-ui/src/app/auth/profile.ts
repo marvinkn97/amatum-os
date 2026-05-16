@@ -10,7 +10,7 @@ import { finalize } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="max-w-6xl mx-auto pb-20 px-4 md:px-6">
+    <div class="max-w-6xl mx-auto md:px-6 p-4 lg:p-8 pb-20 px-6">
       
       <div class="mb-8 md:mb-12">
         <h1 class="text-md font-black text-white tracking-tighter uppercase italic">

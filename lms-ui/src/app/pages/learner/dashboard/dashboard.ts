@@ -1,197 +1,253 @@
-import { Component, computed, signal, HostListener } from '@angular/core';
+import {
+  Component,
+  signal,
+  effect,
+  inject,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
+  untracked,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs';
+import {
+  EnrollmentService,
+  EnrollmentResponse,
+  DashboardCounters,
+} from '../../../services/enrollment.service';
+import { TenantService } from '../../../services/tenant.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-learner-dashboard',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20  p-4 lg:p-8">
-      <div class="bg-white/1 border border-white/5 rounded-2xl overflow-hidden">
+    <div
+      class="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20 p-4 lg:p-8 text-white"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
-          class="px-10 py-8 border-b border-white/5 bg-white/1 flex justify-between items-center"
+          class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
         >
-          <h3 class="text-[11px] font-black text-white uppercase tracking-[0.5em] opacity-60">
-            Learning Tracks
-          </h3>
-          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            Displaying {{ visibleCount() }} of {{ filteredEnrollments().length }}
+          <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
+            >Active Courses</span
+          >
+          <span class="text-4xl font-light tracking-tight mt-4">
+            {{ counters()?.activeCount ?? 0 }}
           </span>
         </div>
+        <div
+          class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
+        >
+          <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
+            >Completed Courses</span
+          >
+          <span class="text-4xl font-light tracking-tight mt-4 text-indigo-400">
+            {{ counters()?.completedCount ?? 0 }}
+          </span>
+        </div>
+        <div
+          class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
+        >
+          <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
+            >Certifications</span
+          >
+          <span class="text-4xl font-light tracking-tight mt-4">
+            {{ counters()?.certificateCount ?? 0 }}
+          </span>
+        </div>
+      </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr
-                class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] border-b border-white/5"
-              >
-                <th class="px-10 py-6">Course Identity</th>
-                <th class="px-10 py-6">Current Focus</th>
-                <th class="px-10 py-6">Progress</th>
-                <th class="px-10 py-6 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              @for (course of paginatedEnrollments(); track course.id) {
-                <tr class="group hover:bg-white/2 transition-all">
-                  <td class="px-10 py-8">
-                    <div class="flex flex-col">
-                      <span
-                        class="text-base font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight"
-                        >{{ course.title }}</span
-                      >
-                      <span
-                        class="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-widest"
-                        >Prof. {{ course.instructor }}</span
-                      >
-                    </div>
-                  </td>
-                  <td class="px-10 py-8">
-                    <div class="flex flex-col max-w-70">
-                      <span class="text-xs text-slate-300 font-bold italic truncate">{{
-                        course.currentModule
-                      }}</span>
-                      <span class="text-[9px] text-slate-600 font-black uppercase mt-1"
-                        >Module {{ course.completedModules + 1 }} of {{ course.totalModules }}</span
-                      >
-                    </div>
-                  </td>
-                  <td class="px-10 py-8">
-                    <div class="w-48">
-                      <div
-                        class="flex justify-between items-center mb-3 text-[10px] font-black italic text-white"
-                      >
-                        <span class="text-slate-500 not-italic uppercase tracking-tighter">{{
-                          course.status
-                        }}</span>
-                        <span
-                          >{{
-                            ((course.completedModules / course.totalModules) * 100).toFixed(0)
-                          }}%</span
-                        >
-                      </div>
-                      <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div
-                          class="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all duration-1000"
-                          [style.width.%]="(course.completedModules / course.totalModules) * 100"
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-10 py-8 text-right">
-                    <button
-                      class="size-11 bg-white/3 border border-white/10 rounded-2xl inline-flex items-center justify-center text-slate-400 hover:bg-white hover:text-black hover:scale-105 transition-all cursor-pointer"
-                    >
-                      <svg
-                        class="size-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                      >
-                        <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+      <div class="space-y-4">
+        <div class="px-2 border-b border-white/5 pb-4">
+          <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+            My Learning
+          </h2>
         </div>
 
-        <div class="p-8 flex justify-center border-t border-white/5 bg-white/1">
-          @if (hasMore()) {
-            <button
-              (click)="loadMore()"
-              class="px-8 py-3 rounded-xl border border-white/10 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-white hover:text-black transition-all group cursor-pointer"
-            >
-              <span class="group-hover:tracking-[0.2em] transition-all">Load More Courses</span>
-            </button>
-          } @else {
-            <p class="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em]">
-              End of Learning Tracks
-            </p>
-          }
+        <div class="bg-white/1 border border-white/5 rounded-2xl overflow-hidden">
+          <div class="max-h-145 overflow-y-auto custom-scrollbar pr-1">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] border-b border-white/5 bg-[#030712]/40 sticky top-0 backdrop-blur-md z-10"
+                >
+                  <th class="px-10 py-6">Course</th>
+                  <th class="px-10 py-6">Last Activity</th>
+                  <th class="px-10 py-6">Progress</th>
+                  <th class="px-10 py-6 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                @for (enrollment of enrollments(); track enrollment.id) {
+                  <tr class="group hover:bg-white/2 transition-all">
+                    <td class="px-10 py-7">
+                      <span
+                        class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight block"
+                      >
+                        {{ enrollment.course.title }}
+                      </span>
+                    </td>
+
+                    <td class="px-10 py-7">
+                      <span class="text-xs font-medium text-slate-400 font-mono">
+                        {{ enrollment.lastActivityAt | date: 'mediumDate' }}
+                      </span>
+                    </td>
+
+                    <td class="px-10 py-7">
+                      <div class="w-44 space-y-2">
+                        <div
+                          class="flex justify-between text-[10px] font-bold tracking-tight text-slate-500 font-mono"
+                        >
+                          <span>COMPLETION</span>
+                          <span class="text-slate-300">{{ enrollment.progress }}%</span>
+                        </div>
+                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            class="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all duration-1000"
+                            [style.width.%]="enrollment.progress"
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td class="px-10 py-7 text-right">
+                      <button
+                        (click)="openEnrollment(enrollment.id)"
+                        class="size-10 bg-white/3 border border-white/10 rounded-xl inline-flex items-center justify-center text-slate-400 hover:bg-white hover:text-black hover:scale-105 transition-all cursor-pointer"
+                      >
+                        <svg
+                          class="size-4.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                        >
+                          <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+
+                @if (enrollments().length === 0 && !isLoading()) {
+                  <tr>
+                    <td colspan="4" class="px-10 py-16 text-center">
+                      <span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500"
+                        >No Active Courses</span
+                      >
+                    </td>
+                  </tr>
+                }
+
+                <tr class="border-none!">
+                  <td colspan="4" class="p-0 border-none!">
+                    <div #scrollSentinel class="h-4 w-full pointer-events-none"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   `,
 })
-export class LearnerDashboardComponent {
-  // Application Context
-  activeOrgId = signal<string>('public');
-  isPublic = computed(() => this.activeOrgId() === null);
+export class LearnerDashboardComponent implements OnInit, AfterViewInit {
+  private enrollmentService = inject(EnrollmentService);
+  private tenantService = inject(TenantService);
+  private router = inject(Router);
 
-  // Pagination / Scroll Logic
-  private readonly PAGE_SIZE = 5;
-  visibleCount = signal(5);
+  @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
 
-  private allEnrollments = signal<any[]>([
-    {
-      id: '1',
-      title: 'Advanced Fullstack Architecture',
-      instructor: 'Deborah Kurata',
-      currentModule: 'Scalability with Kubernetes',
-      completedModules: 4,
-      totalModules: 12,
-      orgId: null,
-      status: 'In Progress',
-    },
-    {
-      id: '2',
-      title: 'Company Security Protocol',
-      instructor: 'Cyber Team',
-      currentModule: 'Auth Flows & Keycloak',
-      completedModules: 1,
-      totalModules: 5,
-      orgId: null,
-      status: 'Mandatory',
-    },
-    {
-      id: '3',
-      title: 'Clean Code principles',
-      instructor: 'Uncle Bob',
-      currentModule: 'Completed',
-      completedModules: 10,
-      totalModules: 10,
-      orgId: null,
-      status: 'Completed',
-    },
-    // Add more mock data here to test the scrolling...
-  ]);
+  counters = signal<DashboardCounters | null>(null);
+  enrollments = signal<EnrollmentResponse[]>([]);
+  currentPage = signal<number>(0);
+  isLoading = signal<boolean>(false);
+  hasNextPage = signal<boolean>(true);
 
-  // Filters logic
-  filteredEnrollments = computed(() =>
-    this.allEnrollments().filter((e) =>
-      this.isPublic()
-        ? e.orgId === 'public' && e.completedModules < e.totalModules
-        : e.orgId !== 'public' && e.completedModules < e.totalModules,
-    ),
-  );
+  private readonly PAGE_SIZE = 10;
 
-  // Sliced data for infinity scroll
-  paginatedEnrollments = computed(() => this.filteredEnrollments().slice(0, this.visibleCount()));
-
-  hasMore = computed(() => this.visibleCount() < this.filteredEnrollments().length);
-
-  totalCompleted = computed(
-    () => this.allEnrollments().filter((e) => e.completedModules === e.totalModules).length,
-  );
-
-  activeInContext = computed(() => this.filteredEnrollments().length);
-
-  loadMore() {
-    this.visibleCount.update((prev) => prev + this.PAGE_SIZE);
+  constructor() {
+    effect(() => {
+      this.tenantService.tenantId();
+      untracked(() => this.resetAndReload());
+    });
   }
 
-  // Automatic infinite scroll on window scroll
-  @HostListener('window:scroll', [])
-  onWindowScroll() {
-    const scrollPosition = window.innerHeight + window.scrollY;
-    const threshold = document.documentElement.scrollHeight - 100;
+  ngOnInit(): void {
+    this.fetchCounters();
+  }
 
-    if (scrollPosition >= threshold && this.hasMore()) {
-      this.loadMore();
+  ngAfterViewInit(): void {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage()) {
+          untracked(() => {
+            this.currentPage.update((p) => p + 1);
+            this.loadActiveData(false);
+          });
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(this.scrollSentinel.nativeElement);
+  }
+
+  private resetAndReload(): void {
+    this.currentPage.set(0);
+    this.hasNextPage.set(true);
+    this.enrollments.set([]);
+
+    this.fetchCounters();
+    this.loadActiveData(true);
+  }
+
+  fetchCounters(): void {
+    this.enrollmentService.getDashboardCounters().subscribe({
+      next: (data) => this.counters.set(data),
+      error: (err) => console.error('Failed to update counter snapshot analytics', err),
+    });
+  }
+
+  private loadActiveData(reset: boolean): void {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
+
+    this.enrollmentService
+      .getActiveEnrollments(this.currentPage(), this.PAGE_SIZE)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (response: any) => {
+          const items = response?._embedded?.enrollmentResponseList || [];
+
+          if (reset) {
+            this.enrollments.set(items);
+          } else {
+            this.enrollments.update((curr) => [...curr, ...items]);
+          }
+
+          if (response?.page) {
+            this.hasNextPage.set(response.page.number < response.page.totalPages - 1);
+          } else {
+            this.hasNextPage.set(items.length === this.PAGE_SIZE);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to load active courses', err);
+          this.hasNextPage.set(false);
+          if (reset) this.enrollments.set([]);
+        },
+      });
+  }
+
+  openEnrollment(id: string): void {
+    if (!id) {
+      return;
     }
+    this.router.navigate(['/learner/enrollments', id]);
   }
 }

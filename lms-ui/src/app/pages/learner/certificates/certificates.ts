@@ -100,6 +100,16 @@ import { TenantService } from '../../../services/tenant.service';
               </div>
             </div>
           </div>
+        } @empty {
+          @if (!isLoading()) {
+            <div
+              class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
+            >
+              <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                >No Certificates Available</span
+              >
+            </div>
+          }
         }
       </div>
 

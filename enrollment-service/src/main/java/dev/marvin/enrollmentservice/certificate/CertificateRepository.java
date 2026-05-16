@@ -14,4 +14,6 @@ public interface CertificateRepository extends JpaRepository<CertificateEntity, 
     Optional<CertificateEntity> findByEnrollmentIdAndLearnerId(UUID enrollmentId, UUID learnerId);
 
     Page<CertificateEntity> findByLearnerIdAndTenantId(UUID learnerId, String tenantId, Pageable pageable);
+
+    long countByLearnerIdAndTenantId(UUID learnerId, String tenantId);
 }

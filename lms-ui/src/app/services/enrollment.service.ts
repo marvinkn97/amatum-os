@@ -14,7 +14,7 @@ export interface EnrollmentResponse {
   isCompleted: boolean;
   progress: number;
   lastLearningStepId: string | null;
-  lastActivityAt: string; // ISO date string
+  lastActivityAt: string;
   isRated: boolean;
   course: CourseResponse;
 }
@@ -49,6 +49,12 @@ export interface CertificateResponse {
   serialNumber: string;
   certificateUrl: string;
   issuedAt: string;
+}
+
+export interface DashboardCounters {
+  activeCount: number;
+  completedCount: number;
+  certificateCount: number;
 }
 
 @Injectable({
@@ -100,4 +106,9 @@ export class EnrollmentService {
     const url = `${this.API_URL}/${enrollmentId}/claim-certificate`;
     return this.http.post<CertificateResponse>(url, {});
   }
+
+  getDashboardCounters(): Observable<DashboardCounters> {
+  return this.http.get<DashboardCounters>(`${this.API_URL}/dashboard-count`);
+}
+
 }

@@ -25,7 +25,8 @@ public record CourseResponse(
         List<ModuleResponse> modules,
         Integer moduleCount,
         Integer learningStepCount,
-        Boolean isEnrolled
+        Boolean isEnrolled,
+        Double rating
 ) {
 
     public CourseResponse(
@@ -40,7 +41,7 @@ public record CourseResponse(
             UUID categoryId,
             Status status
     ) {
-        this(id, title, slug, description, tags, isPublic, accessTier, price, categoryId, status, null, null, null, null, null);
+        this(id, title, slug, description, tags, isPublic, accessTier, price, categoryId, status, null, null, null, null, null, null);
     }
 
 
@@ -58,7 +59,7 @@ public record CourseResponse(
             Integer moduleCount,
             Integer learningStepCount
     ) {
-        this(id, title, slug, description, tags, isPublic, accessTier, price, categoryId, status, null, null, moduleCount, learningStepCount, null);
+        this(id, title, slug, description, tags, isPublic, accessTier, price, categoryId, status, null, null, moduleCount, learningStepCount, null, null);
     }
 
 
@@ -75,7 +76,7 @@ public record CourseResponse(
             Integer learningStepCount,
             Boolean isEnrolled
     ) {
-        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, modules, moduleCount, learningStepCount, isEnrolled);
+        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, modules, moduleCount, learningStepCount, isEnrolled, null);
     }
 
     public CourseResponse(
@@ -109,6 +110,7 @@ public record CourseResponse(
                 modules,
                 moduleCount,
                 learningStepCount,
+                null,
                 null
         );
     }
@@ -123,9 +125,10 @@ public record CourseResponse(
             BigDecimal price,
             Integer moduleCount,
             Integer learningStepCount,
-            Boolean isEnrolled
+            Boolean isEnrolled,
+            Double rating
     ) {
-        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, null, moduleCount, learningStepCount, isEnrolled);
+        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, null, moduleCount, learningStepCount, isEnrolled, rating);
     }
 
 
@@ -136,7 +139,7 @@ public record CourseResponse(
             String slug,
             String description
     ) {
-        this(id, title, slug, description, null, null, null, null, null, null, null, null, null, null, null);
+        this(id, title, slug, description, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public CourseResponse(
@@ -151,7 +154,7 @@ public record CourseResponse(
             Integer moduleCount,
             Integer learningStepCount
     ) {
-        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, modules , moduleCount, learningStepCount, null);
+        this(id, title, slug, description, tags, null, accessTier, price, null, null, null, modules , moduleCount, learningStepCount, null, null);
     }
 
 

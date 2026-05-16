@@ -25,7 +25,6 @@ spring:
   grpc:
     server:
       enabled: true
-      port: 9094
 
   kafka:
     bootstrap-servers: localhost:29092

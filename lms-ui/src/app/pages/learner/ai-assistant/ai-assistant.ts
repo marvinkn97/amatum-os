@@ -62,8 +62,7 @@ import { FormsModule } from '@angular/forms';
 
         <div class="flex-1 overflow-y-auto p-6 space-y-4">
           <div class="bg-white/5 rounded-2xl p-4 border border-white/5 text-sm text-slate-300">
-            Hello! I'm TALEMAI, your AI assistant. I can help you with a variety of tasks, such as
-            answering questions, providing explanations, and assisting with your learning journey.
+            Hello! I'm TALEMAI, your AI assistant. I can help you with your learning journey.
             Just type in your query below and I'll do my best to assist you!
           </div>
         </div>

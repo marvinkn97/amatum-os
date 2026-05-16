@@ -4,6 +4,7 @@ import dev.marvin.course.proto.BulkCourseSummaryResponse;
 import dev.marvin.enrollmentservice.certificate.CertificateRequest;
 import dev.marvin.enrollmentservice.certificate.CertificateResponse;
 import dev.marvin.enrollmentservice.certificate.CertificateService;
+import dev.marvin.enrollmentservice.dashboard.LearnerDashboardCountResponse;
 import dev.marvin.enrollmentservice.exception.BadRequestException;
 import dev.marvin.enrollmentservice.exception.EnrollmentStatus;
 import dev.marvin.enrollmentservice.exception.ResourceNotFoundException;
@@ -393,6 +394,20 @@ public class EnrollmentService {
 
         enrollmentEntity.setRated(true);
         enrollmentRepository.save(enrollmentEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public LearnerDashboardCountResponse getDashboardCountData(Authentication authentication) {
+        UUID learnerId = UUID.fromString(authentication.getName());
+        String activeTenantId = TenantContext.TENANT_ID.isBound() ? TenantContext.TENANT_ID.get() : null;
+
+        log.info("Getting dashboard count data for learner {} and tenant {}", learnerId, activeTenantId);
+
+        long activeEnrollments = enrollmentRepository.countByLearnerIdAndTenantIdAndStatus(learnerId, activeTenantId, EnrollmentStatus.ACTIVE);
+        long completedEnrollments = enrollmentRepository.countByLearnerIdAndTenantIdAndStatus(learnerId, activeTenantId, EnrollmentStatus.COMPLETED);
+        long certificateCount = certificateService.countByLearnerIdAndTenantId(learnerId, activeTenantId);
+
+        return new LearnerDashboardCountResponse(activeEnrollments, completedEnrollments, certificateCount);
     }
 
 }

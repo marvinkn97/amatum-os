@@ -931,7 +931,7 @@ import { RatingRequest, RatingService } from '../../../services/rating.service';
                     </div>
                     <div class="space-y-2">
                       <p class="text-xs font-bold text-white uppercase tracking-tight">
-                        AI Assistant
+                        Learning Assistant
                       </p>
                       <div
                         class="bg-white/5 border border-white/5 rounded-2xl p-4 text-[13px] text-slate-300 leading-relaxed"

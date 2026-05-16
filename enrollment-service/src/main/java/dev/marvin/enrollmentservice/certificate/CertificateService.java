@@ -153,4 +153,9 @@ public class CertificateService {
                         cert.getIssuedAt()
                 ));
     }
+
+    @Transactional(readOnly = true)
+    public long countByLearnerIdAndTenantId(UUID learnerId, String tenantId) {
+        return certificateRepository.countByLearnerIdAndTenantId(learnerId, tenantId);
+    }
 }

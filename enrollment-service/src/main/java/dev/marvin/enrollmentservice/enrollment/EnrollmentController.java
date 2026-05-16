@@ -1,6 +1,7 @@
 package dev.marvin.enrollmentservice.enrollment;
 
 import dev.marvin.enrollmentservice.certificate.CertificateResponse;
+import dev.marvin.enrollmentservice.dashboard.LearnerDashboardCountResponse;
 import dev.marvin.enrollmentservice.quizattempt.QuizAttemptRequest;
 import dev.marvin.enrollmentservice.quizattempt.QuizAttemptResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,6 +109,15 @@ public class EnrollmentController {
         log.info("Claiming certificate for enrollment: {}", enrollmentId);
         CertificateResponse certificateResponse = enrollmentService.claimCertificate(enrollmentId, authentication);
         return ResponseEntity.accepted().body(certificateResponse);
+    }
+
+    @PreAuthorize("hasRole('LEARNER')")
+    @Operation(summary = "Get dashboard count data for a learner")
+    @GetMapping("/dashboard-count")
+    public ResponseEntity<LearnerDashboardCountResponse> getDashboardCountData(@NonNull Authentication authentication){
+        log.info("Getting dashboard count data for learner: {}", authentication.getName());
+        LearnerDashboardCountResponse dashboardCountResponse = enrollmentService.getDashboardCountData(authentication);
+        return ResponseEntity.ok(dashboardCountResponse);
     }
 
 }

@@ -25,14 +25,13 @@ spring:
   grpc:
     server:
       enabled: true
-      port: 9093
     client:
       course-service:
         address: localhost
-        port: 9092
+        port: 8082
       identity-service:
         address: localhost
-        port: 9091
+        port: 8081
 
   kafka:
     bootstrap-servers: 127.0.0.1:29092

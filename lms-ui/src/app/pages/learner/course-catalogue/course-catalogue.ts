@@ -281,7 +281,6 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   private categoryService = inject(CategoryService);
   private scroller = inject(ViewportScroller);
   private tenantService = inject(TenantService);
-  private enrollmentService = inject(EnrollmentService);
   private notificationService = inject(NotificationService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
