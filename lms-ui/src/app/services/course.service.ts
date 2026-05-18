@@ -120,7 +120,6 @@ export class CourseService {
     return this.http.patch<CourseResponse>(`${this.API_URL}/${courseId}/publish`, {});
   }
 
-  // Add to CourseService class
   fetchCatalog(
     search: string = '',
     categoryId: string = '',
@@ -138,5 +137,19 @@ export class CourseService {
 
    getLearnerCourseView(id: string): Observable<CourseResponse> {
     return this.http.get<CourseResponse>(`${this.API_URL}/${id}/learner`);
+  }
+
+    fetchCPublic(
+    search: string = '',
+    categoryId: string = '',
+    page: number = 0,
+    size: number = 9,
+  ): Observable<PagedResponse<CourseResponse>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
+    if (search?.trim()) params = params.set('name', search);
+    if (categoryId?.trim()) params = params.set('categoryId', categoryId);
+
+    return this.http.get<PagedResponse<CourseResponse>>(`${this.API_URL}/public`, { params });
   }
 }

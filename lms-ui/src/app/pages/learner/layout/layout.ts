@@ -1,9 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import Keycloak from 'keycloak-js';
 import { AiAssistant } from '../ai-assistant/ai-assistant';
 import { TenantService } from '../../../services/tenant.service';
+import { environment } from '../../../../environments/environment';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
 
 interface Organization {
   id: string | null;
@@ -356,6 +359,8 @@ interface Organization {
 export class LearnerLayout {
   private keycloak = inject(Keycloak);
   private tenantService = inject(TenantService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
 
   isAiOpen = signal(false);
   isProfileOpen = signal(false);
@@ -397,7 +402,7 @@ export class LearnerLayout {
   }
 
   menuItems = [
-     {
+    {
       label: 'Insights',
       path: '/learner/',
       icon: 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75',
@@ -407,7 +412,7 @@ export class LearnerLayout {
       path: '/learner/course-catalogue',
       icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
     },
-     {
+    {
       label: 'My Learning',
       path: '/learner/enrollments',
       icon: 'M4.26 10.147L12 15l7.74-4.853a1 1 0 000-1.706L12 3.588l-7.74 4.853a1 1 0 000 1.706z M5 13.129v3.375A3.375 3.375 0 008.375 19.875h7.25a3.375 3.375 0 003.375-3.375v-3.375l-7 4.375-7-4.375z',
@@ -424,14 +429,40 @@ export class LearnerLayout {
     },
   ];
 
-  logout() {
-    this.keycloak.logout({ redirectUri: window.location.origin });
-  }
-
   isWorkspaceActive(orgId: string | null): boolean {
     return this.activeOrg().id === orgId;
   }
 
   canSwitchToManager = signal(this.keycloak.hasResourceRole('MANAGER', this.keycloak.clientId));
   canSwitchToLearner = signal(this.keycloak.hasResourceRole('LEARNER', this.keycloak.clientId));
+
+  async logout() {
+    const baseUrl = environment.keycloak.url.replace(/\/$/, '');
+    const realm = environment.keycloak.realm;
+    const clientId = environment.keycloak.clientId;
+    const refreshToken = this.keycloak.refreshToken;
+
+    this.isLogoutConfirmOpen.set(false);
+
+    try {
+      const logoutUrl = `${baseUrl}/realms/${realm}/protocol/openid-connect/logout`;
+
+      const body = new HttpParams()
+        .set('client_id', clientId)
+        .set('refresh_token', refreshToken || '');
+
+      // Use lastValueFrom to await the observable execution cleanly
+      await lastValueFrom(
+        this.http.post(logoutUrl, body.toString(), {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          responseType: 'text',
+        }),
+      );
+    } catch (error) {
+      console.error('Background token revocation skipped or failed', error);
+    } finally {
+      this.keycloak.clearToken();
+      this.router.navigate(['/']);
+    }
+  }
 }

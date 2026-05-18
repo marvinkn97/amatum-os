@@ -176,5 +176,19 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getLearnerCourseView(courseId, authentication));
     }
 
+    @Operation(summary = "Get public course catalog")
+    @GetMapping("/public")
+    public ResponseEntity<PagedModel<EntityModel<CourseResponse>>> getPublicCatalog(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "categoryId", required = false) UUID categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Page<CourseResponse> coursePage =
+                courseService.getPublicCatalog(name, categoryId, PageRequest.of(page, size));
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(coursePage, EntityModel::of));
+    }
+
 
 }

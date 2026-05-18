@@ -51,7 +51,7 @@ keycloak:
     opus-client-id: opus-ui
 
 gotenberg:
-  url: http://localhost:3000
+  url: ${GOTENBERG_URL}
 
 app:
   domain:
@@ -60,8 +60,8 @@ app:
 
 storage:
   rustfs:
-    endpoint: ${RUSTFS_ENDPOINT:http://localhost:9010}
-    region: ${RUSTFS_REGION:us-east-1}
-    bucket: ${RUSTFS_BUCKET:amatum}
+    endpoint: ${RUSTFS_ENDPOINT}
+    region: ${RUSTFS_REGION}
+    bucket: ${RUSTFS_BUCKET}
     access-key: ${RUSTFS_ACCESS_KEY}
     secret-key: ${RUSTFS_SECRET_KEY}

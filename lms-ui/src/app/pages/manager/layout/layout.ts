@@ -1,9 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import Keycloak from 'keycloak-js';
 import { ACTIVE_TENANT_ID } from '../../../auth/tenant-context.token';
 import { TenantService } from '../../../services/tenant.service';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 interface Organization {
   id: string | null;
@@ -373,8 +376,9 @@ interface Organization {
 })
 export class ManagerLayout {
   private keycloak = inject(Keycloak);
-
   private tenantService = inject(TenantService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
 
   constructor() {
     const orgClaim = this.keycloak.tokenParsed?.['organization'];
@@ -435,12 +439,38 @@ export class ManagerLayout {
     this.isOrgDropdownOpen.set(false);
   }
 
-  logout() {
-    this.keycloak.logout({ redirectUri: window.location.origin });
-  }
-
   isSuperAdmin = signal(this.keycloak.hasRealmRole('SUPER_ADMIN'));
 
   canSwitchToManager = signal(this.keycloak.hasResourceRole('MANAGER', this.keycloak.clientId));
   canSwitchToLearner = signal(this.keycloak.hasResourceRole('LEARNER', this.keycloak.clientId));
+
+  async logout() {
+    const baseUrl = environment.keycloak.url.replace(/\/$/, '');
+    const realm = environment.keycloak.realm;
+    const clientId = environment.keycloak.clientId;
+    const refreshToken = this.keycloak.refreshToken;
+
+    this.isLogoutConfirmOpen.set(false);
+
+    try {
+      const logoutUrl = `${baseUrl}/realms/${realm}/protocol/openid-connect/logout`;
+
+      const body = new HttpParams()
+        .set('client_id', clientId)
+        .set('refresh_token', refreshToken || '');
+
+      // Use lastValueFrom to await the observable execution cleanly
+      await lastValueFrom(
+        this.http.post(logoutUrl, body.toString(), {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          responseType: 'text',
+        }),
+      );
+    } catch (error) {
+      console.error('Background token revocation skipped or failed', error);
+    } finally {
+      this.keycloak.clearToken();
+      this.router.navigate(['/']);
+    }
+  }
 }

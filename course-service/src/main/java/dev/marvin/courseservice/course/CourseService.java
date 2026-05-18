@@ -308,6 +308,43 @@ public class CourseService {
 
     }
 
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getPublicCatalog(String name, UUID categoryId, Pageable pageable) {
+        Page<CourseEntity> coursePage = courseRepository.findMarketplaceAndTenantCourses(
+                name,
+                categoryId,
+                null,
+                pageable
+        );
+
+        List<UUID> courseIds = coursePage.getContent().stream()
+                .map(CourseEntity::getId)
+                .toList();
+
+        if (courseIds.isEmpty()) {
+            log.info("No courses found in the page");
+            return Page.empty();
+        }
+
+        Map<UUID, Long> moduleCounts = moduleRepository.countModulesByCourseIds(courseIds)
+                .stream()
+                .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
+
+        Map<UUID, Long> stepCounts = learningStepRepository.countStepsByCourseIds(courseIds)
+                .stream()
+                .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
+
+        // Map using your updated CourseMapper
+        return coursePage.map(courseEntity -> {
+            UUID courseId = courseEntity.getId();
+
+            int moduleCount = moduleCounts.getOrDefault(courseId, 0L).intValue();
+            int stepCount = stepCounts.getOrDefault(courseId, 0L).intValue();
+
+            return CourseMapper.mapToResponse(courseEntity, moduleCount, stepCount, null, null);
+        });
+
+    }
 
     @Transactional(readOnly = true)
     public Page<CourseResponse> getLearnerCatalog(String name, UUID categoryId, Pageable pageable, Authentication authentication) {

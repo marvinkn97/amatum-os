@@ -1,6 +1,7 @@
 import {
   Component,
   signal,
+  computed,
   effect,
   inject,
   OnInit,
@@ -24,136 +25,145 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div
-      class="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20 p-4 lg:p-8 text-white"
-    >
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    @if (isLoading()) {
+      <div class="max-w-7xl mx-auto px-6 py-20 text-center">
         <div
-          class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
-        >
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
-            >Active Courses</span
-          >
-          <span class="text-4xl font-light tracking-tight mt-4">
-            {{ counters()?.activeCount ?? 0 }}
-          </span>
-        </div>
-        <div
-          class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
-        >
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
-            >Completed Courses</span
-          >
-          <span class="text-4xl font-light tracking-tight mt-4 text-indigo-400">
-            {{ counters()?.completedCount ?? 0 }}
-          </span>
-        </div>
-        <div
-          class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
-        >
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
-            >Certifications</span
-          >
-          <span class="text-4xl font-light tracking-tight mt-4">
-            {{ counters()?.certificateCount ?? 0 }}
-          </span>
-        </div>
+          class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin mx-auto"
+        ></div>
       </div>
-
-      <div class="space-y-4">
-        <div class="px-2 border-b border-white/5 pb-4">
-          <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-            My Learning
-          </h2>
+    } @else {
+      <div
+        class="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20 p-4 lg:p-8 text-white"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
+          >
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
+              >Active Courses</span
+            >
+            <span class="text-4xl font-light tracking-tight mt-4  text-indigo-400">
+              {{ counters()?.activeCount ?? 0 }}
+            </span>
+          </div>
+          <div
+            class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
+          >
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
+              >Completed Courses</span
+            >
+            <span class="text-4xl font-light tracking-tight mt-4 text-indigo-400">
+              {{ counters()?.completedCount ?? 0 }}
+            </span>
+          </div>
+          <div
+            class="bg-white/1 border border-white/5 p-8 rounded-2xl flex flex-col justify-between min-h-36"
+          >
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]"
+              >Certifications</span
+            >
+            <span class="text-4xl font-light tracking-tight mt-4  text-indigo-400">
+              {{ counters()?.certificateCount ?? 0 }}
+            </span>
+          </div>
         </div>
 
-        <div class="bg-white/1 border border-white/5 rounded-2xl overflow-hidden">
-          <div class="max-h-145 overflow-y-auto custom-scrollbar pr-1">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr
-                  class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] border-b border-white/5 bg-[#030712]/40 sticky top-0 backdrop-blur-md z-10"
-                >
-                  <th class="px-10 py-6">Course</th>
-                  <th class="px-10 py-6">Last Activity</th>
-                  <th class="px-10 py-6">Progress</th>
-                  <th class="px-10 py-6 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5">
-                @for (enrollment of enrollments(); track enrollment.id) {
-                  <tr class="group hover:bg-white/2 transition-all">
-                    <td class="px-10 py-7">
-                      <span
-                        class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight block"
-                      >
-                        {{ enrollment.course.title }}
-                      </span>
-                    </td>
+        <div class="space-y-4">
+          <div class="px-2 border-b border-white/5 pb-4">
+            <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+              My Learning
+            </h2>
+          </div>
 
-                    <td class="px-10 py-7">
-                      <span class="text-xs font-medium text-slate-400 font-mono">
-                        {{ enrollment.lastActivityAt | date: 'mediumDate' }}
-                      </span>
-                    </td>
-
-                    <td class="px-10 py-7">
-                      <div class="w-44 space-y-2">
-                        <div
-                          class="flex justify-between text-[10px] font-bold tracking-tight text-slate-500 font-mono"
+          <div class="bg-white/1 border border-white/5 rounded-2xl overflow-hidden">
+            <div class="max-h-145 overflow-y-auto custom-scrollbar pr-1">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr
+                    class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] border-b border-white/5 bg-[#030712]/40 sticky top-0 backdrop-blur-md z-10"
+                  >
+                    <th class="px-10 py-6">Course</th>
+                    <th class="px-10 py-6">Last Activity</th>
+                    <th class="px-10 py-6">Progress</th>
+                    <th class="px-10 py-6 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  @for (enrollment of enrollments(); track enrollment.id) {
+                    <tr class="group hover:bg-white/2 transition-all">
+                      <td class="px-10 py-7">
+                        <span
+                          class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors leading-tight block"
                         >
-                          <span>COMPLETION</span>
-                          <span class="text-slate-300">{{ enrollment.progress }}%</span>
-                        </div>
-                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                          {{ enrollment.course.title }}
+                        </span>
+                      </td>
+
+                      <td class="px-10 py-7">
+                        <span class="text-xs font-medium text-slate-400 font-mono">
+                          {{ enrollment.lastActivityAt | date: 'mediumDate' }}
+                        </span>
+                      </td>
+
+                      <td class="px-10 py-7">
+                        <div class="w-44 space-y-2">
                           <div
-                            class="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all duration-1000"
-                            [style.width.%]="enrollment.progress"
-                          ></div>
+                            class="flex justify-between text-[10px] font-bold tracking-tight text-slate-500 font-mono"
+                          >
+                            <span>COMPLETION</span>
+                            <span class="text-slate-300">{{ enrollment.progress }}%</span>
+                          </div>
+                          <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all duration-1000"
+                              [style.width.%]="enrollment.progress"
+                            ></div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td class="px-10 py-7 text-right">
-                      <button
-                        (click)="openEnrollment(enrollment.id)"
-                        class="size-10 bg-white/3 border border-white/10 rounded-xl inline-flex items-center justify-center text-slate-400 hover:bg-white hover:text-black hover:scale-105 transition-all cursor-pointer"
-                      >
-                        <svg
-                          class="size-4.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2.5"
+                      <td class="px-10 py-7 text-right">
+                        <button
+                          (click)="openEnrollment(enrollment.id)"
+                          class="size-10 bg-white/3 border border-white/10 rounded-xl inline-flex items-center justify-center text-slate-400 hover:bg-white hover:text-black hover:scale-105 transition-all cursor-pointer"
                         >
-                          <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </button>
+                          <svg
+                            class="size-4.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                          >
+                            <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+
+                  @if (enrollments().length === 0) {
+                    <tr>
+                      <td colspan="4" class="px-10 py-16 text-center">
+                        <span
+                          class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500"
+                          >No Active Courses</span
+                        >
+                      </td>
+                    </tr>
+                  }
+
+                  <tr class="border-none!">
+                    <td colspan="4" class="p-0 border-none!">
+                      <div #scrollSentinel class="h-4 w-full pointer-events-none"></div>
                     </td>
                   </tr>
-                }
-
-                @if (enrollments().length === 0 && !isLoading()) {
-                  <tr>
-                    <td colspan="4" class="px-10 py-16 text-center">
-                      <span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500"
-                        >No Active Courses</span
-                      >
-                    </td>
-                  </tr>
-                }
-
-                <tr class="border-none!">
-                  <td colspan="4" class="p-0 border-none!">
-                    <div #scrollSentinel class="h-4 w-full pointer-events-none"></div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    }
   `,
 })
 export class LearnerDashboardComponent implements OnInit, AfterViewInit {
@@ -166,8 +176,14 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
   counters = signal<DashboardCounters | null>(null);
   enrollments = signal<EnrollmentResponse[]>([]);
   currentPage = signal<number>(0);
-  isLoading = signal<boolean>(false);
   hasNextPage = signal<boolean>(true);
+
+  // Discrete signals for each request state
+  isCountersLoading = signal<boolean>(false);
+  isEnrollmentsLoading = signal<boolean>(false);
+
+  // Computed state evaluates true if either request is pending execution
+  isLoading = computed(() => this.isCountersLoading() || this.isEnrollmentsLoading());
 
   private readonly PAGE_SIZE = 10;
 
@@ -178,9 +194,7 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngOnInit(): void {
-    this.fetchCounters();
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     const observer = new IntersectionObserver(
@@ -207,19 +221,21 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
   }
 
   fetchCounters(): void {
-    this.enrollmentService.getDashboardCounters().subscribe({
-      next: (data) => this.counters.set(data),
-      error: (err) => console.error('Failed to update counter snapshot analytics', err),
-    });
+    this.isCountersLoading.set(true);
+    this.enrollmentService
+      .getDashboardCounters()
+      .pipe(finalize(() => this.isCountersLoading.set(false)))
+      .subscribe({
+        next: (data) => this.counters.set(data),
+        error: (err) => console.error('Failed to update counter snapshot analytics', err),
+      });
   }
 
   private loadActiveData(reset: boolean): void {
-    if (this.isLoading()) return;
-    this.isLoading.set(true);
-
+    this.isEnrollmentsLoading.set(true);
     this.enrollmentService
       .getActiveEnrollments(this.currentPage(), this.PAGE_SIZE)
-      .pipe(finalize(() => this.isLoading.set(false)))
+      .pipe(finalize(() => this.isEnrollmentsLoading.set(false)))
       .subscribe({
         next: (response: any) => {
           const items = response?._embedded?.enrollmentResponseList || [];

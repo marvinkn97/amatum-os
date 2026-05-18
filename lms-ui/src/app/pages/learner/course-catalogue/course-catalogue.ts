@@ -13,11 +13,10 @@ import {
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { finalize, switchMap } from 'rxjs';
-import { CourseService, CourseResponse } from '../../../services/course.service';
+import { finalize } from 'rxjs';
+import { CourseService } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
 import { TenantService } from '../../../services/tenant.service';
-import { EnrollmentRequest, EnrollmentService } from '../../../services/enrollment.service';
 import { NotificationService } from '../../../services/notification.service';
 
 @Component({
@@ -388,10 +387,5 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
 
   scrollToTop() {
     this.scroller.scrollToPosition([0, 0]);
-  }
-
-  openCourse(course: any) {
-    console.log('Opening active course player for:', course.title);
-    // Add navigation logic here, e.g., this.router.navigate(['/player', course.id]);
   }
 }

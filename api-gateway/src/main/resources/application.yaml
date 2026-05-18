@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: api-gateway
+
+  profiles:
+    active: dev
+
+  threads:
+    virtual:
+      enabled: true
+
+logging:
+  level:
+    root: info

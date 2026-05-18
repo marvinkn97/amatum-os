@@ -13,7 +13,7 @@ import Keycloak from 'keycloak-js';
       class="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-indigo-500/30"
     >
       <!-- NAVBAR -->
-      <nav class="fixed top-0 w-full z-40 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
+      <nav class="fixed top-0 w-full z-50 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <!-- Logo -->
           <div class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer">
@@ -170,7 +170,7 @@ import Keycloak from 'keycloak-js';
                   <div
                     class="size-10 bg-indigo-600 rounded-lg flex items-center justify-center text-xs"
                   >
-                    JS
+                    AI
                   </div>
                   <div class="flex-1">
                     <div class="h-2 w-20 bg-white/20 rounded mb-2"></div>

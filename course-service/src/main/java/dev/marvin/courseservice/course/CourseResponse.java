@@ -132,7 +132,6 @@ public record CourseResponse(
     }
 
 
-
     public CourseResponse(
             UUID id,
             String title,

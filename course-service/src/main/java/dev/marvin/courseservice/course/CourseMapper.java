@@ -94,7 +94,7 @@ public class CourseMapper {
 
 
 
-    public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount, boolean isEnrolled, double rating) {
+    public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount, Boolean isEnrolled, Double rating) {
         return new CourseResponse(
                 courseEntity.getId(),
                 courseEntity.getTitle(),
