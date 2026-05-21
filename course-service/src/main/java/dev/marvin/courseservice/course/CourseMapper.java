@@ -110,6 +110,22 @@ public class CourseMapper {
         );
     }
 
+
+    public static CourseResponse mapToResponse(CourseEntity courseEntity, Integer moduleCount, Integer learningStepCount, Double rating) {
+        return new CourseResponse(
+                courseEntity.getId(),
+                courseEntity.getTitle(),
+                courseEntity.getSlug(),
+                courseEntity.getDescription(),
+                courseEntity.getTags(),
+                courseEntity.getAccessTier(),
+                courseEntity.getPrice(),
+                moduleCount,
+                learningStepCount,
+                rating
+        );
+    }
+
     public static CourseResponse mapToDTO(CourseEntity courseEntity) {
         return new CourseResponse(
                 courseEntity.getId(),

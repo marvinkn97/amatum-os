@@ -1,5 +1,6 @@
 package dev.marvin.courseservice.grpc;
 
+import dev.marvin.courseservice.security.ServiceTokenProvider;
 import dev.marvin.rating.proto.CourseRating;
 import dev.marvin.rating.proto.RatingServiceGrpc;
 import io.grpc.ClientInterceptor;
@@ -21,11 +22,13 @@ import java.util.UUID;
 @Slf4j
 public class RatingServiceGrpcClient {
     private final RatingServiceGrpc.RatingServiceBlockingStub blockingStub;
+    private final ServiceTokenProvider serviceTokenProvider;
 
     public RatingServiceGrpcClient(
             @Value("${spring.grpc.client.rating-service.address}") String serverAddress,
-            @Value("${spring.grpc.client.rating-service.port}") int serverPort
+            @Value("${spring.grpc.client.rating-service.port}") int serverPort, ServiceTokenProvider serviceTokenProvider
     ) {
+        this.serviceTokenProvider = serviceTokenProvider;
         log.info("Connecting to rating service grpc server at {}:{}", serverAddress, serverPort);
         ManagedChannel channel = ManagedChannelBuilder.forAddress(serverAddress, serverPort)
                 .usePlaintext()
@@ -35,12 +38,7 @@ public class RatingServiceGrpcClient {
     }
 
     private RatingServiceGrpc.RatingServiceBlockingStub authenticatedStub() {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        assert auth != null;
-        Jwt jwt = (Jwt) auth.getPrincipal();
-        assert jwt != null;
-        String token = jwt.getTokenValue();
+        String token = resolveToken();
 
         Metadata metadata = new Metadata();
 
@@ -53,6 +51,20 @@ public class RatingServiceGrpcClient {
                 MetadataUtils.newAttachHeadersInterceptor(metadata);
 
         return blockingStub.withInterceptors(interceptor);
+    }
+
+
+    private String resolveToken() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getTokenValue();
+        }
+
+        log.info("No authenticated user found. Using client credentials token.");
+
+        return serviceTokenProvider.getAccessToken();
     }
 
     public List<CourseRating> getBulkAverageRatings(List<UUID> courseIds) {

@@ -20,7 +20,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9000/realms/amatum
+          issuer-uri: ${TOKEN_ISSUER_URI}
+      client:
+        registration:
+          identity-client:
+            provider: keycloak
+            client-id: ${KEYCLOAK_COURSE_CLIENT_ID}
+            client-secret: ${KEYCLOAK_COURSE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            token-uri: ${TOKEN_ISSUER_URI}/protocol/openid-connect/token
 
   grpc:
     server:
@@ -54,3 +65,4 @@ storage:
 keycloak:
   clients:
     lumina-client-id: lms-ui
+    course-client-id: course-client

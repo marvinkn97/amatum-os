@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: talemai-service
+
+  profiles:
+    active: dev
+
+  threads:
+    virtual:
+      enabled: true
+
+logging:
+  level:
+    root: info

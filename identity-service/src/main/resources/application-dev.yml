@@ -17,16 +17,16 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9000/realms/amatum
+          issuer-uri: ${TOKEN_ISSUER_URI}
 
 keycloak:
   realm: amatum
-  auth-server-url: http://localhost:9000/
-  backend-client-id: identity-client
-  backend-client-secret: cPm7PFr6nfwqWyjZEHfyPhmi5Yov2NOQ
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL}
+  backend-client-id: ${KEYCLOAK_IDENTITY_CLIENT_ID}
+  backend-client-secret: ${KEYCLOAK_IDENTITY_CLIENT_SECRET}
   clients:
     lumina-client-id: lms-ui
     opus-client-id: opus-ui
   groups:
-    learner-id: 125a155e-75d0-47fa-aebb-5dc062201e4d
-    manager-id: 5695695a-829e-490a-a466-457dd94e14fa
+    learner-id: ${KEYCLOAK_LEARNER_GROUP_ID}
+    manager-id: ${KEYCLOAK_MANAGER_GROUP_ID}

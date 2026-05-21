@@ -1,0 +1,21 @@
+server:
+  port: 8085
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URI}
+
+  ai:
+    ollama:
+      base-url: http://ollama:11435
+      chat:
+        model: mistral
+        temperature: 0.4
+
+keycloak:
+  clients:
+    lumina-client-id: lms-ui
+    opus-client-id: opus-ui

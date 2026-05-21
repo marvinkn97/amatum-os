@@ -322,9 +322,18 @@ public class CourseService {
                 .toList();
 
         if (courseIds.isEmpty()) {
-            log.info("No courses found in the page");
             return Page.empty();
         }
+
+        List<dev.marvin.rating.proto.CourseRating> ratingsList = ratingServiceGrpcClient.getBulkAverageRatings(courseIds);
+
+        Map<UUID, Double> ratingsMap = ratingsList.stream()
+                .collect(Collectors.toMap(
+                        item -> UUID.fromString(item.getCourseId()),
+                        dev.marvin.rating.proto.CourseRating::getAverageRating,
+                        (existing, replacement) -> existing // Guard mapping merge anomalies
+                ));
+
 
         Map<UUID, Long> moduleCounts = moduleRepository.countModulesByCourseIds(courseIds)
                 .stream()
@@ -340,8 +349,9 @@ public class CourseService {
 
             int moduleCount = moduleCounts.getOrDefault(courseId, 0L).intValue();
             int stepCount = stepCounts.getOrDefault(courseId, 0L).intValue();
+            double averageRating = ratingsMap.getOrDefault(courseId, 0.0);
 
-            return CourseMapper.mapToResponse(courseEntity, moduleCount, stepCount, null, null);
+            return CourseMapper.mapToResponse(courseEntity, moduleCount, stepCount, averageRating);
         });
 
     }

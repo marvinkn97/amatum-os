@@ -22,9 +22,9 @@ public class RatingGrpcService extends RatingServiceGrpc.RatingServiceImplBase {
 
     @Override
     public void getBulkAverageRatings(BulkRatingRequest request, StreamObserver<BulkRatingResponse> responseObserver) {
-        try {
-           log.info("Received bulk rating request: {}", request);
+        log.info("Received bulk rating request: {}", request);
 
+        try {
             List<UUID> courseIds = request.getCourseIdsList().stream()
                     .map(UUID::fromString)
                     .toList();
@@ -49,7 +49,12 @@ public class RatingGrpcService extends RatingServiceGrpc.RatingServiceImplBase {
 
         } catch (Exception e) {
             log.error("Error processing bulk rating request", e);
-            responseObserver.onError(e);
+            responseObserver.onError(
+                    io.grpc.Status.INTERNAL
+                            .withDescription("Failed to process bulk ratings")
+                            .withCause(e)
+                            .asRuntimeException()
+            );
         }
 
 

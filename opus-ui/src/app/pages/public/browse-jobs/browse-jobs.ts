@@ -70,11 +70,9 @@ interface Job {
 
     <div class="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20">
       <header class="max-w-3xl mb-16">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-6 tracking-wide uppercase">
-          Market Intelligence
-        </div>
+       
         <h1 class="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
-          Open <span class="text-emerald-500">Mandates</span>
+          Open <span class="text-emerald-500">Roles</span>
         </h1>
         <p class="text-slate-400 text-lg font-medium leading-relaxed">
           The Opus network hosts verified institutional opportunities.

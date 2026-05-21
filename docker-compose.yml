@@ -216,6 +216,58 @@ services:
     depends_on:
       - kafka
 
+  # NEW: Dedicated Vector Store Database for AI Operations (RAG, Embeddings)
+  ai-db:
+    image: ankane/pgvector:latest
+    container_name: amatum-ai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ai_vector_db
+    ports:
+      - "54325:5432" # Maps local 54325 -> container 5432
+    networks:
+      - amatum-network
+    volumes:
+      - ai-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d ai_vector_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # NEW: Ollama Inference Engine
+  ollama:
+    image: ollama/ollama:latest
+    container_name: amatum-ollama
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - amatum-network
+    restart: unless-stopped
+    healthcheck:
+      # MODIFIED: Swapped out curl for the native ollama CLI check
+      test: [ "CMD", "ollama", "list" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # NEW: Automated Sidecar Provisioner to handle the initial pull
+  ollama-provisioner:
+    image: curlimages/curl:latest
+    container_name: amatum-ollama-provisioner
+    networks:
+      - amatum-network
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command: >
+      curl -X POST http://ollama:11434/api/pull -d '{"name": "mistral"}'
+
 volumes:
   keycloak-data:
   postgres-keycloak-data:
@@ -226,6 +278,8 @@ volumes:
   enrollment-db-data:
   rating-db-data:
   kafka-data:
+  ai-db-data:
+  ollama-models:
 
 
 networks:

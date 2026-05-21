@@ -1,3 +1,36 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
 @import 'quill/dist/quill.snow.css';
+
+html {
+  scrollbar-gutter: stable;
+  /* Tells the browser to render the scrollbar elements using a dark color scheme */
+  color-scheme: dark; 
+}
+
+/* Modern cross-browser scrollbar styling */
+@supports (scrollbar-color: auto) {
+  html {
+    scrollbar-color: rgba(255, 255, 255, 0.15) #030712;
+    scrollbar-width: thin;
+  }
+}
+
+/* Webkit fallback (Chrome, Safari, Edge) to guarantee a flawless dark blend */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030712; /* Matches your exact page background color */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

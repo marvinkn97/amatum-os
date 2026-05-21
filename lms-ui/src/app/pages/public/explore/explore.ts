@@ -26,9 +26,7 @@ import { CourseService } from '../../../services/course.service';
     <div
       class="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-indigo-500/30 relative"
     >
-      <nav
-        class="fixed top-0 w-full z-50 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50"
-      >
+      <nav class="fixed top-0 w-full z-50 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <div
             class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer"
@@ -120,50 +118,55 @@ import { CourseService } from '../../../services/course.service';
         </div>
       }
 
-      @if (isPageLoading()) {
-        <div class="fixed inset-x-0 bottom-0 top-16 bg-[#030712] z-30 flex items-center justify-center">
-          <div class="max-w-7xl mx-auto px-6 text-center">
+      <main class="pt-32 pb-20 px-6 max-w-7xl mx-auto animate-in fade-in duration-500">
+        <header class="mb-12">
+          <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tight">
+            Discover <span class="text-indigo-500 italic">Expertise.</span>
+          </h1>
+          <p class="text-slate-400 text-lg max-w-2xl font-medium">
+            Sovereign training from industry leaders. Built in private workspaces, shared with the
+            world.
+          </p>
+        </header>
+
+        @if (isPageLoading() && courses().length === 0 && categories().length === 0) {
+          <div class="py-32 flex items-center justify-center">
             <div
-              class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin mx-auto"
+              class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"
             ></div>
           </div>
-        </div>
-      }
-
-      @if (hasError() && !isPageLoading()) {
-        <div class="fixed inset-x-0 bottom-0 top-16 bg-[#030712] z-30 flex items-center justify-center animate-in fade-in duration-300">
-          <div class="max-w-md mx-auto px-6 text-center space-y-4">
-            <div class="size-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
-              <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+        } @else if (hasError() && !isPageLoading()) {
+          <div
+            class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300"
+          >
+            <div class="max-w-md mx-auto text-center space-y-4">
+              <div
+                class="size-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-rose-400"
+              >
+                <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-md font-black tracking-widest uppercase text-slate-200">
+                Catalog Offline
+              </h2>
+              <p class="text-slate-500 text-xs leading-relaxed">
+                We're having trouble reaching our servers right now. Please try again shortly.
+              </p>
+              <button
+                (click)="retryConnections()"
+                class="px-6 py-2 bg-white text-black hover:bg-indigo-600 hover:text-white font-black text-[10px] tracking-widest uppercase rounded-xl transition-all active:scale-95 cursor-pointer"
+              >
+                Retry
+              </button>
             </div>
-            <h2 class="text-md font-black tracking-widest uppercase text-slate-200">Catalog Offline</h2>
-            <p class="text-slate-500 text-xs leading-relaxed">
-              We're having trouble reaching our servers right now. Please try again shortly.
-            </p>
-            <button
-              (click)="retryConnections()"
-              class="px-6 py-2 bg-white text-black hover:bg-indigo-600 hover:text-white font-black text-[10px] tracking-widest uppercase rounded-xl transition-all active:scale-95 cursor-pointer"
-            >
-              Retry Connection
-            </button>
           </div>
-        </div>
-      }
-
-      @if (!isPageLoading() && !hasError()) {
-        <main class="pt-32 pb-20 px-6 max-w-7xl mx-auto animate-in fade-in duration-500">
-          <header class="mb-12">
-            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tight">
-              Discover <span class="text-indigo-500 italic">Expertise.</span>
-            </h1>
-            <p class="text-slate-400 text-lg max-w-2xl font-medium">
-              Sovereign training from industry leaders. Built in private workspaces, shared with the
-              world.
-            </p>
-          </header>
-
+        } @else {
           <div class="relative mb-12">
             <div
               class="flex gap-3 overflow-x-auto pb-6 no-scrollbar scroll-smooth items-center -mx-6 px-6 md:mx-0 md:px-0"
@@ -212,9 +215,13 @@ import { CourseService } from '../../../services/course.service';
                 <div [class]="'h-40 relative ' + getAccent(course.categoryId)">
                   <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
                   <div class="absolute top-6 left-8">
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md">
+                    <div
+                      class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md"
+                    >
                       <svg class="size-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                        <path
+                          d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                        />
                       </svg>
                       <span class="text-[11px] font-black text-white tracking-tighter">
                         {{ course.rating || '0.0' }}
@@ -225,38 +232,66 @@ import { CourseService } from '../../../services/course.service';
 
                 <div class="p-8 pt-4 flex flex-col flex-1">
                   <div class="flex items-center gap-2 mb-4">
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ course.moduleCount || 0 }} Modules</span>
-                    <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest">•</span>
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ course.learningStepCount || 0 }} Lessons</span>
+                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+                      >{{ course.moduleCount || 0 }} Modules</span
+                    >
+                    <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
+                      >•</span
+                    >
+                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+                      >{{ course.learningStepCount || 0 }} Lessons</span
+                    >
                   </div>
 
-                  <h3 class="text-md font-black text-white mb-3 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase">
+                  <h3
+                    class="text-md font-black text-white mb-3 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
+                  >
                     {{ course.title }}
                   </h3>
 
                   <div class="flex flex-wrap gap-2 mb-8">
                     @for (tag of course.tags; track tag) {
-                      <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">#{{ tag }}</span>
+                      <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+                        >#{{ tag }}</span
+                      >
                     }
                   </div>
 
-                  <div class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5">
+                  <div
+                    class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5"
+                  >
                     <div class="mr-auto flex flex-col items-start">
                       @if (course.accessTier === 'PREMIUM') {
-                        <span class="text-[7px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5">Premium Access</span>
-                        <span class="text-[13px] font-black text-white italic tracking-tighter">{{ course.price | currency }}</span>
+                        <span
+                          class="text-[7px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5"
+                          >Premium Access</span
+                        >
+                        <span class="text-[13px] font-black text-white italic tracking-tighter">{{
+                          course.price | currency
+                        }}</span>
                       } @else {
-                        <span class="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5">Free Access</span>
-                        <span class="text-[13px] font-black text-slate-400 italic tracking-tighter">Free</span>
+                        <span
+                          class="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5"
+                          >Free Access</span
+                        >
+                        <span class="text-[13px] font-black text-slate-400 italic tracking-tighter"
+                          >Free</span
+                        >
                       }
                     </div>
 
                     <button
+                      title="View Course"
                       (click)="launch()"
                       class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
                     >
                       <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -264,15 +299,21 @@ import { CourseService } from '../../../services/course.service';
               </div>
             } @empty {
               @if (!isLoadingCourses() && !isLoadingCategories()) {
-                <div class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center">
-                  <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">No Courses Available</span>
+                <div
+                  class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
+                >
+                  <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                    >No Courses Available</span
+                  >
                 </div>
               }
             }
 
             @if (isLoadingCourses() && courses().length > 0) {
               @for (i of [1, 2, 3]; track i) {
-                <div class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md">
+                <div
+                  class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
+                >
                   <div class="h-40 bg-white/5 relative"></div>
                   <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
                     <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
@@ -293,8 +334,8 @@ import { CourseService } from '../../../services/course.service';
           </div>
 
           <div #courseSentinel class="h-20 w-full pointer-events-none"></div>
-        </main>
-      }
+        }
+      </main>
     </div>
   `,
   styles: [
@@ -399,7 +440,12 @@ export class Explore implements OnInit, OnDestroy {
     this.categoryObserver?.disconnect();
     this.categoryObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !this.isLoadingCategories() && !this.isLastCategoryPage && !this.hasError()) {
+        if (
+          entry.isIntersecting &&
+          !this.isLoadingCategories() &&
+          !this.isLastCategoryPage &&
+          !this.hasError()
+        ) {
           this.categoryPage++;
           this.loadMoreCategories();
         }
