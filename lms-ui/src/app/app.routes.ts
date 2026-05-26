@@ -28,6 +28,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/public/explore/explore').then((m) => m.Explore),
   },
   {
+    path: 'explore/:id',
+    loadComponent: () =>
+      import('./pages/public/explore-course/explore-course').then((m) => m.ExploreCourse),
+  },
+  {
     path: 'onboarding',
     canActivate: [canActivateAuth],
     loadComponent: () => import('./auth/onboarding').then((m) => m.Onboarding),
@@ -57,9 +62,8 @@ export const routes: Routes = [
       { path: 'course-catalogue', component: CourseCatalogueComponent },
       { path: 'course-catalogue/:id', component: CourseDetailsComponent },
       { path: 'certificates', component: MyCertificatesComponent },
-       { path: 'enrollments', component: EnrollmentsComponent },
-      { path: 'enrollments/:id', component: EnrollmentViewComponent }
-     
+      { path: 'enrollments', component: EnrollmentsComponent },
+      { path: 'enrollments/:id', component: EnrollmentViewComponent },
     ],
   },
 

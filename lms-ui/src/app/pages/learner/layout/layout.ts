@@ -97,7 +97,7 @@ interface Organization {
 
       <div class="flex-1 flex flex-col min-w-0 h-full relative">
         <header
-          class="h-16 border-b border-white/5 bg-[#030712]/50 backdrop-blur-xl flex items-center justify-between px-4 lg:px-8 shrink-0 z-90"
+          class="h-16 border-b border-white/5 bg-[#030712]/50 backdrop-blur-xl flex items-center justify-between px-4 lg:px-8 shrink-0 z-100"
         >
           <div class="relative">
             <button
@@ -159,7 +159,7 @@ interface Organization {
 
           <div class="flex items-center gap-3 lg:gap-5">
             <button
-              (click)="isAiOpen.set(true)"
+              (click)="isAiOpen.set(!isAiOpen())"
               class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 hover:bg-white/10 text-slate-400 cursor-pointer"
             >
               <svg
@@ -328,7 +328,7 @@ interface Organization {
                 />
               </svg>
             </div>
-            <h3 class="text-xl font-bold text-white text-center mb-2">Confirm Sign Out</h3>
+            <h3 class="text-md font-bold text-white text-center mb-2">Confirm Sign Out</h3>
             <p class="text-sm text-slate-400 text-center mb-8 leading-relaxed">
               Are you sure? You'll need to log back in to access your courses and progress.
             </p>

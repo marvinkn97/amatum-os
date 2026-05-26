@@ -200,6 +200,12 @@ services:
       timeout: 5s
       retries: 12
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
 
   # MODERN UI CLIENT (Kafka UI)
   kafka-ui:
@@ -255,6 +261,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+        limits:
+          memory: 6G
+          cpus: '4.0'
 
   # NEW: Automated Sidecar Provisioner to handle the initial pull
   ollama-provisioner:

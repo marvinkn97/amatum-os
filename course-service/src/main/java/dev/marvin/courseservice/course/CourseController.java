@@ -190,5 +190,11 @@ public class CourseController {
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(coursePage, EntityModel::of));
     }
 
+    @Operation(summary = "Get public course view")
+    @GetMapping("/{id}/public")
+    public ResponseEntity<CourseResponse> getPublicCourseView(@PathVariable("id") UUID courseId) {
+        return ResponseEntity.ok(courseService.getPublicCourseView(courseId));
+    }
+
 
 }

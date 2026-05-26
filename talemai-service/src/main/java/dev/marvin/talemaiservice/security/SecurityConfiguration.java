@@ -30,7 +30,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(c -> c
-                        .requestMatchers("/actuator/**")
+                        .requestMatchers("/actuator/**",
+                                "/api/talemai/ask")
                         .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(c -> c.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter())))

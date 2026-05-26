@@ -65,4 +65,3 @@ storage:
 keycloak:
   clients:
     lumina-client-id: lms-ui
-    course-client-id: course-client

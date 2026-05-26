@@ -11,7 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, RouterLink } from '@angular/router';
+import { RouterModule, RouterLink, Router } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import Keycloak from 'keycloak-js';
 import { CategoryService } from '../../../services/category.service';
@@ -282,7 +282,7 @@ import { CourseService } from '../../../services/course.service';
 
                     <button
                       title="View Course"
-                      (click)="launch()"
+                      (click)="exploreCourse(course?.id)"
                       class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
                     >
                       <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -350,6 +350,7 @@ export class Explore implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private courseService = inject(CourseService);
   private readonly keycloak = inject(Keycloak);
+  private router = inject(Router);
 
   @ViewChild('courseSentinel') courseSentinel!: ElementRef;
 
@@ -548,5 +549,11 @@ export class Explore implements OnInit, OnDestroy {
     const accents = ['bg-emerald-500/10', 'bg-indigo-500/10', 'bg-rose-500/10', 'bg-amber-500/10'];
     const index = categoryId ? categoryId.length % accents.length : 0;
     return accents[index];
+  }
+
+  exploreCourse(courseId: string) {
+    if (!courseId) return;
+  
+    this.router.navigate(['/explore/', courseId]); 
   }
 }

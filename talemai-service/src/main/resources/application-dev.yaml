@@ -10,10 +10,11 @@ spring:
 
   ai:
     ollama:
-      base-url: http://ollama:11435
+      base-url: http://localhost:11435
       chat:
         model: mistral
         temperature: 0.4
+
 
 keycloak:
   clients:

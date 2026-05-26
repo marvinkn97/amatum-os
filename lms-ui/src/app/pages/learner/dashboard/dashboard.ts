@@ -197,19 +197,25 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage()) {
-          untracked(() => {
-            this.currentPage.update((p) => p + 1);
-            this.loadActiveData(false);
-          });
-        }
-      },
-      { threshold: 0.1 },
-    );
-    observer.observe(this.scrollSentinel.nativeElement);
+  // Check if the element was actually found in the DOM
+  if (!this.scrollSentinel) {
+    return; 
   }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage()) {
+        untracked(() => {
+          this.currentPage.update((p) => p + 1);
+          this.loadActiveData(false);
+        });
+      }
+    },
+    { threshold: 0.1 },
+  );
+
+  observer.observe(this.scrollSentinel.nativeElement);
+}
 
   private resetAndReload(): void {
     this.currentPage.set(0);

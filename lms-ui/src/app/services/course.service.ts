@@ -134,12 +134,11 @@ export class CourseService {
     return this.http.get<PagedResponse<CourseResponse>>(`${this.API_URL}/catalog`, { params });
   }
 
-
-   getLearnerCourseView(id: string): Observable<CourseResponse> {
+  getLearnerCourseView(id: string): Observable<CourseResponse> {
     return this.http.get<CourseResponse>(`${this.API_URL}/${id}/learner`);
   }
 
-    fetchCPublic(
+  fetchCPublic(
     search: string = '',
     categoryId: string = '',
     page: number = 0,
@@ -151,5 +150,9 @@ export class CourseService {
     if (categoryId?.trim()) params = params.set('categoryId', categoryId);
 
     return this.http.get<PagedResponse<CourseResponse>>(`${this.API_URL}/public`, { params });
+  }
+
+  getPublicCourseView(id: string): Observable<CourseResponse> {
+    return this.http.get<CourseResponse>(`${this.API_URL}/${id}/public`);
   }
 }

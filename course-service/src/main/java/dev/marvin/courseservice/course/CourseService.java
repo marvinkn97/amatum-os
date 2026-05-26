@@ -643,6 +643,116 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
+    public CourseResponse getPublicCourseView(UUID id) {
+        log.info("Fetching public course with id: {}", id);
+        CourseEntity course = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course with id [%s] not found".formatted(id)));
+
+        List<ModuleEntity> moduleEntities = moduleRepository.findByCourse_IdOrderBySequenceAsc(course.getId());
+        List<UUID> moduleIds = moduleEntities.stream().map(ModuleEntity::getId).toList();
+
+        List<LearningStepEntity> stepEntities = learningStepRepository.findByModule_IdIn(moduleIds);
+        List<UUID> stepIds = stepEntities.stream().map(LearningStepEntity::getId).toList();
+
+        List<LearningStepResourceEntity> resourceEntities =
+                learningStepResourceRepository.findByLearningStepEntity_IdIn(stepIds);
+
+        Map<UUID, List<LearningStepResourceResponse>> resourcesByStepId =
+                resourceEntities.stream()
+                        .collect(Collectors.groupingBy(
+                                r -> r.getLearningStepEntity().getId(),
+                                Collectors.mapping(r ->
+                                                new LearningStepResourceResponse(
+                                                        r.getId(),
+                                                        r.getName(),
+                                                        s3Service.generatePresignedUrl(r.getObjectKey()),
+                                                        r.getContentType(),
+                                                        r.getSize()
+                                                ),
+                                        Collectors.toList()
+                                )
+                        ));
+
+        Map<UUID, LessonEntity> lessonsByStepId = lessonRepository.findByLearningStepEntity_IdIn(stepIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        lesson -> lesson.getLearningStepEntity().getId(),
+                        Function.identity(),
+                        (existing, _) -> existing
+                ));
+
+        List<QuizEntity> quizEntities = quizRepository.findByLearningStepEntity_IdIn(stepIds);
+        List<UUID> quizIds = quizEntities.stream().map(QuizEntity::getId).toList();
+
+        Map<UUID, List<QuizQuestion>> questionsByQuizId =
+                quizQuestionRepository.findByQuizEntity_IdIn(quizIds).stream()
+                        .collect(Collectors.groupingBy(q -> q.getQuizEntity().getId()));
+
+        List<UUID> questionIds = questionsByQuizId.values().stream()
+                .flatMap(List::stream)
+                .map(QuizQuestion::getId)
+                .toList();
+
+        Map<UUID, List<QuizAnswerOption>> optionsByQuestionId =
+                quizAnswerOptionRepository.findByQuizQuestion_IdIn(questionIds).stream()
+                        .collect(Collectors.groupingBy(opt -> opt.getQuizQuestion().getId()));
+
+        Map<UUID, QuizResponse> quizzesByStepId = quizEntities.stream()
+                .collect(Collectors.toMap(
+                        quiz -> quiz.getLearningStepEntity().getId(),
+                        quiz -> {
+                            List<QuizQuestion> questions = questionsByQuizId.getOrDefault(quiz.getId(), List.of());
+
+                            List<QuizQuestionResponse> questionResponses = questions.stream()
+                                    .map(q -> {
+                                        List<QuizAnswerOptionResponse> optionResponses = optionsByQuestionId.getOrDefault(q.getId(), List.of())
+                                                .stream()
+                                                .map(opt -> new QuizAnswerOptionResponse(opt.getId(), opt.getAnswerText()))
+                                                .toList();
+
+                                        return new QuizQuestionResponse(q.getId(), q.getQuestionText(), q.isHasMultipleAnswers(), optionResponses);
+                                    }).toList();
+
+                            return new QuizResponse(quiz.getId(), questionResponses);
+                        }
+                ));
+
+        Map<UUID, List<LearningStepResponse>> stepsByModuleId = stepEntities.stream()
+                .map(entity -> {
+                    if (entity.getType().equals(LearningStepType.LESSON)) {
+                        LessonEntity lesson = lessonsByStepId.get(entity.getId());
+
+                        List<LearningStepResourceResponse> resources =
+                                resourcesByStepId.getOrDefault(entity.getId(), List.of());
+
+                        return LearningStepMapper.mapToLearnerResponse(entity, lesson, resources, null);
+                    }
+
+                    if (entity.getType().equals(LearningStepType.QUIZ)) {
+                        QuizResponse quizResponse = quizzesByStepId.get(entity.getId());
+                        return LearningStepMapper.mapToLearnerResponse(entity, null, null, quizResponse);
+                    }
+
+                    return LearningStepMapper.mapToResponse(entity);
+                })
+                .sorted(Comparator.comparing(LearningStepResponse::getSequence))
+                .collect(Collectors.groupingBy(LearningStepResponse::getModuleId));
+
+        List<ModuleResponse> moduleResponses = moduleEntities.stream()
+                .map(m -> new ModuleResponse(
+                        m.getId(),
+                        m.getTitle(),
+                        m.getSequence(),
+                        stepsByModuleId.getOrDefault(m.getId(), List.of())
+                ))
+                .toList();
+
+        return CourseMapper.mapToResponseWithModulesAndLessons(course, moduleResponses, moduleEntities.size(), stepEntities.size());
+
+    }
+
+
+    @Transactional(readOnly = true)
     public List<CourseResponse> getCourseSummaryResponses(List<UUID> courseIds) {
         log.info("Fetching course summary responses for courses: {}", courseIds);
 

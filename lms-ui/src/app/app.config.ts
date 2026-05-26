@@ -23,6 +23,7 @@ import { environment } from '../environments/environment';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { tenantInterceptor } from './auth/tenant.interceptor';
 import { ACTIVE_TENANT_ID } from './auth/tenant-context.token';
+import { provideMarkdown } from 'ngx-markdown';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -61,5 +62,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([includeBearerTokenInterceptor, tenantInterceptor])),
     provideRouter(routes),
     provideEchartsCore({ echarts: () => import('echarts') }),
+    provideMarkdown(),
   ],
 };
