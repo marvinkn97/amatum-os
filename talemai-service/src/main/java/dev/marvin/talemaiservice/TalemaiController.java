@@ -1,6 +1,5 @@
 package dev.marvin.talemaiservice;
 
-import dev.marvin.talemaiservice.security.TalemaiService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ public class TalemaiController {
 
     @PostMapping("/ask")
     public String askTalemai(@Valid @RequestBody String question) {
-        log.info("Received question: {}", question);
         return chatClient.prompt()
                 .system("""
                         "You are a helpful assistant. Respond to the user's question in a concise manner.

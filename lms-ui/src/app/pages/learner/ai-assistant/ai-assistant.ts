@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, model, signal } from '@angular/core';
+import { Component, inject, model, signal, ViewChild, ElementRef, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TalemaiService } from '../../../services/talemai.service';
-import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
+import { MarkdownComponent } from 'ngx-markdown';
+import { ChatService } from '../../../services/chat.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -22,7 +23,6 @@ import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
       class="fixed top-16 z-90 right-0 h-[calc(100%-4rem)] w-full lg:w-130 xl:w-155 max-w-full bg-[#0b1120]/95 backdrop-blur-2xl border-l border-white/5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl shadow-black"
     >
       <div class="flex flex-col h-full">
-        <!-- Header -->
         <div class="p-4 sm:p-5 border-b border-white/5 bg-[#0b1120]/80 backdrop-blur-xl">
           <div class="flex items-center justify-between gap-3 min-w-0">
             <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -47,10 +47,7 @@ import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
                 </p>
               </div>
             </div>
-            <button
-              (click)="isOpen.set(false)"
-              class="size-9 text-slate-400 cursor-pointer"
-            >
+            <button (click)="isOpen.set(false)" class="size-9 text-slate-400 cursor-pointer">
               <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -58,8 +55,7 @@ import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
           </div>
         </div>
 
-        <!-- Messages -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div #scrollContainer class="flex-1 overflow-y-auto p-6 space-y-4">
           @for (msg of messages(); track $index) {
             <div
               class="rounded-2xl p-4 border border-white/5 text-sm"
@@ -77,7 +73,6 @@ import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
             </div>
           }
 
-          <!-- Bouncing Dots Loader -->
           @if (isLoading()) {
             <div class="flex gap-1.5 px-4 py-3">
               <div
@@ -91,7 +86,6 @@ import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
           }
         </div>
 
-        <!-- Input -->
         <div class="p-6 border-t border-white/5 bg-white/2">
           <div class="relative">
             <input
@@ -117,14 +111,31 @@ import { MarkdownComponent } from 'ngx-markdown'; // Ensure this is installed
   `,
 })
 export class AiAssistant {
+  @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
+
   isOpen = model(false);
   private talemaiService = inject(TalemaiService);
+  private chatService = inject(ChatService);
 
   userQuery = signal('');
-  messages = signal<{ role: 'user' | 'ai'; text: string }[]>([
-    { role: 'ai', text: "Hello! I'm TALEMAI. How can I help you today?" },
-  ]);
+  messages = this.chatService.messages;
   isLoading = signal(false);
+
+  constructor() {
+    effect(() => {
+      // Track signals to trigger scroll on update
+      this.messages();
+      this.isLoading();
+
+      // Scroll to bottom after view updates
+      setTimeout(() => {
+        if (this.scrollContainer) {
+          this.scrollContainer.nativeElement.scrollTop =
+            this.scrollContainer.nativeElement.scrollHeight;
+        }
+      });
+    });
+  }
 
   sendMessage() {
     const query = this.userQuery().trim();
@@ -140,7 +151,7 @@ export class AiAssistant {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error("AI Connection Failed:", err);
+        console.error('AI Connection Failed:', err);
         this.messages.update((prev) => [
           ...prev,
           {
