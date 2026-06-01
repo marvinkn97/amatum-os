@@ -24,8 +24,8 @@ import { TenantService } from '../../../services/tenant.service';
       <header
         class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
       >
-        <div class="text-center md:text-left">
-          <h1 class="text-md font-black text-white italic tracking-tighter mb-2 uppercase">
+        <div class="space-y-1">
+          <h1 class="text-md font-black text-white italic tracking-tighter uppercase">
             Certifications
           </h1>
           <p class="text-slate-500 text-sm font-medium">Professional milestones achieved.</p>

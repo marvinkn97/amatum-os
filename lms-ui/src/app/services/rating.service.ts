@@ -15,7 +15,7 @@ export interface RatingRequest {
 })
 export class RatingService {
   private http = inject(HttpClient); 
-   private readonly API_URL = 'http://localhost:8084/api/ratings';
+   private readonly API_URL = environment.apiUrl + 'ratings';
 
   submitRating(request: RatingRequest): Observable<void> {
     return this.http.post<void>(this.API_URL, request);

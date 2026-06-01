@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LearningStepResponse } from './learning-step.service';
+import { environment } from '../../environments/environment';
 
 export interface PagedResponse<T> {
   _embedded?: {
@@ -51,7 +52,7 @@ export interface LearningStepReorderRequest {
 })
 export class ModuleService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8082/api/modules';
+  private readonly API_URL = environment.apiUrl + 'modules';
 
   createModule(request: ModuleRequest): Observable<ModuleResponse> {
     return this.http.post<ModuleResponse>(this.API_URL, request);

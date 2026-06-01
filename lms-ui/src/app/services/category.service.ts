@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface CourseCategory {
   id: string;
@@ -38,7 +39,7 @@ export interface PagedResponse<T> {
 })
 export class CategoryService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8082/api/categories';
+  private readonly API_URL =  environment.apiUrl + 'categories';
 
   // Signals for state management
   categories = signal<CourseCategory[]>([]);

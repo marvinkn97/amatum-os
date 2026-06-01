@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface MuxUploadResponse {
   data: {
@@ -22,7 +23,7 @@ export class MuxService {
   isUploading = signal(false);
   uploadProgress = signal(0);
 
-  private readonly API_URL = 'http://localhost:8082/api/mux';
+  private readonly API_URL = environment.apiUrl + 'mux';
 
   constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface PagedResponse<T> {
   _embedded?: {
@@ -130,7 +131,7 @@ export interface QuizResponse {
 })
 export class LearningStepService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8082/api/learning-steps';
+  private readonly API_URL = environment.apiUrl + 'learning-steps';
 
   createLearningStep(request: LearningStepRequest): Observable<LearningStepResponse> {
     const formData = new FormData();

@@ -31,10 +31,13 @@ public class SecurityConfiguration {
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(c -> c
                         .requestMatchers("/actuator/**",
-                                "/api/talemai/ask")
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**")
                         .permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(c -> c.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .oauth2ResourceServer(
+                        c -> c.jwt(
+                                j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .build();
     }
 

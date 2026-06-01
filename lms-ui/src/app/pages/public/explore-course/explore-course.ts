@@ -245,9 +245,9 @@ export class ExploreCourse implements OnInit, OnDestroy {
         switchMap((id) =>
           this.courseService
             .getPublicCourseView(id!)
-            .pipe(finalize(() => this.isLoading.set(false)))
+            .pipe(finalize(() => this.isLoading.set(false))),
         ),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe({
         next: (data) => {

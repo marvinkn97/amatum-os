@@ -29,6 +29,7 @@ public class TalemaiController {
                           Keep complex explanations organized with logical nesting."
                         """)
                 .user(question)
-                .call().content();
+                .call()
+                .content();
     }
 }

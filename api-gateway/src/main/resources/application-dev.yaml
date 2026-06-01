@@ -1,0 +1,101 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URI}
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: identity-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/identity/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: identityServiceCB
+                    fallbackUri: forward:/fallback
+
+            - id: api-docs-identity-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api-docs/identity
+              filters:
+                - RewritePath=/api-docs/identity,/v3/api-docs
+
+            - id: course-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/courses/**,/api/categories/**,/api/learning-steps/**,/api/modules/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: courseServiceCB
+                    fallbackUri: forward:/fallback
+
+            - id: api-docs-course-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api-docs/courses
+              filters:
+                - RewritePath=/api-docs/courses,/v3/api-docs
+
+            - id: enrollment-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/enrollments/**,/api/certificates/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: enrollmentServiceCB
+                    fallbackUri: forward:/fallback
+
+            - id: api-docs-enrollment-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api-docs/enrollments
+              filters:
+                - RewritePath=/api-docs/enrollments,/v3/api-docs
+
+
+          httpclient:
+            connect-timeout: 10000
+            response-timeout: 5s
+
+resilience4j:
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s
+    instances:
+      courseServiceCB:
+        base-config: default
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 100
+        permitted-number-of-calls-in-half-open-state: 2
+        failure-rate-threshold: 50
+        wait-duration-in-open-state:
+          seconds: 10
+        minimum-number-of-calls: 5
+        sliding-window-type: count_based
+        automatic-transition-from-open-to-half-open-enabled: true
+    instances:
+      courseServiceCB:
+        base-config: default
+      enrollmentServiceCB:
+        base-config: default
+      identityServiceCB:
+        base-config: default
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CourseResponse } from './course.service';
+import { environment } from '../../environments/environment';
 
 export interface EnrollmentRequest {
   courseId: string;
@@ -69,7 +70,7 @@ export class EnrollmentService {
     throw new Error('Method not implemented.');
   }
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8083/api/enrollments';
+  private readonly API_URL = environment.apiUrl + 'enrollments';
 
   enroll(request: EnrollmentRequest): Observable<EnrollmentResponse> {
     return this.http.post<EnrollmentResponse>(this.API_URL, request);

@@ -131,6 +131,37 @@ import Keycloak from 'keycloak-js';
               </div>
             </button>
           }
+          @if (hasRole('INSTRUCTOR')) {
+            <button
+              (click)="select('instructor')"
+              class="group relative p-8 rounded-3xl bg-slate-900/40 border border-white/5 hover:border-emerald-500/50 hover:bg-slate-900/60 transition-all duration-500 text-left overflow-hidden cursor-pointer"
+            >
+              <div
+                class="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              ></div>
+              <div
+                class="size-14 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-all"
+              >
+                <svg class="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">Instructor</h3>
+              <p class="text-sm text-slate-400 leading-relaxed">
+                Create curriculum for your assigned companies and host live class sessions.
+              </p>
+              <div
+                class="mt-8 flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-x-2.5 group-hover:translate-x-0"
+              >
+                Enter Studio <span>→</span>
+              </div>
+            </button>
+          }
         </div>
 
         <div class="mt-12 text-center">

@@ -18,7 +18,7 @@ export interface S3UploadRequest {
 })
 export class S3Service {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8082/api/uploads/s3';
+  private readonly API_URL = environment.apiUrl + 'uploads/s3';
 
   /**
    * Step 1: Get the 'permission' from Spring Boot

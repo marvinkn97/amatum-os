@@ -129,13 +129,14 @@ import { CourseService } from '../../../services/course.service';
           </p>
         </header>
 
-        @if (isPageLoading() && courses().length === 0 && categories().length === 0) {
-          <div class="py-32 flex items-center justify-center">
-            <div
-              class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"
-            ></div>
+        @if (isPageLoading()) {
+          <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
+            <div class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold space-y-1 text-center">
+              @if (isLoadingCategories() || isLoadingCourses()) { <div>Loading...</div> }
+            </div>
           </div>
-        } @else if (hasError() && !isPageLoading()) {
+        } @else if (hasError()) {
           <div
             class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300"
           >
@@ -357,7 +358,6 @@ export class Explore implements OnInit, OnDestroy {
   isMenuOpen = signal(false);
   hasError = signal(false);
 
-  // Category Storage Signals
   activeCategoryId = signal('');
   activeCategoryName = signal('All');
   categories = signal<any[]>([]);
@@ -365,16 +365,12 @@ export class Explore implements OnInit, OnDestroy {
   isLastCategoryPage = false;
   isLoadingCategories = signal(false);
 
-  // Live Catalog Course Signals
   courses = signal<any[]>([]);
   currentCoursePage = signal(0);
   hasNextCoursePage = signal(true);
   isLoadingCourses = signal(false);
 
-  // Computed based strictly on active pipeline operations
-  isPageLoading = computed(() => {
-    return this.isLoadingCategories() || this.isLoadingCourses();
-  });
+  isPageLoading = computed(() => this.isLoadingCategories() || this.isLoadingCourses());
 
   private destroy$ = new Subject<void>();
   private categoryObserver?: IntersectionObserver;
@@ -383,14 +379,8 @@ export class Explore implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       if (typeof document !== 'undefined') {
-        document.body.style.overflow =
-          this.isMenuOpen() || this.isPageLoading() ? 'hidden' : 'auto';
+        document.body.style.overflow = this.isPageLoading() || this.isMenuOpen() ? 'hidden' : 'auto';
       }
-    });
-
-    effect(() => {
-      this.activeCategoryId();
-      untracked(() => this.resetAndReloadCourses());
     });
 
     effect(() => {
@@ -407,6 +397,7 @@ export class Explore implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.fetchInitialCategories();
+    this.loadCourses(true);
   }
 
   ngOnDestroy() {
@@ -479,8 +470,11 @@ export class Explore implements OnInit, OnDestroy {
   }
 
   selectCategory(id: string, name: string) {
-    this.activeCategoryId.set(id);
-    this.activeCategoryName.set(name);
+    if (this.activeCategoryId() !== id) {
+      this.activeCategoryId.set(id);
+      this.activeCategoryName.set(name);
+      this.resetAndReloadCourses();
+    }
   }
 
   private resetAndReloadCourses() {
@@ -553,7 +547,6 @@ export class Explore implements OnInit, OnDestroy {
 
   exploreCourse(courseId: string) {
     if (!courseId) return;
-  
-    this.router.navigate(['/explore/', courseId]); 
+    this.router.navigate(['/explore/', courseId]);
   }
 }

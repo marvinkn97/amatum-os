@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TalemaiService } from '../../../services/talemai.service';
 import { MarkdownComponent } from 'ngx-markdown';
 import { ChatService } from '../../../services/chat.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -116,6 +117,7 @@ export class AiAssistant {
   isOpen = model(false);
   private talemaiService = inject(TalemaiService);
   private chatService = inject(ChatService);
+  private notificationService = inject(NotificationService);
 
   userQuery = signal('');
   messages = this.chatService.messages;
@@ -152,13 +154,9 @@ export class AiAssistant {
       },
       error: (err) => {
         console.error('AI Connection Failed:', err);
-        this.messages.update((prev) => [
-          ...prev,
-          {
-            role: 'ai',
-            text: "I'm sorry, I hit a snag and couldn't process that. It might be a momentary glitch—would you like to try again?",
-          },
-        ]);
+        this.notificationService.error(
+          "I'm sorry, I hit a snag and couldn't process that. Please try again",
+        );
         this.isLoading.set(false);
       },
     });

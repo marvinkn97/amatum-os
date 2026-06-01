@@ -33,7 +33,7 @@ interface PasswordUpdateRequest {
 export class IdentityService {
   private http = inject(HttpClient);
 
-  private BASE_URL = environment.apiUrl + '/identity'; // adjust if your Spring Boot port is different
+  private BASE_URL = environment.apiUrl + 'identity'; 
 
   onboardLearner(): Observable<string> {
     return this.http.post(
