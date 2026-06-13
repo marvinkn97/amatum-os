@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import Keycloak from 'keycloak-js';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-role-selection',
@@ -225,14 +225,14 @@ import Keycloak from 'keycloak-js';
   `,
 })
 export class RoleSelectionComponent {
-  private keycloak = inject(Keycloak);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
-  fullName = signal(this.keycloak.tokenParsed?.['name'] || 'User');
+  fullName = computed(() => this.authService.user()?.['name'] || 'User');
   isLogoutConfirmOpen = signal(false);
 
   hasRole(role: string): boolean {
-    return this.keycloak.hasRealmRole(role) || this.keycloak.hasResourceRole(role, 'lms-ui');
+    return this.authService.hasRole(role);
   }
 
   select(path: string) {
@@ -240,6 +240,6 @@ export class RoleSelectionComponent {
   }
 
   logout() {
-    this.keycloak.logout({ redirectUri: window.location.origin });
+    this.authService.logout();
   }
 }

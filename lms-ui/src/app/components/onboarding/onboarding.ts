@@ -2,7 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IdentityService } from '../services/identity.service';
+
+import Keycloak from 'keycloak-js';
+import { IdentityService } from '../../services/identity.service';
 
 @Component({
   selector: 'app-onboarding',
@@ -182,7 +184,7 @@ import { IdentityService } from '../services/identity.service';
             <div>
               <label class="text-sm text-slate-400 font-medium ml-1">Workspace Alias</label>
               <input
-               placeholder="acme-inc"
+                placeholder="acme-inc"
                 [(ngModel)]="organization.slug"
                 (input)="slugEdited = true"
                 class="w-full mt-1 bg-black/30 border border-indigo-500/20 rounded-xl px-4 py-3 text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30 outline-none transition-all duration-300 font-mono text-sm"
@@ -256,8 +258,7 @@ import { IdentityService } from '../services/identity.service';
   `,
 })
 export class Onboarding {
-  router = inject(Router);
-  identityService = inject(IdentityService);
+  private readonly identityService = inject(IdentityService);
 
   loading = false;
   currentRole: 'learner' | 'manager' | null = null;
@@ -284,8 +285,7 @@ export class Onboarding {
   onboardLearner() {
     this.loading = true;
     this.identityService.onboardLearner().subscribe({
-      next: () => {
-        // Redir through callback to force Keycloak updateToken(-1)
+      next: async () => {
         window.location.href = '/auth/callback?target=/learner';
       },
       error: (err) => {
@@ -299,8 +299,7 @@ export class Onboarding {
   submitOrganization() {
     this.loading = true;
     this.identityService.onboardManager(this.organization).subscribe({
-      next: () => {
-        // Redir through callback to capture the new MANAGER role in token
+      next: async () => {
         window.location.href = '/auth/callback?target=/manager';
       },
       error: (err) => {

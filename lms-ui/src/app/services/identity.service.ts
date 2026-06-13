@@ -1,6 +1,6 @@
 // src/app/services/identity.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -10,12 +10,13 @@ interface OrganizationRequest {
   domain: string;
 }
 
-interface IdentityResponse {
+export interface IdentityResponse {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   isOnboarded: boolean;
+  joinDate: string;
 }
 
 interface NameUpdateRequest {
@@ -27,13 +28,38 @@ interface PasswordUpdateRequest {
   password: string;
 }
 
+export interface PagedResponse<IdentityResponse> {
+  _embedded: {
+    identityResponseList: IdentityResponse[]; // Spring Data HATEOAS typically uses the class name + 'List'
+  };
+  page: {
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    number: number;
+  };
+}
+
+export interface OrganizationInvitationResponse {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: 'PENDING' | 'EXPIRED'; // Using a union type for better type safety
+}
+
+export interface OrganizationInvitationRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class IdentityService {
-  private http = inject(HttpClient);
-
-  private BASE_URL = environment.apiUrl + 'identity'; 
+  private readonly http = inject(HttpClient);
+  private readonly BASE_URL = environment.apiUrl + 'identity';
 
   onboardLearner(): Observable<string> {
     return this.http.post(
@@ -59,5 +85,28 @@ export class IdentityService {
 
   updatePassword(request: PasswordUpdateRequest): Observable<void> {
     return this.http.patch<void>(`${this.BASE_URL}/me/password`, request);
+  }
+
+  getOrganizationMembers(
+    page: number = 0,
+    size: number = 10,
+  ): Observable<PagedResponse<IdentityResponse>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
+    return this.http.get<PagedResponse<IdentityResponse>>(`${this.BASE_URL}/organization/members`, {
+      params,
+    });
+  }
+
+  // Get all invitations
+  getOrganizationInvitations(): Observable<OrganizationInvitationResponse[]> {
+    return this.http.get<OrganizationInvitationResponse[]>(
+      `${this.BASE_URL}/organization/invitations`,
+    );
+  }
+
+  // Invite a new member
+  inviteMember(request: OrganizationInvitationRequest): Observable<void> {
+    return this.http.post<void>(`${this.BASE_URL}/organization/invitations`, request);
   }
 }

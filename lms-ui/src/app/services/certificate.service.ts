@@ -10,7 +10,7 @@ export interface CertificateResponse {
   issuedAt: string;
 }
 
-/** 
+/**
  * Matches your Spring Boot PagedResourcesAssembler output.
  * Wrapped in _embedded to satisfy HATEOAS standards.
  */
@@ -30,7 +30,7 @@ export interface PagedCertificateResponse {
   providedIn: 'root',
 })
 export class CertificateService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl + 'certificates';
 
   getLearnerCertificates(page: number = 0, size: number = 10): Observable<PagedCertificateResponse> {

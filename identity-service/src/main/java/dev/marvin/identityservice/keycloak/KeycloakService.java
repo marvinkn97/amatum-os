@@ -1,6 +1,7 @@
 package dev.marvin.identityservice.keycloak;
 
 import dev.marvin.identityservice.exception.ServiceException;
+import dev.marvin.identityservice.organisation.OrganizationInvitationRequest;
 import dev.marvin.identityservice.organisation.OrganizationRequest;
 import dev.marvin.identityservice.user.NameUpdateRequest;
 import dev.marvin.identityservice.user.PasswordUpdateRequest;
@@ -149,7 +150,7 @@ public class KeycloakService {
             return userRepresentation;
         } catch (Exception e) {
             log.error("Keycloak failed to update name for user {}: {}", userId, e.getMessage(), e);
-            throw new ServiceException(e.getMessage()); // rethrow if you want upstream handling
+            throw e; // rethrow if you want upstream handling
         }
     }
 
@@ -170,7 +171,7 @@ public class KeycloakService {
             userResource.logout();
         } catch (Exception e) {
             log.error("Keycloak failed to reset password for user {}: {}", userId, e.getMessage(), e);
-            throw new ServiceException(e.getMessage());
+            throw e;
         }
     }
 
@@ -178,7 +179,6 @@ public class KeycloakService {
         try {
             log.info("Fetching organization {} from realm {}", orgId, realm);
 
-            // Access the organizations resource
             OrganizationRepresentation orgRep = keycloak.realm(realm)
                     .organizations()
                     .get(orgId)
@@ -192,7 +192,76 @@ public class KeycloakService {
             return orgRep;
         } catch (Exception e) {
             log.error("Failed to fetch organization {}: {}", orgId, e.getMessage());
-            throw new ServiceException(e.getMessage());
+            throw e;
+        }
+    }
+
+    public List<MemberRepresentation> getOrganizationMembers(String orgId) {
+        try {
+            log.info("Fetching members of organization {} from realm {}", orgId, realm);
+            return keycloak.realm(realm)
+                    .organizations()
+                    .get(orgId)
+                    .members()
+                    .list(0, Integer.MAX_VALUE);
+        } catch (Exception e) {
+            log.error("Failed to fetch members of organization {}: {}", orgId, e.getMessage());
+            throw e;
+        }
+    }
+
+    public void inviteMember(String orgId, OrganizationInvitationRequest invitationRequest) {
+        try {
+            String email = invitationRequest.email();
+
+            log.info("Inviting member with email {} to organization {} in realm {}",
+                    email, orgId, realm);
+
+            try (Response response = keycloak.realm(realm)
+                    .organizations()
+                    .get(orgId)
+                    .members()
+                    .inviteUser(
+                            email,
+                            invitationRequest.firstName(),
+                            invitationRequest.lastName()
+                    )) {
+
+                if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()
+                        && response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+
+                    log.error("Failed to invite member: {}", response.getStatusInfo());
+                    throw new ServiceException("Failed to invite member");
+                }
+
+                log.info("Successfully invited member with email {} to organization {}", email, orgId);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to invite member with email {}: {}", invitationRequest.email(), e.getMessage(), e);
+            throw e;
+        }
+    }
+
+
+    public List<OrganizationInvitationRepresentation> getOrganizationInvitations(String orgId) {
+        try {
+            log.info("Fetching invitations for organization {} in realm {}", orgId, realm);
+
+            List<OrganizationInvitationRepresentation> invitations =
+                    keycloak.realm(realm)
+                            .organizations()
+                            .get(orgId)
+                            .invitations()
+                            .list();
+
+            log.info("Found {} invitations for organization {}", invitations.size(), orgId);
+
+            return invitations;
+
+        } catch (Exception e) {
+            log.error("Failed to fetch invitations for organization {}: {}", orgId, e.getMessage(), e);
+            throw e;
         }
     }
 }

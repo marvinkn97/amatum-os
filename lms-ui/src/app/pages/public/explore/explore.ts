@@ -131,9 +131,15 @@ import { CourseService } from '../../../services/course.service';
 
         @if (isPageLoading()) {
           <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
-            <div class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"></div>
-            <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold space-y-1 text-center">
-              @if (isLoadingCategories() || isLoadingCourses()) { <div>Loading...</div> }
+            <div
+              class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"
+            ></div>
+            <div
+              class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold space-y-1 text-center"
+            >
+              @if (isLoadingCategories() || isLoadingCourses()) {
+                <div>Loading...</div>
+              }
             </div>
           </div>
         } @else if (hasError()) {
@@ -379,7 +385,8 @@ export class Explore implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       if (typeof document !== 'undefined') {
-        document.body.style.overflow = this.isPageLoading() || this.isMenuOpen() ? 'hidden' : 'auto';
+        document.body.style.overflow =
+          this.isPageLoading() || this.isMenuOpen() ? 'hidden' : 'auto';
       }
     });
 

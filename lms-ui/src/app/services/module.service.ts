@@ -51,7 +51,7 @@ export interface LearningStepReorderRequest {
   providedIn: 'root',
 })
 export class ModuleService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl + 'modules';
 
   createModule(request: ModuleRequest): Observable<ModuleResponse> {

@@ -5,7 +5,7 @@ import { Injectable, signal } from '@angular/core';
 })
 export class TenantService {
   // This is your signal!
-  private _currentTenantId = signal<string | null>(null);
+  private readonly _currentTenantId = signal<string | null>(null);
 
   // Expose it as a read-only signal for the Interceptor
   readonly tenantId = this._currentTenantId.asReadonly();

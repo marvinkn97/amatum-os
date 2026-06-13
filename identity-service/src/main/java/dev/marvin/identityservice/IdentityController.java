@@ -1,6 +1,9 @@
 package dev.marvin.identityservice;
 
+import dev.marvin.identityservice.organisation.OrganizationInvitationRequest;
+import dev.marvin.identityservice.organisation.OrganizationInvitationResponse;
 import dev.marvin.identityservice.organisation.OrganizationRequest;
+import dev.marvin.identityservice.organisation.OrganizationService;
 import dev.marvin.identityservice.user.NameUpdateRequest;
 import dev.marvin.identityservice.user.PasswordUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,9 +12,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Identity Service", description = "Identity Service API")
 public class IdentityController {
     private final IdentityService identityService;
+    private final PagedResourcesAssembler<IdentityResponse> pagedResourcesAssembler;
+    private final OrganizationService organizationService;
 
     @Operation(summary = "Onboard learner")
     @PostMapping("/onboard/learner")
@@ -60,4 +73,39 @@ public class IdentityController {
         identityService.updateAuthenticatedUserPassword(authentication, passwordUpdateRequest);
         return ResponseEntity.ok().build();
     }
+
+    @PreAuthorize("hasRole('MANAGER')")
+    @Operation(summary = "Get organization members")
+    @GetMapping("/organization/members")
+    public ResponseEntity<PagedModel<EntityModel<IdentityResponse>>> getOrganisationMembers(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @NonNull Authentication authentication
+    ) {
+        Page<IdentityResponse> identityResponsePage = identityService.getOrganizationMembers(PageRequest.of(page, size), authentication);
+
+        PagedModel<EntityModel<IdentityResponse>> pagedModel =
+                pagedResourcesAssembler.toModel(identityResponsePage, EntityModel::of);
+
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @PreAuthorize("hasRole('MANAGER')")
+    @Operation(summary = "Get organization invitations")
+    @GetMapping("/organization/invitations")
+    public ResponseEntity<List<OrganizationInvitationResponse>> getOrganizationInvitations() {
+        log.info("Received request to fetch organization invitations");
+        List<OrganizationInvitationResponse> invitations = organizationService.getOrganizationInvitations();
+        return ResponseEntity.ok(invitations);
+    }
+
+    @PreAuthorize("hasRole('MANAGER')")
+    @Operation(summary = "Invite member to organization")
+    @PostMapping("/organization/invitations")
+    public ResponseEntity<Void> inviteMember(@Valid @RequestBody OrganizationInvitationRequest request) {
+        log.info("Received request to invite member {}", request.email());
+        organizationService.inviteMember(request);
+        return ResponseEntity.ok().build();
+    }
+    
 }

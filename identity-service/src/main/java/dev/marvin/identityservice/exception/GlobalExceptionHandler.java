@@ -1,5 +1,6 @@
 package dev.marvin.identityservice.exception;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, org.springframework.http.HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, org.springframework.http.@NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
         // Extract validation errors
         Map<String, String> fieldErrors = ex.getBindingResult()
                 .getFieldErrors()

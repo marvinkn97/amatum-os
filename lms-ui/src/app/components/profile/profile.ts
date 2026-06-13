@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IdentityService } from '../services/identity.service';
 import Keycloak from 'keycloak-js';
 import { finalize } from 'rxjs';
+import { IdentityService } from '../../services/identity.service';
 
 @Component({
   selector: 'app-profile',
@@ -49,7 +49,6 @@ import { finalize } from 'rxjs';
             </button>
           </div>
         </div>
-
       } @else if (errorMessage()) {
         <div
           class="mb-8 flex items-center justify-between p-4 border border-indigo-500/20 bg-indigo-500/5 backdrop-blur-md rounded-xl animate-in fade-in slide-in-from-top-4"
@@ -290,21 +289,6 @@ import { finalize } from 'rxjs';
   `,
   styles: [
     `
-      .shimmer-sweep {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(255, 255, 255, 0.03) 50%,
-          transparent 100%
-        );
-        animation: shimmer-anim 2s infinite;
-        z-index: 10;
-      }
       @keyframes shimmer-anim {
         0% {
           transform: translateX(-100%);
@@ -313,10 +297,12 @@ import { finalize } from 'rxjs';
           transform: translateX(100%);
         }
       }
+
       .animate-progress-fast {
         width: 100%;
         animation: progress-move 1.5s ease-in-out infinite;
       }
+
       @keyframes progress-move {
         0% {
           transform: translateX(-100%);
@@ -405,7 +391,7 @@ export class ProfileComponent implements OnInit {
           this.cancelPasswordChange();
           this.errorMessage.set('Security Credentials Updated');
           // Logout to force re-authentication with new password
-          this.keycloak.logout();
+          this.keycloak.logout().then((r) => console.log('Logged out after password change', r));
         },
         error: () => this.errorMessage.set('Password Update Failed'),
       });

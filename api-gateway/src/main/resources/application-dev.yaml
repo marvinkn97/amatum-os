@@ -64,10 +64,27 @@ spring:
               filters:
                 - RewritePath=/api-docs/enrollments,/v3/api-docs
 
+            - id: talemai-service
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api/talemai/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: talemaiServiceCB
+                    fallbackUri: forward:/fallback
 
-          httpclient:
-            connect-timeout: 10000
-            response-timeout: 5s
+            - id: api-docs-talemai-service
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api-docs/talemai
+              filters:
+                - RewritePath=/api-docs/talemai,/v3/api-docs
+
+#
+#          httpclient:
+#            connect-timeout: 10000
+#            response-timeout: 20s
 
 resilience4j:
   timelimiter:
@@ -95,7 +112,10 @@ resilience4j:
         base-config: default
       identityServiceCB:
         base-config: default
+      talemaiServiceCB:
+        base-config: default
 
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+    

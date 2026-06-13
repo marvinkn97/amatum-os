@@ -11,9 +11,8 @@ import {
   IncludeBearerTokenCondition,
 } from 'keycloak-angular';
 
-// Only attach token for your backend
 const urlCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-  urlPattern: /^(http:\/\/localhost:(8080))(\/.*)?$/i,
+  urlPattern: new RegExp(environment.apiUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '.*'),
   bearerPrefix: 'Bearer',
 });
 
@@ -21,8 +20,8 @@ import { routes } from './app.routes';
 import { provideEchartsCore } from 'ngx-echarts';
 import { environment } from '../environments/environment';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { tenantInterceptor } from './auth/tenant.interceptor';
-import { ACTIVE_TENANT_ID } from './auth/tenant-context.token';
+import { tenantInterceptor } from './interceptors/tenant.interceptor';
+import { ACTIVE_TENANT_ID } from './interceptors/tenant-context.token';
 import { provideMarkdown } from 'ngx-markdown';
 
 export const appConfig: ApplicationConfig = {
@@ -35,24 +34,22 @@ export const appConfig: ApplicationConfig = {
         clientId: environment.keycloak.clientId,
       },
       initOptions: {
-        // onLoad: 'check-sso',
         redirectUri: window.location.origin + '/auth/callback',
-        checkLoginIframe: false, // Disable the login state iframe to avoid issues in certain environments
+        checkLoginIframe: false,
         scope: 'openid profile email organization:*',
+        pkceMethod: 'S256',
       },
       features: [
         withAutoRefreshToken({
           onInactivityTimeout: 'logout',
-          sessionTimeout: 900000, // 5 minutes (300,000ms) - better for testing
-          // sessionTimeout: 900000, // 15 minutes - standard for production
+          sessionTimeout: 900000,
         }),
       ],
       providers: [AutoRefreshTokenService, UserActivityService],
     }),
-    // Provide the interceptor config
     {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
-      useValue: [urlCondition], // Add the condition to the interceptor config
+      useValue: [urlCondition],
     },
     {
       provide: ACTIVE_TENANT_ID,

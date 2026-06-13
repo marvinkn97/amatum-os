@@ -1,18 +1,24 @@
 package dev.marvin.identityservice;
 
+import dev.marvin.identityservice.exception.BadRequestException;
 import dev.marvin.identityservice.exception.ResourceNotFoundException;
 import dev.marvin.identityservice.exception.ServiceException;
 import dev.marvin.identityservice.keycloak.KeycloakService;
 import dev.marvin.identityservice.organisation.OrganizationRequest;
+import dev.marvin.identityservice.security.TenantContext;
 import dev.marvin.identityservice.user.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.idm.AbstractUserRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +29,6 @@ import java.util.UUID;
 public class IdentityService {
     private final UserRepository userRepository;
     private final KeycloakService keycloakService;
-
 
     public void onboardLearner(Authentication authentication) {
         // Only process if it's a JWT token
@@ -91,7 +96,7 @@ public class IdentityService {
                 .build();
         try {
             userRepository.save(user);
-            log.info("User {} successfully onboarded to Amatum platform.", userId);
+            log.info("User {} successfully onboarded to amatum platform.", userId);
 
         } catch (Exception e) {
             log.error("Failed to persist user {}, will be reconciled by Keycloak sync", userId, e);
@@ -229,7 +234,30 @@ public class IdentityService {
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
     }
 
+    @Transactional(readOnly = true)
+    public Page<IdentityResponse> getOrganizationMembers(Pageable pageable, Authentication authentication) {
+       log.info("Fetching organization members");
 
+        if (!TenantContext.TENANT_ID.isBound()) {
+            throw new BadRequestException("No active organization context found in request");
+        }
 
+        String activeTenantId = TenantContext.TENANT_ID.get();
+
+       List<UUID> memberIds = keycloakService.getOrganizationMembers(activeTenantId).stream()
+               .map(AbstractUserRepresentation::getId)
+               .map(UUID::fromString)
+               .filter(id -> !id.equals(UUID.fromString(authentication.getName()))) // Exclude the current user
+               .distinct()
+               .toList();
+
+       return userRepository.findAllByIdIn(memberIds, pageable)
+               .map(userEntity -> new IdentityResponse(
+                       userEntity.getId(),
+                       userEntity.getFirstName(),
+                       userEntity.getLastName(),
+                       userEntity.getEmail(),
+                       userEntity.getCreatedAt()));
+    }
 
 }

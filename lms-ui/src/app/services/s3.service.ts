@@ -17,7 +17,7 @@ export interface S3UploadRequest {
   providedIn: 'root',
 })
 export class S3Service {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl + 'uploads/s3';
 
   /**

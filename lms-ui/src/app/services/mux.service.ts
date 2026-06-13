@@ -25,7 +25,7 @@ export class MuxService {
 
   private readonly API_URL = environment.apiUrl + 'mux';
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   /**
    * 1. Request the Signed Upload URL from Spring Boot

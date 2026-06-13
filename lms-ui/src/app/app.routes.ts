@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
-import { AuthCallbackComponent } from './auth/auth.callback';
-import { canActivateAuth } from './auth/auth.guard';
-import { ProfileComponent } from './auth/profile';
+import { AuthCallbackComponent } from './callbacks/auth.callback';
+import { canActivateAuth } from './guards/auth.guard';
 import { LearnerLayout } from './pages/learner/layout/layout';
 import { LearnerDashboardComponent } from './pages/learner/dashboard/dashboard';
 import { CourseCatalogueComponent } from './pages/learner/course-catalogue/course-catalogue';
@@ -12,10 +11,12 @@ import { ManagerCourses } from './pages/manager/courses/courses';
 import { CourseBuilder } from './pages/manager/course-builder/course-builder';
 import { SuperAdminLayout } from './pages/super-admin/layout/layout';
 import { CourseCategoriesComponent } from './pages/super-admin/categories/categories';
-import { RoleSelectionComponent } from './auth/role-selection';
 import { CourseDetailsComponent } from './pages/learner/course-details/course-details';
 import { EnrollmentViewComponent } from './pages/learner/enrollment-view/enrollment-view';
 import { EnrollmentsComponent } from './pages/learner/enrollments/enrollments';
+import { ManagerMembers } from './pages/manager/members/members';
+import { ProfileComponent } from './components/profile/profile';
+import { RoleSelectionComponent } from './components/role-selection/role-selection';
 
 export const routes: Routes = [
   {
@@ -35,7 +36,7 @@ export const routes: Routes = [
   {
     path: 'onboarding',
     canActivate: [canActivateAuth],
-    loadComponent: () => import('./auth/onboarding').then((m) => m.Onboarding),
+    loadComponent: () => import('./components/onboarding/onboarding').then((m) => m.Onboarding),
   },
   {
     path: 'auth/callback',
@@ -76,6 +77,7 @@ export const routes: Routes = [
       { path: '', component: ManagerDashboard, pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
       { path: 'courses', component: ManagerCourses },
+      { path: 'members', component: ManagerMembers },
       { path: 'courses/studio', component: CourseBuilder },
       { path: 'courses/studio/:id', component: CourseBuilder },
     ],

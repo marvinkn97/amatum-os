@@ -130,7 +130,7 @@ export interface QuizResponse {
   providedIn: 'root',
 })
 export class LearningStepService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl + 'learning-steps';
 
   createLearningStep(request: LearningStepRequest): Observable<LearningStepResponse> {

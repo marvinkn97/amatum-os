@@ -69,7 +69,7 @@ export class EnrollmentService {
   }): Observable<unknown> {
     throw new Error('Method not implemented.');
   }
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl + 'enrollments';
 
   enroll(request: EnrollmentRequest): Observable<EnrollmentResponse> {
