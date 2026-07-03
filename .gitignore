@@ -74,5 +74,6 @@ __screenshots__/
 Thumbs.db
 
 /kafka-data/
+/floci-data/
 
 *.env

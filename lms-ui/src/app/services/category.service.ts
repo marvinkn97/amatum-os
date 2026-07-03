@@ -62,6 +62,22 @@ export class CategoryService {
   }
 
   /**
+   * Fetch all active categories with HATEOAS pagination
+   */
+  getAllActivePaginatedCategories(page: number = 0, size: number = 10): Observable<PagedResponse<CourseCategory>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
+    return this.http.get<PagedResponse<CourseCategory>>(`${this.API_URL}/active`, { params }).pipe(
+      tap((response) => {
+        // Extract the list from the _embedded object
+        const list = response._embedded?.categoryResponseList || [];
+        this.categories.set(list);
+        this.pagination.set(response.page);
+      }),
+    );
+  }
+
+  /**
    * Create a new category
    */
   createCategory(request: { name: string; description: string }): Observable<void> {

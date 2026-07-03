@@ -6,5 +6,4 @@ export const environment = {
     realm: 'amatum',
     clientId: 'lms-ui',
   },
-  sessionTimeout: 30 * 60 * 1000,
 };

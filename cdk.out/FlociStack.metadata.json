@@ -1,0 +1,15 @@
+{
+  "/FlociStack": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime5862199388606533476/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime5862199388606533476/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime5862199388606533476/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime5862199388606533476/lib/program.js:1:218261)",
+        "Immediate._onImmediate (/tmp/jsii-java-runtime5862199388606533476/lib/program.js:1:218305)",
+        "...node internals..."
+      ]
+    }
+  ]
+}

@@ -13,6 +13,7 @@
         <option value="$PROJECT_DIR$/rating-service/pom.xml" />
         <option value="$PROJECT_DIR$/api-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/talemai-service/pom.xml" />
+        <option value="$PROJECT_DIR$/infrastructure/pom.xml" />
       </list>
     </option>
   </component>

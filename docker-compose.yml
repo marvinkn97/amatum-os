@@ -20,7 +20,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-    pull_policy: always
+#    pull_policy: always
     container_name: amatum-keycloak
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -284,6 +284,17 @@ services:
     command: >
       curl -X POST http://ollama:11434/api/pull -d '{"name": "mistral"}'
 
+  floci:
+    image: floci/floci:latest
+    container_name: amatum-floci
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./floci-data:/app/data
+    networks:
+      - amatum-network
+
 volumes:
   keycloak-data:
   postgres-keycloak-data:
@@ -296,6 +307,7 @@ volumes:
   kafka-data:
   ai-db-data:
   ollama-models:
+  floci-data:
 
 
 networks:

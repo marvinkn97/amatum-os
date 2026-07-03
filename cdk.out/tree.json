@@ -1,0 +1,1 @@
+{"version":"tree-0.1","tree":{"id":"App","path":"","constructInfo":{"fqn":"aws-cdk-lib.App","version":"2.259.0"},"children":{"FlociStack":{"id":"FlociStack","path":"FlociStack","constructInfo":{"fqn":"aws-cdk-lib.Stack","version":"2.259.0"}},"Tree":{"id":"Tree","path":"Tree","constructInfo":{"fqn":"constructs.Construct","version":"10.6.0"}}}}}

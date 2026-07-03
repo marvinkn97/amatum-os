@@ -18,11 +18,6 @@ import { AuthService } from '../../services/auth.service';
 
       <div class="relative z-10 max-w-5xl w-full">
         <div class="text-center mb-16 space-y-4">
-          <div
-            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-bold uppercase tracking-widest mb-4"
-          >
-            Identity Verified
-          </div>
           <h1 class="text-4xl md:text-5xl font-bold text-white tracking-tight">
             Choose your
             <span class="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-indigo-400"

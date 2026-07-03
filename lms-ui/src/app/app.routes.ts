@@ -47,14 +47,15 @@ export const routes: Routes = [
 
   {
     path: 'super-admin',
-    component: SuperAdminLayout, // The "Shell"
+    component: SuperAdminLayout,
     canActivate: [canActivateAuth],
+    data: { role: 'SUPER_ADMIN' },
     children: [{ path: 'config/categories', component: CourseCategoriesComponent }],
   },
 
   {
     path: 'learner',
-    component: LearnerLayout, // The "Shell"
+    component: LearnerLayout,
     canActivate: [canActivateAuth],
     data: { role: 'LEARNER' },
     children: [
@@ -70,7 +71,7 @@ export const routes: Routes = [
 
   {
     path: 'manager',
-    component: ManagerLayout, // The "Shell"
+    component: ManagerLayout,
     canActivate: [canActivateAuth],
     data: { role: 'MANAGER' },
     children: [

@@ -1,0 +1,367 @@
+{
+  "/localstack": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)",
+        "Immediate._onImmediate (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218305)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpc587088A8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)",
+        "Immediate._onImmediate (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218305)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/IGW": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcIGW1F84C222"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)",
+        "Immediate._onImmediate (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218305)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/VPCGW": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcVPCGWDF87E4EA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)",
+        "Immediate._onImmediate (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218305)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet1SubnetADC53744"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:268 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet1RouteTable6B5415C0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:268 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet1RouteTableAssociationC128A7A1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:268 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet1/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet1DefaultRouteB01E4233"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:208 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet1/EIP": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet1EIP0218E03C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet1/NATGateway": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet1NATGatewayC3B4BEB8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet2Subnet966B3E13"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:268 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet2RouteTable200C66F1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:268 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet2RouteTableAssociationF3EE67C5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:268 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet2/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet2DefaultRoute2844B6F7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:208 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet2/EIP": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet2EIP3D40B79C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PublicSubnet2/NATGateway": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPublicSubnet2NATGatewayEFD6D3CC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)",
+        "KernelHost.run (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:218261)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet1SubnetC44C03DF"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:270 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet1RouteTable36F76972"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:270 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet1RouteTableAssociationA4756511"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:270 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet1/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet1DefaultRoute5DCE0C23"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)"
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet2Subnet4CA2FC3C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:270 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet2RouteTableC461C8D3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:270 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet2RouteTableAssociationC1A6AAF1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../tmp/jsii-kernel-nqdTTu/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:270 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/localstack/AmatumVpc/PrivateSubnet2/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AmatumVpcPrivateSubnet2DefaultRoute8FC5D9ED"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:62547)",
+        "Kernel.create (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:53277)",
+        "KernelHost.processRequest (/tmp/jsii-java-runtime10319217235607228962/lib/program.js:1:219206)"
+      ]
+    }
+  ]
+}

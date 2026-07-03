@@ -14,6 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CertificateService } from '../../../services/certificate.service';
 import { CertificateResponse } from '../../../services/certificate.service';
 import { TenantService } from '../../../services/tenant.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-my-certificates',
@@ -145,6 +146,7 @@ export class MyCertificatesComponent implements AfterViewInit {
   private certificateService = inject(CertificateService);
   private destroyRef = inject(DestroyRef);
   private tenantService = inject(TenantService);
+  private notificationService = inject(NotificationService);
 
   certificates = signal<CertificateResponse[]>([]);
   totalRecords = signal(0);
@@ -206,7 +208,10 @@ export class MyCertificatesComponent implements AfterViewInit {
           this.currentPage.update((p) => p + 1);
           this.isLoading.set(false);
         },
-        error: () => this.isLoading.set(false),
+        error: () => {
+          this.isLoading.set(false)
+          this.notificationService.error('Failed to load certificates. Please try again later.');
+        },
       });
   }
 }

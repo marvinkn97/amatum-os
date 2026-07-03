@@ -97,17 +97,6 @@ import { RouterLink, RouterModule } from '@angular/router';
 
       <main class="relative pt-44 pb-20 px-6">
         <div class="max-w-4xl mx-auto text-center relative z-10">
-          <div
-            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-6 tracking-wide uppercase"
-          >
-            <span class="relative flex h-2 w-2">
-              <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-              ></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Institutional Grade Talent Network
-          </div>
           <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] mb-6">
             The job you want. <br />
             <span class="text-emerald-500">The talent you need.</span>

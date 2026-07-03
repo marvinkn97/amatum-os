@@ -16,6 +16,7 @@ import { Subject, takeUntil, finalize } from 'rxjs';
 import Keycloak from 'keycloak-js';
 import { CategoryService } from '../../../services/category.service';
 import { CourseService } from '../../../services/course.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-explore',
@@ -96,7 +97,7 @@ import { CourseService } from '../../../services/course.service';
             <a
               routerLink="/"
               (click)="isMenuOpen.set(false)"
-              class="flex items-center justify-between w-full px-4 py-3 bg-white/5 rounded-xl text-white text-lg font-semibold hover:bg-indigo-600 transition-colors cursor-pointer"
+              class="flex items-center justify-between w-full px-4 py-3 bg-white/5 rounded-xl text-white text-sm font-semibold hover:bg-indigo-600 transition-colors cursor-pointer"
             >
               <span>Home</span>
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +111,7 @@ import { CourseService } from '../../../services/course.service';
             </a>
             <button
               (click)="launch(); isMenuOpen.set(false)"
-              class="w-full px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-all active:scale-95 cursor-pointer"
+              class="w-full px-6 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-500 transition-all active:scale-95 cursor-pointer"
             >
               Sign In
             </button>
@@ -356,7 +357,7 @@ import { CourseService } from '../../../services/course.service';
 export class Explore implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private courseService = inject(CourseService);
-  private readonly keycloak = inject(Keycloak);
+  private readonly authService = inject(AuthService);
   private router = inject(Router);
 
   @ViewChild('courseSentinel') courseSentinel!: ElementRef;
@@ -415,11 +416,7 @@ export class Explore implements OnInit, OnDestroy {
   }
 
   async launch() {
-    try {
-      await this.keycloak.login({ redirectUri: window.location.origin + '/auth/callback' });
-    } catch (error) {
-      console.error('Keycloak login trigger failed:', error);
-    }
+     this.authService.login();
   }
 
   retryConnections() {
@@ -460,7 +457,7 @@ export class Explore implements OnInit, OnDestroy {
     if (this.isLoadingCategories() || this.isLastCategoryPage || this.hasError()) return;
     this.isLoadingCategories.set(true);
     this.categoryService
-      .getAllCategories(this.categoryPage, 8)
+      .getAllActivePaginatedCategories(this.categoryPage, 8)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {

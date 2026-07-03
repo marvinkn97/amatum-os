@@ -9,6 +9,7 @@ export const canActivateAuth = () => {
   const keycloak = inject(Keycloak);
 
   return async (route: any, state: any) => {
+    const targetPath = state.url;
     if (authService.isLoading()) {
       while (authService.isLoading()) {
         await new Promise((resolve) => setTimeout(resolve, 5));
@@ -16,14 +17,11 @@ export const canActivateAuth = () => {
     }
 
     if (!authService.isAuthenticated()) {
-      const targetPath = state.url;
-      await keycloak.login({
-        redirectUri: `${window.location.origin}/auth/callback?target=${encodeURIComponent(targetPath)}`,
-      });
+      await keycloak.login({ redirectUri: window.location.origin + targetPath });
       return false;
     }
 
-    if (state.url.includes('/choose-role') || state.url.includes('/onboarding')) {
+    if (targetPath.includes('/choose-role') || targetPath.includes('/onboarding')) {
       return true;
     }
 

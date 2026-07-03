@@ -30,11 +30,20 @@ public class CategoryController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        // 1. Get the Page from your service
         Page<CategoryResponse> categoryPage = categoryService.getAllCategories(PageRequest.of(page, size));
+        PagedModel<EntityModel<CategoryResponse>> pagedModel =
+                pagedResourcesAssembler.toModel(categoryPage, EntityModel::of);
 
-        // 2. Convert to PagedModel (CollectionModel) using an inline lambda
-        // This adds the "self", "next", "prev" links and the "page" metadata automatically
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @Operation(summary = "Get all active categories")
+    @GetMapping("/active")
+    public ResponseEntity<PagedModel<EntityModel<CategoryResponse>>> getAllActive(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Page<CategoryResponse> categoryPage = categoryService.getAllActiveCategories(PageRequest.of(page, size));
         PagedModel<EntityModel<CategoryResponse>> pagedModel =
                 pagedResourcesAssembler.toModel(categoryPage, EntityModel::of);
 

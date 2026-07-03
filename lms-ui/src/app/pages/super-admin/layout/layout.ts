@@ -291,13 +291,13 @@ import { AuthService } from '../../../services/auth.service';
               <div class="flex flex-col gap-3">
                 <button
                   (click)="logout()"
-                  class="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 cursor-pointer"
+                  class="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 cursor-pointer"
                 >
                   Yes, Sign Out
                 </button>
                 <button
                   (click)="isLogoutConfirmOpen.set(false)"
-                  class="w-full py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl text-sm font-bold transition-all border border-white/10 cursor-pointer"
+                  class="w-full py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl text-xs font-bold transition-all border border-white/10 cursor-pointer"
                 >
                   Stay Authenticated
                 </button>
@@ -326,9 +326,9 @@ export class SuperAdminLayout {
 
   managementItems = [
     {
-      label: 'Dashboard',
+      label: 'Insights',
       path: '/super-admin/',
-      icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+      icon: 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75',
     },
   ];
 

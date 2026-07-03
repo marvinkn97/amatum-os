@@ -26,6 +26,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(c -> c
                         .requestMatchers("/actuator/**",
                                 "/api/categories/all",
+                                "/api/categories/active",
                                 "/api/mux/webhooks",
                                 "/api/courses/public/**",
                                 "/api/courses/*/public",

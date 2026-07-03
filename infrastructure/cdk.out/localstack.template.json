@@ -1,0 +1,395 @@
+{
+ "Resources": {
+  "AmatumVpc587088A8": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "AmatumVpc"
+     }
+    ]
+   }
+  },
+  "AmatumVpcPublicSubnet1SubnetADC53744": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.0.0/18",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPublicSubnet1RouteTable6B5415C0": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPublicSubnet1RouteTableAssociationC128A7A1": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "AmatumVpcPublicSubnet1RouteTable6B5415C0"
+    },
+    "SubnetId": {
+     "Ref": "AmatumVpcPublicSubnet1SubnetADC53744"
+    }
+   }
+  },
+  "AmatumVpcPublicSubnet1DefaultRouteB01E4233": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "AmatumVpcIGW1F84C222"
+    },
+    "RouteTableId": {
+     "Ref": "AmatumVpcPublicSubnet1RouteTable6B5415C0"
+    }
+   },
+   "DependsOn": [
+    "AmatumVpcVPCGWDF87E4EA"
+   ]
+  },
+  "AmatumVpcPublicSubnet1EIP0218E03C": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet1"
+     }
+    ]
+   }
+  },
+  "AmatumVpcPublicSubnet1NATGatewayC3B4BEB8": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "AmatumVpcPublicSubnet1EIP0218E03C",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "AmatumVpcPublicSubnet1SubnetADC53744"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet1"
+     }
+    ]
+   },
+   "DependsOn": [
+    "AmatumVpcPublicSubnet1DefaultRouteB01E4233",
+    "AmatumVpcPublicSubnet1RouteTableAssociationC128A7A1"
+   ]
+  },
+  "AmatumVpcPublicSubnet2Subnet966B3E13": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.64.0/18",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPublicSubnet2RouteTable200C66F1": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPublicSubnet2RouteTableAssociationF3EE67C5": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "AmatumVpcPublicSubnet2RouteTable200C66F1"
+    },
+    "SubnetId": {
+     "Ref": "AmatumVpcPublicSubnet2Subnet966B3E13"
+    }
+   }
+  },
+  "AmatumVpcPublicSubnet2DefaultRoute2844B6F7": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "AmatumVpcIGW1F84C222"
+    },
+    "RouteTableId": {
+     "Ref": "AmatumVpcPublicSubnet2RouteTable200C66F1"
+    }
+   },
+   "DependsOn": [
+    "AmatumVpcVPCGWDF87E4EA"
+   ]
+  },
+  "AmatumVpcPublicSubnet2EIP3D40B79C": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet2"
+     }
+    ]
+   }
+  },
+  "AmatumVpcPublicSubnet2NATGatewayEFD6D3CC": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "AmatumVpcPublicSubnet2EIP3D40B79C",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "AmatumVpcPublicSubnet2Subnet966B3E13"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PublicSubnet2"
+     }
+    ]
+   },
+   "DependsOn": [
+    "AmatumVpcPublicSubnet2DefaultRoute2844B6F7",
+    "AmatumVpcPublicSubnet2RouteTableAssociationF3EE67C5"
+   ]
+  },
+  "AmatumVpcPrivateSubnet1SubnetC44C03DF": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.128.0/18",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PrivateSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet1RouteTable36F76972": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PrivateSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet1RouteTableAssociationA4756511": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "AmatumVpcPrivateSubnet1RouteTable36F76972"
+    },
+    "SubnetId": {
+     "Ref": "AmatumVpcPrivateSubnet1SubnetC44C03DF"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet1DefaultRoute5DCE0C23": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "AmatumVpcPublicSubnet1NATGatewayC3B4BEB8"
+    },
+    "RouteTableId": {
+     "Ref": "AmatumVpcPrivateSubnet1RouteTable36F76972"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet2Subnet4CA2FC3C": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.192.0/18",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PrivateSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet2RouteTableC461C8D3": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "localstack/AmatumVpc/PrivateSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet2RouteTableAssociationC1A6AAF1": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "AmatumVpcPrivateSubnet2RouteTableC461C8D3"
+    },
+    "SubnetId": {
+     "Ref": "AmatumVpcPrivateSubnet2Subnet4CA2FC3C"
+    }
+   }
+  },
+  "AmatumVpcPrivateSubnet2DefaultRoute8FC5D9ED": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "AmatumVpcPublicSubnet2NATGatewayEFD6D3CC"
+    },
+    "RouteTableId": {
+     "Ref": "AmatumVpcPrivateSubnet2RouteTableC461C8D3"
+    }
+   }
+  },
+  "AmatumVpcIGW1F84C222": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "AmatumVpc"
+     }
+    ]
+   }
+  },
+  "AmatumVpcVPCGWDF87E4EA": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "InternetGatewayId": {
+     "Ref": "AmatumVpcIGW1F84C222"
+    },
+    "VpcId": {
+     "Ref": "AmatumVpc587088A8"
+    }
+   }
+  }
+ }
+}

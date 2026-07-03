@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterModule } from '@angular/router';
-import Keycloak from 'keycloak-js';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-getting-started',
@@ -87,7 +87,7 @@ import Keycloak from 'keycloak-js';
             <a
               routerLink="/explore"
               (click)="isMenuOpen.set(false)"
-              class="flex items-center justify-between w-full px-4 py-3 bg-white/5 rounded-xl text-white text-lg font-semibold hover:bg-indigo-600 transition-colors cursor-pointer"
+              class="flex items-center justify-between w-full px-4 py-3 bg-white/5 rounded-xl text-white text-sm font-semibold hover:bg-indigo-600 transition-colors cursor-pointer"
             >
               <span>Browse Courses</span>
               <svg
@@ -107,7 +107,7 @@ import Keycloak from 'keycloak-js';
 
             <button
               (click)="launch(); isMenuOpen.set(false)"
-              class="w-full px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-all active:scale-95 cursor-pointer"
+              class="w-full px-6 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-500 transition-all active:scale-95 cursor-pointer"
             >
               Sign In
             </button>
@@ -259,14 +259,10 @@ import Keycloak from 'keycloak-js';
   `,
 })
 export class GettingStarted {
-  private readonly keycloak = inject(Keycloak);
   isMenuOpen = signal(false);
+  private readonly authService = inject(AuthService);
 
   async launch() {
-    try {
-      await this.keycloak.login({ redirectUri: window.location.origin + '/auth/callback' });
-    } catch (error) {
-      console.error('Keycloak login trigger failed:', error);
-    }
+    this.authService.login();
   }
 }
