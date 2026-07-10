@@ -25,10 +25,6 @@ export const canActivateAuth = () => {
       return true;
     }
 
-    if (authService.isSuperAdmin()) {
-      return true;
-    }
-
     const requiredRole = route.data['role'];
     if (!requiredRole) {
       return true;

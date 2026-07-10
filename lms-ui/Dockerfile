@@ -13,7 +13,7 @@ COPY . .
 RUN npm run build --prod
 
 # Stage 2: Serve the app with Nginx
-FROM nginx:1.31.2-alpine-slim
+FROM nginx:1.26-alpine
 
 # COPY --from=build /app/dist/lms-ui /usr/share/nginx/html
 COPY --from=build /app/dist/lms-ui/browser /usr/share/nginx/html
