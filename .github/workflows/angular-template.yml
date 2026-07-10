@@ -74,5 +74,8 @@ jobs:
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
             docker compose pull
             
+            # Stop services
+            docker compose down 
+            
             # Restart services
-            docker compose up -d --remove-orphans
+            docker compose up -d
