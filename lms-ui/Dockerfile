@@ -1,5 +1,5 @@
 # Stage 1: Build the Angular app
-FROM node:20.23.1-alpine3.19 AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -13,10 +13,10 @@ COPY . .
 RUN npm run build --prod
 
 # Stage 2: Serve the app with Nginx
-FROM nginx:1.26.15-alpine3.19
-# IMPORTANT: Replace 'lumina' with the exact folder name inside your 'dist/'
-# folder created after running 'npm run build'
-COPY --from=build /app/dist/lms-ui /usr/share/nginx/html
+FROM nginx:1.31.2-alpine-slim
+
+# COPY --from=build /app/dist/lms-ui /usr/share/nginx/html
+COPY --from=build /app/dist/lms-ui/browser /usr/share/nginx/html
 
 # Copy the Nginx config to handle routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
