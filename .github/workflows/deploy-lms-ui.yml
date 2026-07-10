@@ -1,0 +1,19 @@
+name: Deploy LMS UI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'lms-ui/**'
+      - '.github/workflows/deploy-lms-ui.yml'
+      - '.github/workflows/angular-template.yml'
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/angular-template.yml
+    with:
+      project-name: 'lms-ui'
+      project-path: 'lms-ui'
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

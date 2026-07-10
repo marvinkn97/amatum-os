@@ -1,9 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import Keycloak from 'keycloak-js';
 import { IdentityService } from '../../services/identity.service';
 
 @Component({

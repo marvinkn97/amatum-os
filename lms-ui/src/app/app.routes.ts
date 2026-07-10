@@ -21,6 +21,7 @@ import { RoleSelectionComponent } from './components/role-selection/role-selecti
 export const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
     loadComponent: () =>
       import('./pages/public/getting-started/getting-started').then((m) => m.GettingStarted),
   },
