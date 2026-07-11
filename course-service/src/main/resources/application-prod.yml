@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URI}
+      client:
+        registration:
+          identity-client:
+            provider: keycloak
+            client-id: ${KEYCLOAK_COURSE_CLIENT_ID}
+            client-secret: ${KEYCLOAK_COURSE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            token-uri: ${TOKEN_ISSUER_URI}/protocol/openid-connect/token
+
+  grpc:
+    server:
+      enabled: true
+    client:
+      enrollment-service:
+        address: enrollment-service
+        port: 8080
+      rating-service:
+        address: rating-service
+        port: 8080
+
+mux:
+  api:
+    base-url: ${MUX_BASE_URL}
+    token-id: ${MUX_TOKEN_ID}
+    token-secret: ${MUX_TOKEN_SECRET}
+    webhook-secret: ${MUX_WEBHOOK_SECRET}
+
+app:
+  lumina-client-url: ${LUMINA_CLIENT_URL}
+
+storage:
+  rustfs:
+    endpoint: ${RUSTFS_ENDPOINT}
+    region: ${RUSTFS_REGION}
+    bucket: ${RUSTFS_BUCKET}
+    access-key: ${RUSTFS_ACCESS_KEY}
+    secret-key: ${RUSTFS_SECRET_KEY}
+
+keycloak:
+  clients:
+    lumina-client-id: lms-ui

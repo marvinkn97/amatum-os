@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URI}
+
+keycloak:
+  realm: amatum
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL}
+  backend-client-id: ${KEYCLOAK_IDENTITY_CLIENT_ID}
+  backend-client-secret: ${KEYCLOAK_IDENTITY_CLIENT_SECRET}
+  clients:
+    lumina-client-id: lms-ui
+    opus-client-id: opus-ui
+  groups:
+    learner-id: ${KEYCLOAK_LEARNER_GROUP_ID}
+    manager-id: ${KEYCLOAK_MANAGER_GROUP_ID}

@@ -43,7 +43,10 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:4200"));
+        corsConfiguration.setAllowedOrigins(List.of(
+                "https://lumina.amatum.luv2kode.co.ke",
+                "https://opus.amatum.luv2kode.co.ke"
+        ));
         corsConfiguration.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type",

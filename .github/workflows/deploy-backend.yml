@@ -1,0 +1,37 @@
+name: Deploy Spring Boot Backend Services
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'identity-service/**'
+      - 'course-service/**'
+      - 'enrollment-service/**'
+      - 'rating-service/**'
+#      - 'talemai-service/**'
+      - 'api-gateway/**'
+      # Add other paths here
+
+jobs:
+  deploy-backend:
+    strategy:
+      matrix:
+        # Define your services and their folder paths
+        include:
+          - name: identity-service
+            path: identity-service
+          - name: course-service
+            path: course-service
+          - name: enrollment-service
+            path: enrollment-service
+          - name: rating-service
+            path: rating-service
+#          - name: talemai-service
+#            path: talemai-service
+          - name: api-gateway
+            path: api-gateway
+    uses: ./.github/workflows/spring-boot-template.yml
+    with:
+      service-name: ${{ matrix.name }}
+      service-path: ${{ matrix.path }}
+    secrets: inherit

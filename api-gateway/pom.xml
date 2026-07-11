@@ -131,6 +131,23 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <container>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                        <jvmFlags>
+                            <jvmFlag>-Xms256m</jvmFlag>
+                            <jvmFlag>-Xmx512m</jvmFlag>
+                        </jvmFlags>
+                        <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                    </container>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URI}
+
+  grpc:
+    server:
+      enabled: true
+    client:
+      course-service:
+        address: course-service
+        port: 8080
+      identity-service:
+        address: identity-service
+        port: 8080
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: enrollment-service-consumer
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      properties:
+        session.timeout.ms: 45000
+        heartbeat.interval.ms: 15000
+
+keycloak:
+  clients:
+    lumina-client-id: lms-ui
+    opus-client-id: opus-ui
+
+gotenberg:
+  url: http://gotenberg:3000
+
+app:
+  domain:
+    quiz-attempt:
+      passmark: 50
+
+storage:
+  rustfs:
+    endpoint: ${RUSTFS_ENDPOINT}
+    region: ${RUSTFS_REGION}
+    bucket: ${RUSTFS_BUCKET}
+    access-key: ${RUSTFS_ACCESS_KEY}
+    secret-key: ${RUSTFS_SECRET_KEY}

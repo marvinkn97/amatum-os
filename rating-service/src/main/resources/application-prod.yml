@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URI}
+
+  grpc:
+    server:
+      enabled: true
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: 1
+      retries: 3
+      properties:
+        linger.ms: 10
+    admin:
+      auto-create: true
+
+
+keycloak:
+  clients:
+    lumina-client-id: lms-ui

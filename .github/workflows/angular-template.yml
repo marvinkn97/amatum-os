@@ -1,4 +1,4 @@
-name: Angular Build and Deploy Pipeline
+name: Angular App Build and Deploy Pipeline
 
 on:
   workflow_call:
