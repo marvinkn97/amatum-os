@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: "api.amatum.luv2kode.co.ke/",
+  apiUrl: "/api/",
   keycloak: {
     url: "https://auth.luv2kode.co.ke/",
     realm: 'amatum',
