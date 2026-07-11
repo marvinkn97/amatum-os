@@ -11,7 +11,7 @@ spring:
         webflux:
           routes:
             - id: identity-service
-              uri: lb://identity-service
+              uri: http://identity-service
               predicates:
                 - Path=/api/identity/**
               filters:
@@ -21,14 +21,14 @@ spring:
                     fallbackUri: forward:/fallback
 
             - id: api-docs-identity-service
-              uri: lb://identity-service
+              uri: http://identity-service
               predicates:
                 - Path=/api-docs/identity
               filters:
                 - RewritePath=/api-docs/identity,/v3/api-docs
 
             - id: course-service
-              uri: lb://course-service
+              uri: http://course-service
               predicates:
                 - Path=/api/courses/**,/api/categories/**,/api/learning-steps/**,/api/modules/**
               filters:
@@ -38,14 +38,14 @@ spring:
                     fallbackUri: forward:/fallback
 
             - id: api-docs-course-service
-              uri: lb://course-service
+              uri: http://course-service
               predicates:
                 - Path=/api-docs/courses
               filters:
                 - RewritePath=/api-docs/courses,/v3/api-docs
 
             - id: enrollment-service
-              uri: lb://enrollment-service
+              uri: http://enrollment-service
               predicates:
                 - Path=/api/enrollments/**,/api/certificates/**
               filters:
@@ -55,14 +55,14 @@ spring:
                     fallbackUri: forward:/fallback
 
             - id: api-docs-enrollment-service
-              uri: lb://enrollment-service
+              uri: http://enrollment-service
               predicates:
                 - Path=/api-docs/enrollments
               filters:
                 - RewritePath=/api-docs/enrollments,/v3/api-docs
 
             - id: talemai-service
-              uri: lb://talemai-service
+              uri: http://talemai-service
               predicates:
                 - Path=/api/talemai/**
               filters:
@@ -72,7 +72,7 @@ spring:
                     fallbackUri: forward:/fallback
 
             - id: api-docs-talemai-service
-              uri: lb://talemai-service
+              uri: http://talemai-service
               predicates:
                 - Path=/api-docs/talemai
               filters:
