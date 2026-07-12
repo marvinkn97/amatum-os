@@ -177,6 +177,7 @@ import { AuthService } from '../../../services/auth.service';
         } @else {
           <div class="relative mb-12">
             <div
+              #categoryContainer
               class="flex gap-3 overflow-x-auto pb-6 no-scrollbar scroll-smooth items-center -mx-6 px-6 md:mx-0 md:px-0"
             >
               <button
@@ -193,6 +194,7 @@ import { AuthService } from '../../../services/auth.service';
 
               @for (cat of categories(); track cat.id) {
                 <button
+                  [id]="'cat-' + cat.id"
                   (click)="selectCategory(cat.id, cat.name)"
                   [class]="
                     activeCategoryId() === cat.id
@@ -351,6 +353,10 @@ import { AuthService } from '../../../services/auth.service';
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
+
+      .overflow-x-auto {
+        scroll-padding-left: 24px; 
+      }
     `,
   ],
 })
@@ -382,6 +388,8 @@ export class Explore implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private categoryObserver?: IntersectionObserver;
   private courseObserver?: IntersectionObserver;
+
+  @ViewChild('categoryContainer') categoryContainer!: ElementRef;
 
   constructor() {
     effect(() => {
@@ -416,7 +424,7 @@ export class Explore implements OnInit, OnDestroy {
   }
 
   async launch() {
-     this.authService.login();
+    this.authService.login();
   }
 
   retryConnections() {
@@ -478,6 +486,18 @@ export class Explore implements OnInit, OnDestroy {
       this.activeCategoryId.set(id);
       this.activeCategoryName.set(name);
       this.resetAndReloadCourses();
+
+      // Scroll the selected element into view
+      setTimeout(() => {
+        const element = document.getElementById(`cat-${id}`);
+        if (element && this.categoryContainer?.nativeElement) {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center',
+          });
+        }
+      }, 100);
     }
   }
 

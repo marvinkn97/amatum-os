@@ -123,7 +123,7 @@ import { AuthService } from '../../../services/auth.service';
             <span class="text-indigo-500">Build your own academy.</span>
           </h1>
           <p class="text-lg md:text-xl text-slate-400 max-w-xl mx-auto mb-10 leading-relaxed">
-            One platform for learners to grow and companies to train their teams securely.
+            One platform for learners to grow and organizations to train their teams securely.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <button
@@ -136,7 +136,7 @@ import { AuthService } from '../../../services/auth.service';
               (click)="launch()"
               class="px-8 py-4 bg-slate-900 border border-white/10 text-white font-bold rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
             >
-              Create a Company Workspace
+              Create an Organization Workspace
             </button>
           </div>
         </div>
@@ -196,12 +196,12 @@ import { AuthService } from '../../../services/auth.service';
             </div>
           </div>
 
-          <!-- Companies Card -->
+          <!-- Organization Card -->
           <div
             class="group p-8 rounded-4xl bg-linear-to-b from-indigo-500/10 to-transparent border border-indigo-500/10 flex flex-col"
           >
             <div class="mb-8 text-right md:text-left">
-              <h2 class="text-3xl font-bold mb-2 text-white">For Companies</h2>
+              <h2 class="text-3xl font-bold mb-2 text-white">For Organizations</h2>
               <p class="text-slate-400">
                 Your own private space to train employees or sell your expertise.
               </p>
