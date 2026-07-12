@@ -13,7 +13,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, Router } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
-import Keycloak from 'keycloak-js';
 import { CategoryService } from '../../../services/category.service';
 import { CourseService } from '../../../services/course.service';
 import { AuthService } from '../../../services/auth.service';
@@ -177,7 +176,7 @@ import { AuthService } from '../../../services/auth.service';
         } @else {
           <div class="relative mb-12">
             <div
-              #categoryContainer
+              #categoryScrollContainer
               class="flex gap-3 overflow-x-auto pb-6 no-scrollbar scroll-smooth items-center -mx-6 px-6 md:mx-0 md:px-0"
             >
               <button
@@ -194,7 +193,6 @@ import { AuthService } from '../../../services/auth.service';
 
               @for (cat of categories(); track cat.id) {
                 <button
-                  [id]="'cat-' + cat.id"
                   (click)="selectCategory(cat.id, cat.name)"
                   [class]="
                     activeCategoryId() === cat.id
@@ -353,10 +351,6 @@ import { AuthService } from '../../../services/auth.service';
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
-
-      .overflow-x-auto {
-        scroll-padding-left: 24px; 
-      }
     `,
   ],
 })
@@ -367,6 +361,7 @@ export class Explore implements OnInit, OnDestroy {
   private router = inject(Router);
 
   @ViewChild('courseSentinel') courseSentinel!: ElementRef;
+  @ViewChild('categoryScrollContainer') categoryScrollContainer!: ElementRef;
 
   isMenuOpen = signal(false);
   hasError = signal(false);
@@ -388,8 +383,6 @@ export class Explore implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private categoryObserver?: IntersectionObserver;
   private courseObserver?: IntersectionObserver;
-
-  @ViewChild('categoryContainer') categoryContainer!: ElementRef;
 
   constructor() {
     effect(() => {
@@ -487,17 +480,25 @@ export class Explore implements OnInit, OnDestroy {
       this.activeCategoryName.set(name);
       this.resetAndReloadCourses();
 
-      // Scroll the selected element into view
+      // After courses load, scroll to the selected category
       setTimeout(() => {
-        const element = document.getElementById(`cat-${id}`);
-        if (element && this.categoryContainer?.nativeElement) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center',
-          });
-        }
+        this.scrollToSelectedCategory();
       }, 100);
+    }
+  }
+
+  private scrollToSelectedCategory() {
+    const container = this.categoryScrollContainer?.nativeElement;
+    if (!container) return;
+
+    const activeButton = container.querySelector('.bg-indigo-600') as HTMLElement;
+    if (activeButton) {
+      const { clientWidth: containerWidth } = container;
+      const { offsetLeft: buttonLeft, offsetWidth: buttonWidth } = activeButton;
+      container.scrollTo({
+        left: buttonLeft - containerWidth / 2 + buttonWidth / 2,
+        behavior: 'smooth',
+      });
     }
   }
 
@@ -506,6 +507,15 @@ export class Explore implements OnInit, OnDestroy {
     this.currentCoursePage.set(0);
     this.hasNextCoursePage.set(true);
     this.courses.set([]);
+
+    // Reconnect observer if needed
+    setTimeout(() => {
+      if (this.courseObserver && this.courseSentinel) {
+        this.courseObserver.disconnect();
+        this.courseObserver.observe(this.courseSentinel.nativeElement);
+      }
+    }, 50);
+
     this.loadCourses(true);
   }
 
