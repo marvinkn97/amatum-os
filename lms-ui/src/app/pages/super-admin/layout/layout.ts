@@ -1,10 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { Router, RouterModule, RouterOutlet } from '@angular/router';
-import Keycloak from 'keycloak-js';
-import { environment } from '../../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { lastValueFrom } from 'rxjs';
+import { RouterModule, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -310,7 +306,6 @@ import { AuthService } from '../../../services/auth.service';
   `,
 })
 export class SuperAdminLayout {
-  private keycloak = inject(Keycloak);
   private authService = inject(AuthService);
 
   isProfileOpen = signal(false);
@@ -318,11 +313,11 @@ export class SuperAdminLayout {
   isLogoutConfirmOpen = signal(false);
   isConfigOpen = signal(false);
 
-  fullName = signal(this.keycloak.tokenParsed?.['name'] || 'Admin');
-  email = signal(this.keycloak.tokenParsed?.['email'] || '');
+  fullName = computed(() => this.authService.user()?.['name'] || 'Admin');
+  email = computed(() => this.authService.user()?.['email'] || '');
 
-  canSwitchToManager = signal(this.keycloak.hasResourceRole('MANAGER', this.keycloak.clientId));
-  canSwitchToLearner = signal(this.keycloak.hasResourceRole('LEARNER', this.keycloak.clientId));
+  canSwitchToManager = computed(() => this.authService.hasRole('MANAGER'));
+  canSwitchToLearner = computed(() => this.authService.hasRole('LEARNER'));
 
   managementItems = [
     {
@@ -332,7 +327,7 @@ export class SuperAdminLayout {
     },
   ];
 
-    logout() {
+  logout() {
     this.authService.logout();
   }
 }

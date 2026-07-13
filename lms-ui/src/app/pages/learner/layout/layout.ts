@@ -214,7 +214,7 @@ interface Organization {
                   </div>
 
                   <button
-                    routerLink="/learner/profile"
+                    routerLink="profile"
                     (click)="isProfileOpen.set(false)"
                     class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all mb-1 cursor-pointer"
                   >
@@ -365,7 +365,7 @@ export class LearnerLayout {
 
   fullName = computed(() => this.authService.user()?.['name'] || 'User');
   email = computed(() => this.authService.user()?.['email'] || '');
-  isSuperAdmin = this.authService.isSuperAdmin; // Already a computed signal
+  isSuperAdmin = this.authService.isSuperAdmin;
 
   availableOrgs = computed<Organization[]>(() => {
     const personal: Organization = { id: null, name: 'Personal Workspace' };

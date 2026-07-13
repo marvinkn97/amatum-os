@@ -237,7 +237,7 @@ interface Organization {
                   </div>
 
                   <button
-                    routerLink="/learner/profile"
+                    routerLink="profile"
                     (click)="isProfileOpen.set(false)"
                     class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all mb-1 cursor-pointer"
                   >
