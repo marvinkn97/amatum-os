@@ -2889,15 +2889,70 @@ export class CourseBuilder implements OnInit {
     return false;
   }
 
-  saveCourse() {
+  private validateCourseData(): boolean {
     const data = this.courseData();
 
-    // Validate course identity before creating/updating
-    if (!this.isReadyToPublish() && this.activeView() === 'COURSE_IDENTITY') {
+    // Title validation
+    if (!data.title || data.title.trim().length === 0) {
+      this.notificationService.error('Course title is required');
       this.showValidationErrors = true;
-      this.notificationService.error('Please complete all required fields before continuing.');
+      return false;
+    }
+
+    // Category validation
+    if (!data.categoryId || data.categoryId.trim().length === 0) {
+      this.notificationService.error('Please select a category');
+      this.showValidationErrors = true;
+      return false;
+    }
+
+    // Description validation
+    if (!data.description || data.description.length < 20) {
+      this.notificationService.error('Description must be at least 20 characters');
+      this.showValidationErrors = true;
+      return false;
+    }
+
+    // Tags validation
+    if (data.tags.length === 0) {
+      this.notificationService.error('Please add at least one tag');
+      this.showValidationErrors = true;
+      return false;
+    }
+
+    // Price validation for premium courses
+    if (data.tier === 'PREMIUM' && (!data.price || data.price <= 0)) {
+      this.notificationService.error('Paid courses require a price greater than 0');
+      this.showValidationErrors = true;
+      return false;
+    }
+
+    this.showValidationErrors = false;
+    return true;
+  }
+
+  saveCourse() {
+    const data = this.courseData();
+    if (!this.validateCourseData()) {
       return;
     }
+
+      console.log('📝 Saving course with data:', {
+    title: data.title,
+    categoryId: data.categoryId,
+    description: data.description?.length,
+    tags: data.tags.length,
+    tier: data.tier,
+    price: data.price,
+    isReady: this.isReadyToPublish()
+  });
+
+    // // Validate course identity before creating/updating
+    // if (!this.isReadyToPublish() && this.activeView() === 'COURSE_IDENTITY') {
+    //   this.showValidationErrors = true;
+    //   this.notificationService.error('Please complete all required fields before continuing.');
+    //   return;
+    // }
 
     if (this.isSaving()) return;
 

@@ -15,9 +15,15 @@ import { IdentityService } from '../../services/identity.service';
       <div class="absolute size-150 bg-indigo-600/10 blur-[120px] rounded-full"></div>
 
       <div class="relative z-10 max-w-5xl w-full text-center">
-        <p class="text-slate-400 text-lg mb-16 max-w-xl mx-auto">
-          Choose how you want to use the platform.
-        </p>
+        <div class="mb-16 space-y-4">
+          <h1 class="text-4xl md:text-5xl font-bold text-white max-w-xl mx-auto tracking-tight">
+            Choose your
+            <span class="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-indigo-400"
+              >role</span
+            >
+          </h1>
+          <p class="text-slate-400 max-w-md mx-auto">Select how you want to use the platform.</p>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <button
