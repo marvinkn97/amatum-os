@@ -37,19 +37,6 @@ public class CategoryController {
         return ResponseEntity.ok(pagedModel);
     }
 
-    @Operation(summary = "Get all active categories")
-    @GetMapping("/active")
-    public ResponseEntity<PagedModel<EntityModel<CategoryResponse>>> getAllActive(
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
-    ) {
-        Page<CategoryResponse> categoryPage = categoryService.getAllActiveCategories(PageRequest.of(page, size));
-        PagedModel<EntityModel<CategoryResponse>> pagedModel =
-                pagedResourcesAssembler.toModel(categoryPage, EntityModel::of);
-
-        return ResponseEntity.ok(pagedModel);
-    }
-
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Create a new category")
     @PostMapping

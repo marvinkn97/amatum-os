@@ -30,18 +30,6 @@ public class CategoryService {
                         categoryEntity.isActive()));
     }
 
-    @Transactional(readOnly = true)
-    public Page<CategoryResponse> getAllActiveCategories(Pageable pageable) {
-        log.info("Getting paginated active categories");
-        return categoryRepository.findAllByIsActive(true, pageable)
-                .map(categoryEntity -> new CategoryResponse(
-                        categoryEntity.getId(),
-                        categoryEntity.getName(),
-                        categoryEntity.getDescription(),
-                        categoryEntity.isActive()));
-    }
-
-
     @Transactional
     public void createCategory(CategoryRequest request) {
         log.info("Creating category: {}", request);

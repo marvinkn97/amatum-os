@@ -174,45 +174,61 @@ import { AuthService } from '../../../services/auth.service';
             </div>
           </div>
         } @else {
-          <div class="relative mb-12">
-            <div
-              #categoryScrollContainer
-              class="flex gap-3 overflow-x-auto pb-6 no-scrollbar scroll-smooth items-center -mx-6 px-6 md:mx-0 md:px-0"
+          <div
+            class="relative mb-12 w-full md:w-1/2 lg:w-1/3 xl:w-96"
+            appClickOutside
+            (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
+          >
+            <button
+              (click)="isDropdownOpen.set(!isDropdownOpen())"
+              class="w-full flex items-center justify-between px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
             >
-              <button
-                (click)="selectCategory('', 'All')"
-                [class]="
-                  activeCategoryId() === ''
-                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20'
-                    : 'bg-white/5 text-slate-400 border-white/5 hover:border-white/10'
-                "
-                class="px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap active:scale-95 cursor-pointer"
-              >
-                All
-              </button>
-
-              @for (cat of categories(); track cat.id) {
-                <button
-                  (click)="selectCategory(cat.id, cat.name)"
-                  [class]="
-                    activeCategoryId() === cat.id
-                      ? 'bg-indigo-600 text-white border-indigo-500'
-                      : 'bg-white/5 text-slate-400 border-white/5 hover:border-white/10'
-                  "
-                  class="px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap active:scale-95 cursor-pointer"
+              <div class="flex flex-col items-start overflow-hidden">
+                <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
+                  >Category</span
                 >
-                  {{ cat.name }}
-                </button>
-              }
-
-              <div id="categorySentinel" class="min-w-10 flex items-center justify-center">
-                @if (isLoadingCategories()) {
-                  <div
-                    class="size-4 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"
-                  ></div>
-                }
+                <span class="text-sm font-bold truncate w-full text-left">{{
+                  activeCategoryName()
+                }}</span>
               </div>
-            </div>
+              <svg
+                class="size-4 text-slate-500 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            @if (isDropdownOpen()) {
+              <div
+                class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+              >
+                <input
+                  type="text"
+                  placeholder="Filter categories..."
+                  (input)="searchTerm.set($any($event.target).value)"
+                  class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                />
+
+                <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
+                  @for (cat of filteredCategories(); track cat.id) {
+                    <button
+                      (click)="selectCategory(cat.id, cat.name)"
+                      class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
+                    >
+                      {{ cat.name }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
@@ -351,6 +367,17 @@ import { AuthService } from '../../../services/auth.service';
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+      }
     `,
   ],
 })
@@ -361,7 +388,6 @@ export class Explore implements OnInit, OnDestroy {
   private router = inject(Router);
 
   @ViewChild('courseSentinel') courseSentinel!: ElementRef;
-  @ViewChild('categoryScrollContainer') categoryScrollContainer!: ElementRef;
 
   isMenuOpen = signal(false);
   hasError = signal(false);
@@ -369,8 +395,6 @@ export class Explore implements OnInit, OnDestroy {
   activeCategoryId = signal('');
   activeCategoryName = signal('All');
   categories = signal<any[]>([]);
-  categoryPage = 0;
-  isLastCategoryPage = false;
   isLoadingCategories = signal(false);
 
   courses = signal<any[]>([]);
@@ -379,6 +403,9 @@ export class Explore implements OnInit, OnDestroy {
   isLoadingCourses = signal(false);
 
   isPageLoading = computed(() => this.isLoadingCategories() || this.isLoadingCourses());
+
+  isDropdownOpen = signal(false);
+  searchTerm = signal('');
 
   private destroy$ = new Subject<void>();
   private categoryObserver?: IntersectionObserver;
@@ -398,14 +425,13 @@ export class Explore implements OnInit, OnDestroy {
       if (!loading && !error) {
         setTimeout(() => {
           this.initCourseInfiniteScroll();
-          this.initCategoryHorizontalScroll();
         }, 0);
       }
     });
   }
 
   ngOnInit() {
-    this.fetchInitialCategories();
+    this.fetchCategories();
     this.loadCourses(true);
   }
 
@@ -424,48 +450,21 @@ export class Explore implements OnInit, OnDestroy {
     this.hasError.set(false);
     this.categories.set([]);
     this.courses.set([]);
-    this.fetchInitialCategories();
+    this.fetchCategories();
     this.resetAndReloadCourses();
   }
 
-  private fetchInitialCategories() {
-    this.categoryPage = 0;
-    this.loadMoreCategories();
-  }
-
-  private initCategoryHorizontalScroll() {
-    this.categoryObserver?.disconnect();
-    this.categoryObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (
-          entry.isIntersecting &&
-          !this.isLoadingCategories() &&
-          !this.isLastCategoryPage &&
-          !this.hasError()
-        ) {
-          this.categoryPage++;
-          this.loadMoreCategories();
-        }
-      },
-      { threshold: 0.1, rootMargin: '0px 100px 0px 0px' },
-    );
-
-    const sentinel = document.querySelector('#categorySentinel');
-    if (sentinel) this.categoryObserver.observe(sentinel);
-  }
-
-  private loadMoreCategories() {
-    if (this.isLoadingCategories() || this.isLastCategoryPage || this.hasError()) return;
+  private fetchCategories() {
     this.isLoadingCategories.set(true);
     this.categoryService
-      .getAllActivePaginatedCategories(this.categoryPage, 8)
-      .pipe(takeUntil(this.destroy$))
+      .getAllActiveCategories()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingCategories.set(false)),
+      )
       .subscribe({
-        next: (res) => {
-          const apiData = res._embedded?.categoryResponseList || [];
-          this.isLastCategoryPage = !res._links?.next;
-          this.categories.update((current) => [...current, ...apiData]);
-          this.isLoadingCategories.set(false);
+        next: (data) => {
+          this.categories.set(data);
         },
         error: () => {
           this.isLoadingCategories.set(false);
@@ -474,32 +473,22 @@ export class Explore implements OnInit, OnDestroy {
       });
   }
 
+  combinedCategories = computed(() => {
+    const allOption = { id: '', name: 'All' };
+    return [allOption, ...this.categories()];
+  });
+
+  filteredCategories = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    return this.combinedCategories().filter((c) => c.name.toLowerCase().includes(term));
+  });
+
   selectCategory(id: string, name: string) {
-    if (this.activeCategoryId() !== id) {
-      this.activeCategoryId.set(id);
-      this.activeCategoryName.set(name);
-      this.resetAndReloadCourses();
-
-      // After courses load, scroll to the selected category
-      setTimeout(() => {
-        this.scrollToSelectedCategory();
-      }, 100);
-    }
-  }
-
-  private scrollToSelectedCategory() {
-    const container = this.categoryScrollContainer?.nativeElement;
-    if (!container) return;
-
-    const activeButton = container.querySelector('.bg-indigo-600') as HTMLElement;
-    if (activeButton) {
-      const { clientWidth: containerWidth } = container;
-      const { offsetLeft: buttonLeft, offsetWidth: buttonWidth } = activeButton;
-      container.scrollTo({
-        left: buttonLeft - containerWidth / 2 + buttonWidth / 2,
-        behavior: 'smooth',
-      });
-    }
+    this.activeCategoryId.set(id);
+    this.activeCategoryName.set(name);
+    this.isDropdownOpen.set(false);
+    this.searchTerm.set('');
+    this.resetAndReloadCourses();
   }
 
   private resetAndReloadCourses() {

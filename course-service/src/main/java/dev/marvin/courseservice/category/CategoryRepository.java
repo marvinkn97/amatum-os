@@ -13,6 +13,4 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, UUID> 
     Page<CategoryEntity> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     List<CategoryEntity> findAllByIsActive(boolean isActive);
-
-    Page<CategoryEntity> findAllByIsActive(boolean isActive, Pageable pageable);
 }

@@ -28,7 +28,7 @@ public class SecurityConfiguration {
                                         "/v3/api-docs/**",
                                         "/actuator/**",
                                         "/api/categories/all",
-                                        "/api/categories/active",
+                                        "/api/categories/dropdown",
                                         "/api/mux/webhooks",
                                         "/api/courses/public/**",
                                         "/api/courses/*/public"
