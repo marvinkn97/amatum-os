@@ -176,9 +176,9 @@ import { AuthService } from '../../../services/auth.service';
         } @else {
           <div class="mb-6">
             <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
-              Browse by Category
+              Search by Category
             </h2>
-            <p class="text-[11px] text-slate-500 font-medium mt-1">
+            <p class="text-[14px] text-slate-500 font-medium mt-1">
               Narrow down your selection to find the right training for your needs.
             </p>
           </div>

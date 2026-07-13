@@ -1,6 +1,7 @@
 package dev.marvin.courseservice.storage.rustfs;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -8,9 +9,13 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CORSConfiguration;
+import software.amazon.awssdk.services.s3.model.CORSRule;
+import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
+import java.util.List;
 
 @Configuration
 public class S3Config {
@@ -59,5 +64,36 @@ public class S3Config {
                         .pathStyleAccessEnabled(true) // Crucial for local RustFS/MinIO
                         .build())
                 .build();
+    }
+
+    @Bean
+    CommandLineRunner configureBucketCors(S3Client s3Client,
+                                          @Value("${storage.rustfs.bucket}") String bucket) {
+        return args -> {
+            CORSRule rule = CORSRule.builder()
+                    .allowedOrigins(List.of(
+                            "https://lumina.amatum.luv2kode.co.ke"))
+                    .allowedMethods(
+                            "GET",
+                            "PUT",
+                            "POST",
+                            "HEAD"
+                    )
+                    .allowedHeaders("*")
+                    .exposeHeaders("ETag")
+                    .maxAgeSeconds(3000)
+                    .build();
+
+            PutBucketCorsRequest request = PutBucketCorsRequest.builder()
+                    .bucket(bucket)
+                    .corsConfiguration(
+                            CORSConfiguration.builder()
+                                    .corsRules(rule)
+                                    .build()
+                    )
+                    .build();
+
+            s3Client.putBucketCors(request);
+        };
     }
 }
