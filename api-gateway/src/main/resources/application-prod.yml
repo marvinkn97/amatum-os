@@ -30,7 +30,7 @@ spring:
             - id: course-service
               uri: http://course-service:8080
               predicates:
-                - Path=/api/courses/**,/api/categories/**,/api/learning-steps/**,/api/modules/**
+                - Path=/api/courses/**,/api/categories/**,/api/learning-steps/**,/api/modules/**,/api/mux/**,/api/uploads/s3/**
               filters:
                 - name: CircuitBreaker
                   args:

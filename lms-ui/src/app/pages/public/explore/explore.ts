@@ -174,6 +174,14 @@ import { AuthService } from '../../../services/auth.service';
             </div>
           </div>
         } @else {
+          <div class="mb-6">
+            <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+              Browse by Category
+            </h2>
+            <p class="text-[11px] text-slate-500 font-medium mt-1">
+              Narrow down your selection to find the right training for your needs.
+            </p>
+          </div>
           <div
             class="relative mb-12 w-full md:w-1/2 lg:w-1/3 xl:w-96"
             appClickOutside

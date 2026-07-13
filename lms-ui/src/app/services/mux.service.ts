@@ -19,7 +19,6 @@ export interface MuxUploadResponse {
   providedIn: 'root',
 })
 export class MuxService {
-  // Use signals to track the global upload state if needed
   isUploading = signal(false);
   uploadProgress = signal(0);
 
