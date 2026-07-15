@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { NotificationService } from '../../../services/notification.service';
 import {
   IdentityResponse,
@@ -209,7 +208,7 @@ import { TenantService } from '../../../services/tenant.service';
     </dialog>
   `,
 })
-export class ManagerMembers implements OnInit {
+export class ManagerMembers {
   private notificationService = inject(NotificationService);
   private identityService = inject(IdentityService);
   private tenantService = inject(TenantService);
@@ -237,11 +236,17 @@ export class ManagerMembers implements OnInit {
     });
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
+    // Now it is guaranteed that this.scrollSentinel is defined
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !this.isLoading()) this.loadData();
+      if (entries[0].isIntersecting && !this.isLoading()) {
+        this.loadData();
+      }
     });
-    setTimeout(() => observer.observe(this.scrollSentinel.nativeElement));
+
+    if (this.scrollSentinel) {
+      observer.observe(this.scrollSentinel.nativeElement);
+    }
   }
 
   resetAndReload() {

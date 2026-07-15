@@ -1,39 +1,33 @@
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import Keycloak from 'keycloak-js';
 
-export const canActivateAuth = () => {
+export const canActivateAuth: CanActivateFn = async (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  const keycloak = inject(Keycloak);
 
-  return async (route: any, state: any) => {
-    const targetPath = state.url;
-    if (authService.isLoading()) {
-      while (authService.isLoading()) {
-        await new Promise((resolve) => setTimeout(resolve, 5));
-      }
-    }
+  await authService.whenReady();
 
-    if (!authService.isAuthenticated()) {
-      await keycloak.login({ redirectUri: window.location.origin + targetPath });
-      return false;
-    }
+  const targetPath = state.url;
 
-    if (targetPath.includes('/choose-role') || targetPath.includes('/onboarding')) {
-      return true;
-    }
+  if (!authService.isAuthenticated()) {
+    await authService.login(targetPath);
+    return false;
+  }
 
-    const requiredRole = route.data['role'];
-    if (!requiredRole) {
-      return true;
-    }
+  if (targetPath.startsWith('/choose-role') || targetPath.startsWith('/onboarding')) {
+    return true;
+  }
 
-    if (authService.hasRole(requiredRole)) {
-      return true;
-    }
+  const requiredRole = route.data?.['role'] as string | undefined;
 
-    return router.parseUrl('/choose-role');
-  };
+  if (!requiredRole) {
+    return true;
+  }
+
+  if (authService.hasRole(requiredRole)) {
+    return true;
+  }
+
+  return router.parseUrl('/choose-role');
 };

@@ -41,16 +41,17 @@ export const appConfig: ApplicationConfig = {
         pkceMethod: 'S256',
         checkLoginIframe: false,
         scope: 'openid profile email organization:*',
+        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+        silentCheckSsoFallback: false,
+        enableLogging: false,
       },
       features: [
         withAutoRefreshToken({
-          sessionTimeout: environment.sessionTimeout ?? 30 * 60 * 1000,
           onInactivityTimeout: 'logout',
         }),
       ],
       providers: [AutoRefreshTokenService, UserActivityService],
     }),
-
     {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
       useValue: [urlCondition],

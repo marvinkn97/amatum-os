@@ -2,12 +2,7 @@ import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
 import { environment } from '../../environments/environment';
-import {
-  KEYCLOAK_EVENT_SIGNAL,
-  KeycloakEventType,
-  ReadyArgs,
-  typeEventArgs,
-} from 'keycloak-angular';
+import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs } from 'keycloak-angular';
 
 interface AmatumToken extends KeycloakTokenParsed {
   amatum_onboarded?: boolean | 'true' | 'false';
@@ -36,41 +31,74 @@ export class AuthService {
   public fullName = computed(() => this.user()?.['name'] ?? '');
   public subject = computed(() => this.user()?.['sub'] ?? '');
 
+  private loginInProgress = false;
+  private readyResolver!: () => void;
+
+  private readonly readyPromise = new Promise<void>((resolve) => {
+    this.readyResolver = resolve;
+  });
+
+  private initialized = false;
+
+  async whenReady(): Promise<void> {
+    return this.readyPromise;
+  }
+
   constructor() {
     effect(() => {
       const event = this.keycloakSignal();
 
       switch (event.type) {
         case KeycloakEventType.Ready:
+          console.log('Keycloak is ready', event.args as ReadyArgs);
+          this.syncFromKeycloak();
           this.isLoading.set(false);
 
-          if (typeEventArgs<ReadyArgs>(event.args)) {
-            this.syncFromKeycloak();
-          } else {
-            this.clearAuthState();
+          if (!this.initialized) {
+            this.initialized = true;
+            this.readyResolver();
           }
           break;
-
         case KeycloakEventType.AuthSuccess:
+          console.log('Keycloak authentication successful');
           this.syncFromKeycloak();
           break;
 
         case KeycloakEventType.AuthRefreshSuccess:
+          console.log('Keycloak token refreshed successfully');
           this.syncFromKeycloak();
           break;
 
         case KeycloakEventType.AuthLogout:
+          console.log('Keycloak logout event received');
           this.clearAuthState();
           break;
 
         case KeycloakEventType.AuthRefreshError:
+          console.log('Keycloak token refresh error');
           this.clearAuthState();
+          if (!this.loginInProgress) {
+            this.loginInProgress = true;
+            void this.login(this.router.url);
+          }
+
+          break;
+
+        case KeycloakEventType.AuthError:
+          console.log('Keycloak authentication error');
+          this.clearAuthState();
+
+          if (!this.loginInProgress) {
+            this.loginInProgress = true;
+            void this.login(this.router.url);
+          }
           break;
       }
     });
   }
 
   private clearAuthState(): void {
+    this.loginInProgress = false;
     this.isAuthenticated.set(false);
     this.user.set(null);
     this.userRoles.set([]);
@@ -81,10 +109,8 @@ export class AuthService {
   async refreshToken(): Promise<boolean> {
     try {
       await this.keycloak.updateToken(30);
-      this.syncFromKeycloak();
       return true;
     } catch (error) {
-       this.clearAuthState();
       console.error('Token refresh failed', error);
       return false;
     }
@@ -114,7 +140,6 @@ export class AuthService {
     await this.router.navigate(['/onboarding']);
   }
 
- 
   hasRole(role: string): boolean {
     return this.userRoles().includes(role);
   }
@@ -165,15 +190,20 @@ export class AuthService {
     this.availableRoles.set(available);
   }
 
-   async login() {
+  async login(target?: string): Promise<void> {
     try {
-      await this.keycloak.login({ redirectUri: window.location.origin + '/auth/callback' });
+      const redirectUri = `${window.location.origin}/auth/callback${
+        target ? `?target=${encodeURIComponent(target)}` : ''
+      }`;
+
+      await this.keycloak.login({ redirectUri });
     } catch (error) {
+      this.loginInProgress = false;
       console.error('Keycloak login trigger failed:', error);
     }
   }
 
-   async logout(): Promise<void> {
+  async logout(): Promise<void> {
     try {
       await this.keycloak.logout({ redirectUri: window.location.origin });
     } catch (error) {

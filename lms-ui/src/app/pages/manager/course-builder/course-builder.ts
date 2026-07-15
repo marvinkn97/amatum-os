@@ -2947,13 +2947,6 @@ export class CourseBuilder implements OnInit {
     isReady: this.isReadyToPublish()
   });
 
-    // // Validate course identity before creating/updating
-    // if (!this.isReadyToPublish() && this.activeView() === 'COURSE_IDENTITY') {
-    //   this.showValidationErrors = true;
-    //   this.notificationService.error('Please complete all required fields before continuing.');
-    //   return;
-    // }
-
     if (this.isSaving()) return;
 
     this.showValidationErrors = false;

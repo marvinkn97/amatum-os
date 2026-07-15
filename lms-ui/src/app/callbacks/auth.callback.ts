@@ -1,7 +1,8 @@
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Keycloak from 'keycloak-js';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-auth-callback',
@@ -47,6 +48,7 @@ import { AuthService } from '../services/auth.service';
 })
 export class AuthCallbackComponent {
   private readonly authService = inject(AuthService);
+  private router = inject(Router);
 
   private readonly targetRedirect = new URLSearchParams(window.location.search).get('target');
 
@@ -66,8 +68,11 @@ export class AuthCallbackComponent {
         return;
       }
 
-      this.routed = true;
+      if (!this.authService.isLoading() && !this.authService.isAuthenticated()) {
+         this.router.navigate(['/']);
+      }
 
+      this.routed = true;
       void this.authService.routeAfterLogin(this.targetRedirect);
     });
   }
