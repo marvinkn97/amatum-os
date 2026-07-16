@@ -358,13 +358,13 @@ interface Organization {
             <div class="flex flex-col gap-3">
               <button
                 (click)="logout()"
-                class="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20"
+                class="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20"
               >
                 Yes, Sign Out
               </button>
               <button
                 (click)="isLogoutConfirmOpen.set(false)"
-                class="w-full py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl text-sm font-bold transition-all border border-white/10"
+                class="w-full py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl text-xs font-bold transition-all border border-white/10"
               >
                 Stay Logged In
               </button>
