@@ -33,108 +33,6 @@ import { RatingRequest, RatingService } from '../../../services/rating.service';
     <div
       class="absolute inset-0 flex flex-col bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30 overflow-hidden"
     >
-      <!-- TOP NAVIGATION -->
-      <nav
-        class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl flex items-center justify-between px-4 md:px-8 shrink-0 z-130"
-      >
-        <div class="flex items-center gap-4 md:gap-6 min-w-0">
-          <!-- Back Button -->
-          <button
-            (click)="goBack()"
-            class="flex items-center gap-3 text-slate-500 hover:text-white transition-all group cursor-pointer bg-transparent border-none p-0 outline-none shrink-0"
-          >
-            <div class="size-8 flex items-center justify-center">
-              <svg
-                class="size-4 group-hover:-translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="3.5"
-              >
-                <path d="M15 19l-7-7 7-7" />
-              </svg>
-            </div>
-          </button>
-
-          <div class="h-5 w-px bg-white/5 hidden md:block"></div>
-
-          <!-- Course Title -->
-          <div class="flex flex-col min-w-0 cursor-pointer group" (click)="selectedStep.set(null)">
-            <span
-              class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 italic leading-none group-hover:text-indigo-400 transition-colors"
-              >Course</span
-            >
-            <h1
-              class="text-sm md:text-md font-black text-white uppercase italic tracking-tighter leading-none mt-1 truncate max-w-40 md:max-w-none"
-            >
-              {{ enrollment()?.course?.title }}
-            </h1>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 md:gap-6">
-          <!-- DYNAMIC BURGER TOGGLE -->
-          <button
-            (click)="sidebarVisible.set(!sidebarVisible())"
-            class="flex items-center justify-center size-8 rounded-xl outline-none cursor-pointer transition-all active:scale-95 group border"
-            [ngClass]="
-              sidebarVisible()
-                ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
-            "
-          >
-            <svg
-              class="size-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-            </svg>
-          </button>
-
-          <!-- Progress Stats -->
-          <div class="hidden sm:flex flex-col items-end">
-            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest"
-              >Completed</span
-            >
-            <span class="text-xs font-bold text-white italic tracking-tighter"
-              >{{ completedStepsCount() }} / {{ totalStepsCount() }} STEPS</span
-            >
-          </div>
-
-          <!-- Circular Progress -->
-          <div class="relative size-10 shrink-0">
-            <svg class="size-full -rotate-90 transform" viewBox="0 0 36 36">
-              <circle
-                cx="18"
-                cy="18"
-                r="16"
-                fill="none"
-                class="stroke-white/10"
-                stroke-width="3.5"
-              />
-              <circle
-                cx="18"
-                cy="18"
-                r="16"
-                fill="none"
-                class="stroke-indigo-500 transition-all duration-1000 ease-out"
-                stroke-width="3.5"
-                [style.stroke-dasharray]="dashArray"
-                stroke-linecap="round"
-              />
-            </svg>
-            <div
-              class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white"
-            >
-              {{ enrollment()?.progress }}%
-            </div>
-          </div>
-        </div>
-      </nav>
-
       @if (isLoading()) {
         <div class="max-w-7xl mx-auto px-6 py-20 text-center">
           <div
@@ -142,6 +40,110 @@ import { RatingRequest, RatingService } from '../../../services/rating.service';
           ></div>
         </div>
       } @else if (enrollment()) {
+        <!-- TOP NAVIGATION -->
+        <nav
+          class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl flex items-center justify-between px-4 md:px-8 shrink-0 z-130"
+        >
+          <div class="flex items-center gap-4 md:gap-6 min-w-0">
+            <!-- Back Button -->
+            <button
+              (click)="goBack()"
+              class="flex items-center gap-3 text-slate-500 hover:text-white transition-all group cursor-pointer bg-transparent border-none p-0 outline-none shrink-0"
+            >
+              <div class="size-8 flex items-center justify-center">
+                <svg
+                  class="size-4 group-hover:-translate-x-1 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="3.5"
+                >
+                  <path d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </button>
+
+            <div class="h-5 w-px bg-white/5 hidden md:block"></div>
+
+            <!-- Course Title -->
+            <div
+              class="flex flex-col min-w-0 cursor-pointer group"
+              (click)="selectedStep.set(null)"
+            >
+              <span
+                class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 italic leading-none group-hover:text-indigo-400 transition-colors"
+                >Course</span
+              >
+              <h1
+                class="text-sm md:text-md font-black text-white uppercase italic tracking-tighter leading-none mt-1 truncate max-w-40 md:max-w-none"
+              >
+                {{ enrollment()?.course?.title }}
+              </h1>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 md:gap-6">
+            <!-- DYNAMIC BURGER TOGGLE -->
+            <button
+              (click)="sidebarVisible.set(!sidebarVisible())"
+              class="flex items-center justify-center size-8 rounded-xl outline-none cursor-pointer transition-all active:scale-95 group border"
+              [ngClass]="
+                sidebarVisible()
+                  ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+              "
+            >
+              <svg
+                class="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </button>
+
+            <!-- Progress Stats -->
+            <div class="hidden sm:flex flex-col items-end">
+              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest"
+                >Completed</span
+              >
+              <span class="text-xs font-bold text-white italic tracking-tighter"
+                >{{ completedStepsCount() }} / {{ totalStepsCount() }} STEPS</span
+              >
+            </div>
+
+            <!-- Circular Progress -->
+            <div class="relative size-10 shrink-0">
+              <svg class="size-full -rotate-90 transform" viewBox="0 0 36 36">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  fill="none"
+                  class="stroke-white/10"
+                  stroke-width="3.5"
+                />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  fill="none"
+                  class="stroke-indigo-500 transition-all duration-1000 ease-out"
+                  stroke-width="3.5"
+                  [style.stroke-dasharray]="dashArray"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <div
+                class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white"
+              >
+                {{ enrollment()?.progress }}%
+              </div>
+            </div>
+          </div>
+        </nav>
         <main class="flex-1 flex overflow-hidden min-h-0 relative">
           <!-- LEARNING CONTENT PANEL -->
           <div

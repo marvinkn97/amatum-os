@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import Keycloak from 'keycloak-js';
@@ -376,46 +376,33 @@ interface Organization {
   `,
 })
 export class ManagerLayout {
-  private keycloak = inject(Keycloak);
   private tenantService = inject(TenantService);
-  private router = inject(Router);
-  private http = inject(HttpClient);
   private authService = inject(AuthService);
 
-  constructor() {
-    const orgClaim = this.keycloak.tokenParsed?.['organization'];
-    if (orgClaim) {
-      const firstOrg = Object.values(orgClaim)[0] as any;
+  activeOrg = signal<Organization>({ id: null, name: 'Loading...' });
 
-      // Update the signal in the service
-      this.tenantService.setTenantId(firstOrg.id);
-      this.activeOrg.set({ id: firstOrg.id, name: Object.keys(orgClaim)[0] });
-      console.log('✅ Global Tenant ID initialized in Service:', firstOrg.id);
-    }
+  constructor() {
+    effect(() => {
+      const orgs = this.availableOrgs();
+
+      // If we have orgs, but haven't selected one yet, default to the first
+      if (orgs.length > 0 && this.activeOrg().id === null) {
+        this.switchWorkspace(orgs[0]);
+      }
+    });
   }
 
-  // UI State
   isProfileOpen = signal(false);
   isOrgDropdownOpen = signal(false);
   isMobileMenuOpen = signal(false);
   isLogoutConfirmOpen = signal(false);
 
-  // User Identity
-  fullName = signal(this.keycloak.tokenParsed?.['name'] || 'Manager');
-  email = signal(this.keycloak.tokenParsed?.['email'] || '');
+  fullName = computed(() => this.authService.user()?.['name'] || 'Manager');
+  email = computed(() => this.authService.user()?.['email'] || '');
 
-  // Org Logic: Map Keycloak orgs and default to the first one
-  availableOrgs = computed<Organization[]>(() => {
-    const orgClaim = this.keycloak.tokenParsed?.['organization'];
-    if (!orgClaim) return [];
-    return Object.entries(orgClaim).map(([key, value]: [string, any]) => ({
-      id: value.id,
-      name: key,
-    }));
+  availableOrgs = computed(() => {
+    return this.authService.getOrganizationsByRole('manager');
   });
-
-  // Automatically initialize with the first managed organization
-  activeOrg = signal<Organization>(this.availableOrgs()[0] || { id: null, name: 'Loading...' });
 
   menuItems = [
     {
@@ -435,16 +422,16 @@ export class ManagerLayout {
     },
   ];
 
+  isSuperAdmin = this.authService.isSuperAdmin;
+
   switchWorkspace(org: Organization) {
     this.activeOrg.set(org);
-    this.tenantService.setTenantId(org.id); // Update the global signal
+    this.tenantService.setTenantId(org.id);
     this.isOrgDropdownOpen.set(false);
   }
 
-  isSuperAdmin = signal(this.keycloak.hasRealmRole('SUPER_ADMIN'));
-
-  canSwitchToManager = signal(this.keycloak.hasResourceRole('MANAGER', this.keycloak.clientId));
-  canSwitchToLearner = signal(this.keycloak.hasResourceRole('LEARNER', this.keycloak.clientId));
+  canSwitchToManager = computed(() => this.authService.hasRole('MANAGER'));
+  canSwitchToLearner = computed(() => this.authService.hasRole('LEARNER'));
 
   logout() {
     this.authService.logout();

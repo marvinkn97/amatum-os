@@ -14,48 +14,6 @@ import { NotificationService } from '../../../services/notification.service';
     <div
       class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30 p-4 lg:p-8"
     >
-      <nav
-        class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
-      >
-        <div class="max-w-7xl mx-auto h-full flex items-center justify-between">
-          <div class="flex items-center gap-4 md:gap-6">
-            <button
-              (click)="goBack()"
-              class="flex items-center gap-3 text-slate-500 hover:text-white transition-all group cursor-pointer bg-transparent border-none p-0 outline-none"
-            >
-              <div class="size-8 flex items-center justify-center transition-all">
-                <svg
-                  class="size-4 group-hover:-translate-x-1 transition-transform"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="3.5"
-                >
-                  <path d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
-              <span class="hidden md:inline text-[10px] font-black uppercase tracking-[0.3em]"
-                >Back</span
-              >
-            </button>
-
-            <div class="h-5 w-px bg-white/5 hidden md:block"></div>
-
-            <div class="flex flex-col">
-              <span
-                class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 italic leading-none"
-                >Course</span
-              >
-              <h1
-                class="text-sm md:text-md font-black text-white uppercase italic tracking-tighter leading-none mt-1 truncate max-w-50 md:max-w-none"
-              >
-                {{ course()?.title }}
-              </h1>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       @if (isLoading()) {
         <div class="max-w-7xl mx-auto px-6 py-20 text-center">
           <div
@@ -63,6 +21,47 @@ import { NotificationService } from '../../../services/notification.service';
           ></div>
         </div>
       } @else if (course()) {
+        <nav
+          class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
+        >
+          <div class="max-w-7xl mx-auto h-full flex items-center justify-between">
+            <div class="flex items-center gap-4 md:gap-6">
+              <button
+                (click)="goBack()"
+                class="flex items-center gap-3 text-slate-500 hover:text-white transition-all group cursor-pointer bg-transparent border-none p-0 outline-none"
+              >
+                <div class="size-8 flex items-center justify-center transition-all">
+                  <svg
+                    class="size-4 group-hover:-translate-x-1 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="3.5"
+                  >
+                    <path d="M15 19l-7-7 7-7" />
+                  </svg>
+                </div>
+                <span class="hidden md:inline text-[10px] font-black uppercase tracking-[0.3em]"
+                  >Back</span
+                >
+              </button>
+
+              <div class="h-5 w-px bg-white/5 hidden md:block"></div>
+
+              <div class="flex flex-col">
+                <span
+                  class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 italic leading-none"
+                  >Course</span
+                >
+                <h1
+                  class="text-sm md:text-md font-black text-white uppercase italic tracking-tighter leading-none mt-1 truncate max-w-50 md:max-w-none"
+                >
+                  {{ course()?.title }}
+                </h1>
+              </div>
+            </div>
+          </div>
+        </nav>
         <div
           class="max-w-7xl mx-auto px-6 md:px-8 pt-10 md:pt-16 pb-20 animate-in fade-in duration-700"
         >

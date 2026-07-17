@@ -210,4 +210,31 @@ export class AuthService {
       console.error('Keycloak logout failed:', error);
     }
   }
+
+  getOrganizationsByRole(
+    roleKey: keyof typeof environment.orgRoles,
+  ): { id: string; name: string }[] {
+    const orgClaim = this.user()?.['organization'];
+    if (!orgClaim) return [];
+
+    // Get the group path dynamically from environment using the roleKey
+    const requiredGroupPath = environment.orgRoles[roleKey];
+
+    interface OrgClaimData {
+      id: string;
+      groups?: string[];
+    }
+
+    return (
+      Object.entries(orgClaim)
+        .map(([name, data]: [string, any]) => ({
+          id: (data as OrgClaimData).id,
+          name: name,
+          groups: (data as OrgClaimData).groups || [],
+        }))
+        .filter((org) => org.groups.includes(requiredGroupPath))
+        .map(({ id, name }) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    );
+  }
 }

@@ -78,6 +78,23 @@ spring:
               filters:
                 - RewritePath=/api-docs/talemai,/v3/api-docs
 
+            - id: rating-service
+              uri: http://rating-service:8080
+              predicates:
+                - Path=/api/rating/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: ratingServiceCB
+                    fallbackUri: forward:/fallback
+
+            - id: api-docs-rating-service
+              uri: http://rating-service:8080
+              predicates:
+                - Path=/api-docs/rating
+              filters:
+                - RewritePath=/api-docs/rating,/v3/api-docs
+
 resilience4j:
   timelimiter:
     configs:
@@ -105,6 +122,8 @@ resilience4j:
       identityServiceCB:
         base-config: default
       talemaiServiceCB:
+        base-config: default
+      ratingServiceCB:
         base-config: default
 
 logging:

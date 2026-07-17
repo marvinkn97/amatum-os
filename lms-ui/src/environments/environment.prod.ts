@@ -7,4 +7,9 @@ export const environment = {
     clientId: 'lms-ui',
   },
   sessionTimeout: 30 * 60 * 1000,
+  orgRoles: {
+    manager: '/Managers',
+    instructor: '/Instructors',
+    learner: '/Learners'
+  }
 };
