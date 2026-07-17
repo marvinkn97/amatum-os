@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { AiAssistant } from '../ai-assistant/ai-assistant';
@@ -367,27 +367,21 @@ export class LearnerLayout {
   email = computed(() => this.authService.user()?.['email'] || '');
   isSuperAdmin = this.authService.isSuperAdmin;
 
-  availableOrgs = computed<Organization[]>(() => {
-    const personal: Organization = { id: null, name: 'Personal Workspace' };
-    const orgClaim = this.authService.user()?.['organization'];
-    if (!orgClaim) return [personal];
-    return [
-      personal,
-      ...Object.entries(orgClaim).map(([key, value]: [string, any]) => ({
-        id: value.id,
-        name: key,
-      })),
-    ];
-  });
+  availableOrgs = computed<Organization[]>(() => [
+    { id: null, name: 'Personal Workspace' },
+    ...this.authService.getOrganizationsByRole('learner'),
+  ]);
 
   activeOrg = signal<Organization>({ id: null, name: 'Personal Workspace' });
 
   constructor() {
-    const orgs = this.availableOrgs();
-    if (orgs.length > 0) {
-      this.activeOrg.set(orgs[0]);
-      this.tenantService.setTenantId(orgs[0].id); // critical
-    }
+    effect(() => {
+      const orgs = this.availableOrgs();
+
+      if (orgs.length > 0 && this.activeOrg().id === null) {
+        this.switchWorkspace(orgs[0]);
+      }
+    });
   }
 
   switchWorkspace(org: Organization) {

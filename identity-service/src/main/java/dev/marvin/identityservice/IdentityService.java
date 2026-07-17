@@ -18,10 +18,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -111,14 +108,6 @@ public class IdentityService {
             return; // skip processing instead of throwing
         }
 
-        boolean alreadyLearner = authentication.getAuthorities().stream()
-                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_MANAGER"));
-
-        if (alreadyLearner) {
-            log.info("User already has ROLE_MANAGER, skipping onboarding");
-            return;
-        }
-
         var tokenAttributes = jwtAuthenticationToken.getTokenAttributes();
 
         String userId = (String) tokenAttributes.get("sub");
@@ -133,7 +122,7 @@ public class IdentityService {
 
             // If already onboarded to the platform, we just check roles
             if (user.isAmatumOnboarded()) {
-                log.info("User {} is already a platform member. Ensuring MANAGER role is active.", userId);
+                log.info("User {} is already a platform member. Ensuring MANAGER role and creating organization.", userId);
 
                 boolean roleAdded = keycloakService.addClientRoleToUser(userId, UserRole.MANAGER);
                 if (!roleAdded) {

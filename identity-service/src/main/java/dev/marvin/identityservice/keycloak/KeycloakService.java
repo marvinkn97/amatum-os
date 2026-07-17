@@ -112,6 +112,17 @@ public class KeycloakService {
                     log.info("Member {} successfully assigned to organization {}", userId, orgId);
                 }
 
+                // Create the default Managers group
+                String managersGroupId = createManagersGroup(orgId);
+
+                if (managersGroupId.isBlank()) {
+                    log.error("Failed to create Managers group for organization {}", orgId);
+                    return false;
+                }
+
+                // Add the creator to the Managers group
+                addMemberToOrganizationGroup(orgId, managersGroupId, userId);
+
                 return true;
             }
 
@@ -186,7 +197,6 @@ public class KeycloakService {
 
             if (orgRep == null) {
                 log.warn("Organization {} not found in realm {}", orgId, realm);
-                throw new ServiceException("Organization not found");
             }
 
             return orgRep;
@@ -231,7 +241,6 @@ public class KeycloakService {
                         && response.getStatus() != Response.Status.CREATED.getStatusCode()) {
 
                     log.error("Failed to invite member: {}", response.getStatusInfo());
-                    throw new ServiceException("Failed to invite member");
                 }
 
                 log.info("Successfully invited member with email {} to organization {}", email, orgId);
@@ -261,6 +270,52 @@ public class KeycloakService {
 
         } catch (Exception e) {
             log.error("Failed to fetch invitations for organization {}: {}", orgId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    private String createManagersGroup(String organizationId) {
+        try {
+            GroupRepresentation group = new GroupRepresentation();
+            group.setName("Managers");
+
+            try (Response response = keycloak.realm(realm)
+                    .organizations()
+                    .get(organizationId)
+                    .groups()
+                    .addTopLevelGroup(group)) {
+
+                if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+                    log.error("Failed to create Managers group: {}", response.getStatusInfo());
+                    throw new ServiceException("");
+                }
+
+                URI location = response.getLocation();
+                if (location == null) {
+                    log.error("Missing Location header");
+                }
+
+                assert location != null;
+                return location.getPath()
+                        .substring(location.getPath()
+                                .lastIndexOf('/') + 1);
+            }
+        } catch (Exception e) {
+            log.error("Failed to create Managers group for organization {}", organizationId, e);
+            throw e;
+        }
+    }
+
+    private void addMemberToOrganizationGroup(String organizationId, String groupId, String userId) {
+        try {
+            keycloak.realm(realm)
+                    .organizations()
+                    .get(organizationId)
+                    .groups()
+                    .group(groupId)
+                    .addMember(userId);
+        } catch (Exception e) {
+            log.error("Failed to add user {} to Managers group {} in organization {}", userId, groupId, organizationId, e);
             throw e;
         }
     }
