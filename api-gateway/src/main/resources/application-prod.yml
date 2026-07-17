@@ -81,7 +81,7 @@ spring:
             - id: rating-service
               uri: http://rating-service:8080
               predicates:
-                - Path=/api/rating/**
+                - Path=/api/ratings/**
               filters:
                 - name: CircuitBreaker
                   args:
