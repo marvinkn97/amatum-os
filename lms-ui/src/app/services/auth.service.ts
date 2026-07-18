@@ -88,6 +88,11 @@ export class AuthService {
           console.log('Keycloak authentication error');
           this.clearAuthState();
 
+          if (this.router.url.startsWith('/auth/callback')) {
+            console.error('Authentication failed during callback');
+            return;
+          }
+
           if (!this.loginInProgress) {
             this.loginInProgress = true;
             void this.login(this.router.url);
@@ -225,16 +230,14 @@ export class AuthService {
       groups?: string[];
     }
 
-    return (
-      Object.entries(orgClaim)
-        .map(([name, data]: [string, any]) => ({
-          id: (data as OrgClaimData).id,
-          name: name,
-          groups: (data as OrgClaimData).groups || [],
-        }))
-        .filter((org) => org.groups.includes(requiredGroupPath))
-        .map(({ id, name }) => ({ id, name }))
-        .sort((a, b) => a.name.localeCompare(b.name))
-    );
+    return Object.entries(orgClaim)
+      .map(([name, data]: [string, any]) => ({
+        id: (data as OrgClaimData).id,
+        name: name,
+        groups: (data as OrgClaimData).groups || [],
+      }))
+      .filter((org) => org.groups.includes(requiredGroupPath))
+      .map(({ id, name }) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 }

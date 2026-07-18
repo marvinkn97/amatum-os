@@ -64,15 +64,13 @@ export class AuthCallbackComponent {
         return;
       }
 
+        this.routed = true;
+
       if (!this.authService.isAuthenticated()) {
+        this.router.navigate(['/']);
         return;
       }
 
-      if (!this.authService.isLoading() && !this.authService.isAuthenticated()) {
-         this.router.navigate(['/']);
-      }
-
-      this.routed = true;
       void this.authService.routeAfterLogin(this.targetRedirect);
     });
   }
