@@ -6,7 +6,7 @@ import { TenantService } from '../services/tenant.service';
 
 export const tenantInterceptor: HttpInterceptorFn = (req, next) => {
   const tenantService = inject(TenantService);
-  const id = tenantService.tenantId(); // Get value from service
+  const id = tenantService.tenantId();
 
   console.log("Tenant header:", id);
 

@@ -1,6 +1,10 @@
 package dev.marvin.identityservice.security;
 
 public class TenantContext {
+    private TenantContext() {
+        /* This utility class should not be instantiated */
+    }
+
     // Define the ScopedValue constant
     public static final ScopedValue<String> TENANT_ID = ScopedValue.newInstance();
 

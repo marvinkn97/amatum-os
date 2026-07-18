@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -188,6 +189,10 @@ public class KeycloakService {
 
     public OrganizationRepresentation getOrganizationById(String orgId) {
         try {
+            if (orgId == null) {
+                return null;
+            }
+
             log.info("Fetching organization {} from realm {}", orgId, realm);
 
             OrganizationRepresentation orgRep = keycloak.realm(realm)
@@ -208,12 +213,16 @@ public class KeycloakService {
 
     public List<MemberRepresentation> getOrganizationMembers(String orgId) {
         try {
+            if (orgId == null) {
+                return Collections.emptyList();
+            }
             log.info("Fetching members of organization {} from realm {}", orgId, realm);
             return keycloak.realm(realm)
                     .organizations()
                     .get(orgId)
                     .members()
                     .list(0, Integer.MAX_VALUE);
+
         } catch (Exception e) {
             log.error("Failed to fetch members of organization {}: {}", orgId, e.getMessage());
             throw e;
