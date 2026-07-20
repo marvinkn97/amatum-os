@@ -1,13 +1,13 @@
 export const environment = {
-  production: false,
-  apiUrl: "http://localhost:8080/api/",
+  production: true,
+  apiUrl: "https://api.amatum.luv2kode.co.ke/api/",
   keycloak: {
-    url: "http://localhost:9000/",
+    url: "https://auth.luv2kode.co.ke/",
     realm: 'amatum',
-    clientId: 'lms-ui',
+    clientId: 'opus-ui',
   },
   sessionTimeout: 30 * 60 * 1000,
- orgRoles: {
+  orgRoles: {
     manager: '/Managers',
     hr: '/HR',
     talent: '/Talents'

@@ -17,48 +17,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     <div
       class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30  p-4 lg:p-8"
     >
-      <nav
-        class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
-      >
-        <div class="max-w-7xl mx-auto h-full flex items-center justify-between">
-          <div class="flex items-center gap-4 md:gap-6">
-            <button
-              (click)="goBack()"
-              class="flex items-center gap-3 text-slate-500 hover:text-white transition-all group cursor-pointer bg-transparent border-none p-0 outline-none"
-            >
-              <div class="size-8 flex items-center justify-center transition-all">
-                <svg
-                  class="size-4 group-hover:-translate-x-1 transition-transform"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="3.5"
-                >
-                  <path d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
-              <span class="hidden md:inline text-[10px] font-black uppercase tracking-[0.3em]"
-                >Back</span
-              >
-            </button>
-
-            <div class="h-5 w-px bg-white/5 hidden md:block"></div>
-
-            <div class="flex flex-col">
-              <span
-                class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 italic leading-none"
-                >Course</span
-              >
-              <h1
-                class="text-sm md:text-md font-black text-white uppercase italic tracking-tighter leading-none mt-1 truncate max-w-50 md:max-w-none"
-              >
-                {{ course()?.title }}
-              </h1>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       @if (isLoading()) {
         <div class="max-w-7xl mx-auto px-6 py-20 text-center">
           <div
@@ -66,6 +24,48 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
           ></div>
         </div>
       } @else if (course()) {
+        <nav
+          class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
+        >
+          <div class="max-w-7xl mx-auto h-full flex items-center justify-between">
+            <div class="flex items-center gap-4 md:gap-6">
+              <button
+                (click)="goBack()"
+                class="flex items-center gap-3 text-slate-500 hover:text-white transition-all group cursor-pointer bg-transparent border-none p-0 outline-none"
+              >
+                <div class="size-8 flex items-center justify-center transition-all">
+                  <svg
+                    class="size-4 group-hover:-translate-x-1 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="3.5"
+                  >
+                    <path d="M15 19l-7-7 7-7" />
+                  </svg>
+                </div>
+                <span class="hidden md:inline text-[10px] font-black uppercase tracking-[0.3em]"
+                  >Back</span
+                >
+              </button>
+
+              <div class="h-5 w-px bg-white/5 hidden md:block"></div>
+
+              <div class="flex flex-col">
+                <span
+                  class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 italic leading-none"
+                  >Course</span
+                >
+                <h1
+                  class="text-sm md:text-md font-black text-white uppercase italic tracking-tighter leading-none mt-1 truncate max-w-50 md:max-w-none"
+                >
+                  {{ course()?.title }}
+                </h1>
+              </div>
+            </div>
+          </div>
+        </nav>
+
         <div
           class="max-w-7xl mx-auto px-6 md:px-8 pt-10 md:pt-16 pb-20 animate-in fade-in duration-700"
         >
@@ -335,17 +335,14 @@ export class CourseDetailsComponent implements OnInit {
     this.route.paramMap
       .pipe(
         map((params) => params.get('id')),
-        // 1. Only proceed if we have an ID in the URL
         filter((id) => !!id),
         tap(() => {
           this.isLoading.set(true);
           this.course.set(null);
         }),
         switchMap((id) => {
-          // 2. Peek at the current tenant ID from the service
           const currentTenant = this.tenantService.tenantId();
 
-          // 3. Perform the fetch
           return this.courseService
             .getLearnerCourseView(id!)
             .pipe(finalize(() => this.isLoading.set(false)));
@@ -374,7 +371,7 @@ export class CourseDetailsComponent implements OnInit {
   }
 
   private loadCourse(id: string) {
-    this.isLoading.set(true); // ← important: reset loading
+    this.isLoading.set(true);
     this.course.set(null);
 
     this.courseService
@@ -416,26 +413,22 @@ export class CourseDetailsComponent implements OnInit {
 
     this.isEnrolling.set(true);
 
-    // Use the specific interface your backend expects
     const request: EnrollmentRequest = { courseId: currentCourse.id };
 
     this.enrollmentService
       .enroll(request)
       .pipe(
-        // CRITICAL: We fetch the course again to get the verified truth from DB
         switchMap(() => this.courseService.getLearnerCourseView(currentCourse.id)),
         finalize(() => this.isEnrolling.set(false)),
       )
       .subscribe({
         next: (refreshedCourse) => {
           this.notificationService.success('Enrolled to course successfully');
-          // The signal is now updated with data verified by the backend
           this.course.set(refreshedCourse);
         },
         error: (err) => {
           console.error('Enrollment failed:', err);
           this.notificationService.error(err?.error?.detail || 'Enrollment failed');
-          // UI stays safe; signal remains unchanged
         },
       });
   }

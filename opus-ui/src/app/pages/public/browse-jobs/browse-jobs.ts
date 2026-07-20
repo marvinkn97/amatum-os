@@ -22,55 +22,58 @@ interface Job {
   imports: [CommonModule, FormsModule, RouterModule, RouterLink],
   host: { class: 'dark block min-h-screen bg-[#030712] text-slate-100 antialiased selection:bg-emerald-500/30' },
   template: `
+    <!-- Background Accents -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-600/10 blur-[120px] rounded-full"></div>
       <div class="absolute bottom-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-600/5 blur-[120px] rounded-full"></div>
     </div>
 
+    <!-- Navigation -->
     <nav class="fixed top-0 w-full z-40 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
       <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
+        <!-- Logo -->
         <div routerLink="/" class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer">
           <div class="size-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg shadow-emerald-600/20">A</div>
           AMATUM<span class="text-emerald-500 ml-1 text-xs uppercase tracking-[0.2em]">Opus</span>
         </div>
 
+        <!-- Desktop Menu -->
         <div class="hidden md:flex items-center gap-8">
-          <button (click)="launch()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all active:scale-95 shadow-lg shadow-emerald-900/20">
+          <a routerLink="/" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Home</a>
+          <button (click)="launch()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all active:scale-95 shadow-lg shadow-emerald-900/20 cursor-pointer">
             Sign In
           </button>
         </div>
 
+        <!-- Mobile Toggle -->
         <div class="flex md:hidden items-center">
-          <button (click)="isMenuOpen.set(!isMenuOpen())" class="p-2 text-slate-400 hover:text-white transition-colors">
+          <button (click)="isMenuOpen.set(!isMenuOpen())" class="p-2 text-slate-400 hover:text-white transition-colors cursor-pointer">
             <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              @if (!isMenuOpen()) {
-                <path d="M4 6h16M4 12h16m-7 6h7" stroke-width="2" stroke-linecap="round" />
-              } @else {
-                <path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" />
-              }
+              <path d="M4 6h16M4 12h16m-7 6h7" stroke-width="2" stroke-linecap="round" />
             </svg>
           </button>
         </div>
       </div>
     </nav>
 
+    <!-- Mobile Menu Overlay -->
     @if (isMenuOpen()) {
       <div class="fixed inset-0 z-50 bg-[#030712]/98 backdrop-blur-md flex flex-col pt-24 px-6">
+        <button (click)="isMenuOpen.set(false)" class="absolute top-6 right-6 p-3 text-slate-400 hover:text-white transition-colors cursor-pointer" aria-label="Close menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         <nav class="flex flex-col space-y-4">
-          <a routerLink="/explore" (click)="isMenuOpen.set(false)" class="flex items-center justify-between w-full px-4 py-4 bg-white/5 rounded-2xl text-white text-lg font-semibold">
-            <span>Browse Jobs</span>
-            <svg class="size-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-          <button (click)="launch(); isMenuOpen.set(false)" class="w-full px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl">
-            Sign In
-          </button>
+          <a routerLink="/" (click)="isMenuOpen.set(false)" class="flex items-center justify-between w-full px-4 py-4 bg-white/5 rounded-2xl text-white text-lg font-semibold">Home</a>
+          <button (click)="launch(); isMenuOpen.set(false)" class="w-full px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl cursor-pointer">Sign In</button>
         </nav>
       </div>
     }
 
+    <!-- Content -->
     <div class="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20">
       <header class="max-w-3xl mb-16">
-       
         <h1 class="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
           Open <span class="text-emerald-500">Roles</span>
         </h1>
@@ -80,8 +83,9 @@ interface Job {
       </header>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Sidebar -->
         <aside class="lg:col-span-3 space-y-8 lg:sticky lg:top-24 order-2 lg:order-1">
-          <div class="p-6 rounded-3xl bg-white/[0.02] border border-white/5 backdrop-blur-sm">
+          <div class="p-6 rounded-3xl bg-white/2 border border-white/5 backdrop-blur-sm">
             <h2 class="text-sm font-black uppercase tracking-widest text-white mb-6">Refine Search</h2>
             <div class="space-y-6">
               <div>
@@ -94,7 +98,7 @@ interface Job {
                 <div class="flex flex-wrap gap-2">
                   @for (type of ['Full-time', 'Part-time', 'Contract']; track type) {
                     <button (click)="toggleType(type)" [class]="selectedTypes().includes(type) ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-white/5 border-white/5 text-slate-400'"
-                      class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all hover:border-white/20">
+                      class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all hover:border-white/20 cursor-pointer">
                       {{ type }}
                     </button>
                   }
@@ -110,6 +114,7 @@ interface Job {
           </div>
         </aside>
 
+        <!-- Job List -->
         <main class="lg:col-span-9 space-y-4 order-1 lg:order-2">
           @for (job of filteredJobs(); track job.id) {
             <div class="group p-6 md:p-8 rounded-[2.5rem] bg-linear-to-b from-white/[0.04] to-transparent border border-white/5 hover:border-emerald-500/20 transition-all duration-300 shadow-xl">
@@ -120,36 +125,26 @@ interface Job {
                     <span class="size-1 rounded-full bg-slate-700"></span>
                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ job.postedDate }}</span>
                   </div>
-                  <h2 class="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors mb-3">
-                    {{ job.title }}
-                  </h2>
-                  <p class="text-slate-400 text-sm leading-relaxed max-w-2xl line-clamp-2">
-                    {{ job.description }}
-                  </p>
+                  <h2 class="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors mb-3">{{ job.title }}</h2>
+                  <p class="text-slate-400 text-sm leading-relaxed max-w-2xl line-clamp-2">{{ job.description }}</p>
                 </div>
                 <div class="flex flex-col items-start md:items-end gap-2 shrink-0">
                   <span class="text-xl font-black text-white tracking-tight">{{ job.salary }}</span>
-                  <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
-                    Institutional Pay
-                  </span>
+                  <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">Institutional Pay</span>
                 </div>
               </div>
 
               <div class="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-white/5">
                 <div class="flex flex-wrap items-center gap-3">
                   <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-xs font-bold text-slate-300">
-                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round"/></svg>
                     {{ job.type }}
                   </div>
                   <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-xs font-bold text-slate-300">
-                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-width="2" stroke-linecap="round"/></svg>
                     {{ job.isRemote ? 'Remote' : job.location }}
                   </div>
                 </div>
-
-                <button (click)="launch()" class="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-white text-[#030712] font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-emerald-500 hover:text-white transition-all active:scale-95 shadow-lg">
+                <button (click)="launch()" class="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-white text-[#030712] font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-emerald-500 hover:text-white transition-all active:scale-95 shadow-lg cursor-pointer">
                   View Details
-                  <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
               </div>
             </div>
@@ -174,7 +169,7 @@ export class BrowseJobsComponent {
       id: '1',
       title: 'Senior Smart Contract Engineer',
       company: 'AMATUM LABS',
-      description: 'You will lead the development of secure, institutional-grade smart contracts for the Opus ecosystem. Requires 5+ years of experience in Solidity and a deep understanding of EVM security patterns, gas optimization, and multi-signature wallet architecture.',
+      description: 'You will lead the development of secure, institutional-grade smart contracts for the Opus ecosystem.',
       location: 'London, UK',
       isRemote: true,
       type: 'Full-time',
@@ -186,7 +181,7 @@ export class BrowseJobsComponent {
       id: '2',
       title: 'Global Operations Director',
       company: 'OPUS SYSTEMS',
-      description: 'Driving operational excellence across four continents. This role requires a background in high-growth fintech environments and a proven track record of managing distributed teams and complex regulatory compliance frameworks.',
+      description: 'Driving operational excellence across four continents in high-growth fintech environments.',
       location: 'New York, NY',
       isRemote: false,
       type: 'Full-time',
@@ -208,14 +203,8 @@ export class BrowseJobsComponent {
 
   toggleType(type: string) {
     const current = this.selectedTypes();
-    if (current.includes(type)) {
-      this.selectedTypes.set(current.filter(t => t !== type));
-    } else {
-      this.selectedTypes.set([...current, type]);
-    }
+    this.selectedTypes.set(current.includes(type) ? current.filter(t => t !== type) : [...current, type]);
   }
 
-  async launch() {
-    // Auth logic
-  }
+  async launch() {}
 }

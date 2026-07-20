@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-getting-started-opus',
@@ -39,7 +40,7 @@ import { RouterLink, RouterModule } from '@angular/router';
             >
             <button
               (click)="launch()"
-              class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all active:scale-95 shadow-lg shadow-emerald-900/20"
+              class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all active:scale-95 shadow-lg shadow-emerald-900/20 cursor-pointer"
             >
               Sign In
             </button>
@@ -48,14 +49,10 @@ import { RouterLink, RouterModule } from '@angular/router';
           <div class="flex md:hidden items-center">
             <button
               (click)="isMenuOpen.set(!isMenuOpen())"
-              class="p-2 text-slate-400 hover:text-white transition-colors"
+              class="p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                @if (!isMenuOpen()) {
-                  <path d="M4 6h16M4 12h16m-7 6h7" stroke-width="2" stroke-linecap="round" />
-                } @else {
-                  <path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" />
-                }
+                <path d="M4 6h16M4 12h16m-7 6h7" stroke-width="2" stroke-linecap="round" />
               </svg>
             </button>
           </div>
@@ -64,11 +61,26 @@ import { RouterLink, RouterModule } from '@angular/router';
 
       @if (isMenuOpen()) {
         <div class="fixed inset-0 z-50 bg-[#030712]/98 backdrop-blur-md flex flex-col pt-24 px-6">
+          <button
+            (click)="isMenuOpen.set(false)"
+            class="absolute top-6 right-6 p-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close menu"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
           <nav class="flex flex-col space-y-4">
             <a
               routerLink="/explore"
               (click)="isMenuOpen.set(false)"
-              class="flex items-center justify-between w-full px-4 py-4 bg-white/5 rounded-2xl text-white text-lg font-semibold"
+              class="flex items-center justify-between w-full px-4 py-4 bg-white/5 rounded-2xl text-white text-sm font-semibold"
             >
               <span>Browse Jobs</span>
               <svg
@@ -87,7 +99,7 @@ import { RouterLink, RouterModule } from '@angular/router';
             </a>
             <button
               (click)="launch(); isMenuOpen.set(false)"
-              class="w-full px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl"
+              class="w-full px-6 py-4 bg-emerald-600 text-white text-sm font-bold rounded-2xl cursor-pointer"
             >
               Sign In
             </button>
@@ -110,13 +122,13 @@ import { RouterLink, RouterModule } from '@angular/router';
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               (click)="launch()"
-              class="px-8 py-4 bg-white text-[#030712] font-bold rounded-xl hover:bg-slate-200 transition-all shadow-xl"
+              class="px-8 py-4 bg-white text-[#030712] font-bold rounded-xl hover:bg-slate-200 transition-all shadow-xl cursor-pointer"
             >
               Find a Job
             </button>
             <button
               (click)="launch()"
-              class="px-8 py-4 bg-slate-900 border border-white/10 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-xl"
+              class="px-8 py-4 bg-slate-900 border border-white/10 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-xl cursor-pointer"
             >
               Post a Position
             </button>
@@ -240,7 +252,7 @@ import { RouterLink, RouterModule } from '@angular/router';
           </p>
           <div class="flex gap-8">
             <a href="#" class="text-slate-500 hover:text-white text-sm transition-colors"
-              >Privacy</a
+              >Privacy(GDPR)</a
             >
             <a href="#" class="text-slate-500 hover:text-white text-sm transition-colors">Terms</a>
           </div>
@@ -251,6 +263,9 @@ import { RouterLink, RouterModule } from '@angular/router';
 })
 export class GettingStarted {
   isMenuOpen = signal(false);
+  private readonly authService = inject(AuthService);
 
-  async launch() {}
+  async launch() {
+    this.authService.login();
+  }
 }

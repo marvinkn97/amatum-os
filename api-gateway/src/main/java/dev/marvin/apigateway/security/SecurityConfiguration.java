@@ -42,7 +42,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowCredentials(false);
         corsConfiguration.setAllowedOrigins(List.of(
                 "http://localhost:4200",
                 "https://lumina.amatum.luv2kode.co.ke",

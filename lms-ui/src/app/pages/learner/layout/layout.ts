@@ -384,6 +384,7 @@ export class LearnerLayout {
     });
   }
 
+
   switchWorkspace(org: Organization) {
     this.activeOrg.set(org);
     this.tenantService.setTenantId(org.id);
