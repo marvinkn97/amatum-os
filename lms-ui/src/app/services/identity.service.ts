@@ -17,6 +17,7 @@ export interface IdentityResponse {
   email: string;
   isOnboarded: boolean;
   joinDate: string;
+  roles: string[]; 
 }
 
 interface NameUpdateRequest {

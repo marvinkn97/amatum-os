@@ -55,7 +55,6 @@ import { TenantService } from '../../../services/tenant.service';
             class="flex items-center gap-2 px-6 py-2 rounded-lg text-[12px] font-black uppercase tracking-widest transition-all cursor-pointer"
           >
             Members
-            <span class="bg-black/20 text-[9px] px-1.5 py-0.5 rounded-md">{{ memberCount() }}</span>
           </button>
           <button
             (click)="viewMode.set('invitations')"
@@ -67,7 +66,6 @@ import { TenantService } from '../../../services/tenant.service';
             class="flex items-center gap-2 px-6 py-2 rounded-lg text-[12px] font-black uppercase tracking-widest transition-all cursor-pointer"
           >
             Invitations
-            <span class="bg-black/20 text-[9px] px-1.5 py-0.5 rounded-md">{{ inviteCount() }}</span>
           </button>
         </div>
       </div>
@@ -90,6 +88,7 @@ import { TenantService } from '../../../services/tenant.service';
                 <th class="p-8">Full Name</th>
                 <th class="p-8">Email</th>
                 <th class="p-8">{{ viewMode() === 'members' ? 'Join Date' : 'Status' }}</th>
+                <th>Roles</th>
                 <th class="p-8 text-right">Actions</th>
               </tr>
             </thead>
@@ -105,12 +104,25 @@ import { TenantService } from '../../../services/tenant.service';
                       <td class="px-10 py-7 font-bold text-xs">
                         {{ member.joinDate | date: 'medium' }}
                       </td>
+                      <td class="px-10 py-7">
+                        <div class="flex flex-wrap gap-2">
+                          @for (role of member.roles; track role) {
+                            <span
+                              class="inline-flex items-center rounded-full bg-indigo-500/15 border border-indigo-500/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-indigo-300"
+                            >
+                              {{ role }}
+                            </span>
+                          } @empty {
+                            <span class="text-xs text-slate-500">—</span>
+                          }
+                        </div>
+                      </td>
                       <td class="px-10 py-7 text-right">
                         <button
                           class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors cursor-pointer"
                         >
                           <svg
-                            class="size-2"
+                            class="size-4"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -218,8 +230,6 @@ export class ManagerMembers {
   viewMode = signal<'members' | 'invitations'>('members');
   members = signal<IdentityResponse[]>([]);
   invitations = signal<OrganizationInvitationResponse[]>([]);
-  memberCount = signal(0);
-  inviteCount = signal(0);
   isLoading = signal(false);
   currentPage = signal(0);
 
@@ -265,7 +275,6 @@ export class ManagerMembers {
           next: (res) => {
             const newMembers = res._embedded?.identityResponseList || [];
             this.members.update((prev) => [...prev, ...newMembers]);
-            this.memberCount.set(res.page.totalElements);
             this.currentPage.update((p) => p + 1);
             this.isLoading.set(false);
           },
@@ -279,7 +288,6 @@ export class ManagerMembers {
         this.identityService.getOrganizationInvitations().subscribe({
           next: (res) => {
             this.invitations.set(res);
-            this.inviteCount.set(res.length);
             this.isLoading.set(false);
           },
           error: () => {

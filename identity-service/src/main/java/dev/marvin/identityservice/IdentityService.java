@@ -9,7 +9,7 @@ import dev.marvin.identityservice.security.TenantContext;
 import dev.marvin.identityservice.user.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.representations.idm.AbstractUserRepresentation;
+import org.keycloak.representations.idm.MemberRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -233,11 +234,18 @@ public class IdentityService {
 
         String activeTenantId = TenantContext.TENANT_ID.get();
 
-       List<UUID> memberIds = keycloakService.getOrganizationMembers(activeTenantId).stream()
-               .map(AbstractUserRepresentation::getId)
-               .map(UUID::fromString)
-               .distinct()
-               .toList();
+        List<MemberRepresentation> members = keycloakService.getOrganizationMembers(activeTenantId);
+
+        List<UUID> memberIds = members.stream()
+                .map(member -> UUID.fromString(member.getId()))
+                .distinct()
+                .toList();
+
+        Map<UUID, List<String>> memberGroups = members.stream()
+                .collect(Collectors.toMap(
+                        member -> UUID.fromString(member.getId()),
+                        member -> Optional.ofNullable(member.getGroups()).orElse(List.of())
+                ));
 
        return userRepository.findAllByIdIn(memberIds, pageable)
                .map(userEntity -> new IdentityResponse(
@@ -245,7 +253,8 @@ public class IdentityService {
                        userEntity.getFirstName(),
                        userEntity.getLastName(),
                        userEntity.getEmail(),
-                       userEntity.getCreatedAt()));
+                       userEntity.getCreatedAt(),
+                       memberGroups.getOrDefault(userEntity.getId(), List.of())));
     }
 
 }
