@@ -107,7 +107,6 @@ import { TenantService } from '../../../services/tenant.service';
                       </td>
                       <td class="px-10 py-7 text-right">
                         <button
-                          /* (click)="viewMore(member.id)" */
                           class="inline-flex items-center gap-1 text-xs font-semibold uppercase text-blue-600 hover:text-blue-800 cursor-pointer"
                         >
                           <svg
