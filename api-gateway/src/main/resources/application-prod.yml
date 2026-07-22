@@ -4,6 +4,8 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${TOKEN_ISSUER_URI}
+          audiences:
+            - api-gateway
 
   cloud:
     gateway:
