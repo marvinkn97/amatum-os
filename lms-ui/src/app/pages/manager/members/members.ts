@@ -88,7 +88,6 @@ import { TenantService } from '../../../services/tenant.service';
                 <th class="p-8">Full Name</th>
                 <th class="p-8">Email</th>
                 <th class="p-8">{{ viewMode() === 'members' ? 'Join Date' : 'Status' }}</th>
-                <th>Roles</th>
                 <th class="p-8 text-right">Actions</th>
               </tr>
             </thead>
@@ -103,21 +102,8 @@ import { TenantService } from '../../../services/tenant.service';
                       <td class="px-10 py-7 font-bold text-xs">{{ member.email }}</td>
                       <td class="px-10 py-7 font-bold text-xs">
                         {{ member.joinDate | date: 'medium' }}
-                      </td>
-                      <td class="px-10 py-7">
-                        <div class="flex flex-wrap gap-2">
-                          @for (role of member.roles; track role) {
-                            <span
-                              class="inline-flex items-center rounded-full bg-indigo-500/15 border border-indigo-500/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-indigo-300"
-                            >
-                              {{ role }}
-                            </span>
-                          } @empty {
-                            <span class="text-xs text-slate-500">—</span>
-                          }
-                        </div>
-                      </td>
-                      <td class="px-10 py-7 text-right">
+                      </td> 
+                     <td class="px-10 py-7 text-right">
                         <button
                           class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors cursor-pointer"
                         >
@@ -246,7 +232,6 @@ export class ManagerMembers {
   }
 
   ngAfterViewInit() {
-    // Now it is guaranteed that this.scrollSentinel is defined
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && !this.isLoading()) {
         this.loadData();

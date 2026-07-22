@@ -3,7 +3,6 @@ package dev.marvin.identityservice;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -12,10 +11,9 @@ public record IdentityResponse(
         String firstName,
         String lastName,
         String email,
-        LocalDateTime joinDate,
-        List<String> roles) {
+        LocalDateTime joinDate) {
 
     public IdentityResponse(UUID id, String firstName, String lastName, String email) {
-        this(id, firstName, lastName, email, null, null);
+        this(id, firstName, lastName, email, null);
     }
 }
