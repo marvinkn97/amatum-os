@@ -3,9 +3,13 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/amatum-os.iml" filepath="$PROJECT_DIR$/amatum-os.iml" />
+      <module fileurl="file://$PROJECT_DIR$/course-service/course-service.iml" filepath="$PROJECT_DIR$/course-service/course-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/enrollment-service/enrollment-service.iml" filepath="$PROJECT_DIR$/enrollment-service/enrollment-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/identity-service/identity-service.iml" filepath="$PROJECT_DIR$/identity-service/identity-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/lms-ui/lms-ui.iml" filepath="$PROJECT_DIR$/lms-ui/lms-ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/opus-ui/opus-ui.iml" filepath="$PROJECT_DIR$/opus-ui/opus-ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rating-service/rating-service.iml" filepath="$PROJECT_DIR$/rating-service/rating-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/talemai-web/talemai-web.iml" filepath="$PROJECT_DIR$/talemai-web/talemai-web.iml" />
     </modules>
   </component>
 </project>

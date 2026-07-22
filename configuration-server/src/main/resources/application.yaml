@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: configuration-server
+
+  profiles:
+    active: git
+
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.value}

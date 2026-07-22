@@ -107,8 +107,8 @@ import { TenantService } from '../../../services/tenant.service';
                       </td>
                       <td class="px-10 py-7 text-right">
                         <button
-                          (click)="remove(member.id)"
-                          class="text-[10px] font-black uppercase text-rose-500 hover:text-white cursor-pointer"
+                          /* (click)="viewMore(member.id)" */
+                          class="inline-flex items-center gap-1 text-xs font-semibold uppercase text-blue-600 hover:text-blue-800 cursor-pointer"
                         >
                           <svg
                             class="size-5"
@@ -120,9 +120,10 @@ import { TenantService } from '../../../services/tenant.service';
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              d="M15 12H3m0 0l4-4m-4 4l4 4m6-10h4a2 2 0 012 2v8a2 2 0 01-2 2h-4"
                             />
                           </svg>
+                          View More
                         </button>
                       </td>
                     </tr>

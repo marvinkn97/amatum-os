@@ -236,7 +236,6 @@ public class IdentityService {
        List<UUID> memberIds = keycloakService.getOrganizationMembers(activeTenantId).stream()
                .map(AbstractUserRepresentation::getId)
                .map(UUID::fromString)
-               .filter(id -> !id.equals(UUID.fromString(authentication.getName()))) // Exclude the current user
                .distinct()
                .toList();
 
