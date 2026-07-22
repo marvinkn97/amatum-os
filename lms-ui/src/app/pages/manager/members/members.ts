@@ -107,22 +107,18 @@ import { TenantService } from '../../../services/tenant.service';
                       </td>
                       <td class="px-10 py-7 text-right">
                         <button
-                          class="inline-flex items-center gap-1 text-xs font-semibold uppercase text-blue-600 hover:text-blue-800 cursor-pointer"
+                          class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors cursor-pointer"
                         >
+                          Details
                           <svg
-                            class="size-5"
+                            class="size-4"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M15 12H3m0 0l4-4m-4 4l4 4m6-10h4a2 2 0 012 2v8a2 2 0 01-2 2h-4"
-                            />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
-                          View More
                         </button>
                       </td>
                     </tr>
