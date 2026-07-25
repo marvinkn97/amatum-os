@@ -8,39 +8,39 @@ import { Component, signal } from '@angular/core';
   host: { class: 'dark block font-sans antialiased' },
   template: `
     <div
-      class="min-h-screen bg-[#030712] text-slate-100 overflow-x-hidden selection:bg-emerald-500/30"
+      class="min-h-screen bg-[#030712] text-slate-100 overflow-x-hidden selection:bg-sky-500/30"
     >
-      <div class="fixed inset-0 overflow-hidden pointer-events-none">
+      <div class="fixed inset-0 overflow-hidden pointer-events-none opacity-40">
         <div
-          class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-200 h-200 rounded-full bg-indigo-600/15 blur-[140px] animate-pulse"
+          class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-150 h-150 rounded-full bg-indigo-600/10 blur-[120px]"
         ></div>
 
         <div
-          class="absolute top-1/4 -left-32 w-125 h-125 rounded-full bg-sky-500/15 blur-[140px]"
+          class="absolute top-1/4 -left-32 w-100 h-100 rounded-full bg-sky-500/10 blur-[120px]"
         ></div>
 
         <div
-          class="absolute bottom-0 -right-32 w-150 h-150 rounded-full bg-emerald-500/15 blur-[140px]"
+          class="absolute bottom-0 -right-32 w-100 h-100 rounded-full bg-emerald-500/10 blur-[120px]"
         ></div>
       </div>
 
       <nav
-        class="fixed top-0 inset-x-0 z-50 border-b border-white/10 bg-[#030712]/80 backdrop-blur-2xl shadow-xl shadow-black/40"
+        class="fixed top-0 inset-x-0 z-50 border-b border-white/10 bg-[#030712]/90 backdrop-blur-xl"
       >
-        <div class="max-w-7xl mx-auto h-20 px-4 sm:px-6 md:px-8 flex items-center justify-between">
-          <div class="flex items-center gap-2.5 sm:gap-3.5 group cursor-pointer">
+        <div class="max-w-7xl mx-auto h-20 px-6 sm:px-8 flex items-center justify-between">
+          <div class="flex items-center gap-3 cursor-pointer">
             <div
-              class="size-7 sm:size-9 rounded-lg bg-linear-to-br from-indigo-500 via-sky-500 to-emerald-500 flex items-center justify-center font-black text-white text-sm sm:text-base shadow-xl shadow-sky-500/25 group-hover:scale-105 transition-transform"
+              class="size-8 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-white text-sm"
             >
               A
             </div>
 
-            <div class="flex items-baseline gap-1.5 sm:gap-2">
-              <div class="font-black tracking-tighter text-lg sm:text-xl text-white leading-none">
+            <div class="flex items-baseline gap-2">
+              <div class="font-bold tracking-tight text-lg text-white leading-none">
                 AMATUM
               </div>
               <span
-                class="text-sky-400 text-[10px] sm:text-xs uppercase tracking-[0.2em] font-bold leading-none"
+                class="text-sky-400 text-xs uppercase tracking-widest font-semibold leading-none"
                 >Talemai</span
               >
             </div>
@@ -48,9 +48,9 @@ import { Component, signal } from '@angular/core';
         </div>
       </nav>
 
-      <section class="relative pt-44 pb-28 px-6 text-center">
-        <div class="max-w-5xl mx-auto relative z-10">
-          <h1 class="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight leading-[1.05]">
+      <section class="relative pt-36 md:pt-48 pb-20 md:pb-32 px-6 text-center">
+        <div class="max-w-4xl mx-auto relative z-10">
+          <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
             The Intelligence Platform
             <br />
             <span
@@ -61,70 +61,57 @@ import { Component, signal } from '@angular/core';
           </h1>
 
           <p
-            class="mt-8 max-w-3xl mx-auto text-lg md:text-xl text-slate-300 leading-relaxed font-medium"
+            class="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed font-normal"
           >
             Join the ecosystem that's redefining how people learn, develop, and discover
             opportunities through Artificial Intelligence.
           </p>
 
-          <div class="mt-12 flex flex-col sm:flex-row justify-center gap-6">
+          <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
             <a
               href="https://lumina.amatum.luv2kode.co.ke"
-              class="group relative inline-flex items-center justify-center px-10 py-5 rounded-2xl bg-linear-to-r from-indigo-600 to-sky-600 font-extrabold text-white text-lg shadow-2xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all active:scale-95 overflow-hidden"
+              class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-200 transition-colors shadow-lg shadow-white/5"
             >
-              <span class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-              <span class="relative z-10 flex items-center gap-3">
-                Explore Learning
-                <svg class="size-5 text-sky-200 group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
+              Explore Learning
             </a>
 
             <a
               href="https://opus.amatum.luv2kode.co.ke"
-              class="group relative inline-flex items-center justify-center px-10 py-5 rounded-2xl bg-linear-to-r from-sky-600 to-emerald-600 font-extrabold text-white text-lg shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all active:scale-95 overflow-hidden"
+              class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-700 border border-slate-700 transition-colors shadow-lg shadow-black/20"
             >
-              <span class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-              <span class="relative z-10 flex items-center gap-3">
-                Explore Careers
-                <svg class="size-5 text-emerald-200 group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
+              Explore Careers
             </a>
           </div>
         </div>
       </section>
 
-      <section class="pb-32 px-6">
+      <section class="pb-32 px-6 relative z-10">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-20">
+          <div class="text-center mb-16">
             <div
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-300 text-xs uppercase tracking-[0.3em] font-bold shadow-lg shadow-sky-500/10"
+              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-sky-500/20 bg-sky-500/10 text-sky-300 text-xs uppercase tracking-widest font-semibold"
             >
               AI Features
             </div>
 
-            <h2 class="mt-6 text-4xl md:text-6xl font-black tracking-tight">
+            <h2 class="mt-4 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
               Intelligence at Every Step
             </h2>
 
-            <p class="mt-4 text-slate-300 text-lg max-w-2xl mx-auto font-medium">
-              AI-powered features that transform how people learn, develop, and discover
-              opportunities
+            <p class="mt-3 text-slate-400 text-base max-w-xl mx-auto font-normal">
+              AI-powered features that transform how people learn, develop, and discover opportunities.
             </p>
           </div>
 
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div
-              class="group p-10 rounded-[2.5rem] bg-[#0a0f1d] border border-white/5 flex flex-col transition-all hover:border-white/10 shadow-2xl"
+              class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col hover:border-slate-700 transition-colors"
             >
               <div
-                class="size-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-900/20"
+                class="size-12 rounded-xl bg-indigo-600/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6"
               >
                 <svg
-                  class="size-6 text-indigo-400"
+                  class="size-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -137,25 +124,22 @@ import { Component, signal } from '@angular/core';
                   />
                 </svg>
               </div>
-
-              <h3 class="mt-6 text-xl font-bold tracking-tight text-white">
+              <h3 class="text-lg font-bold text-white">
                 Personalized Learning
               </h3>
-
-              <p class="mt-3 text-slate-400 text-sm leading-relaxed font-medium">
-                Adaptive learning paths that adjust in real-time based on progress, performance, and
-                learning style.
+              <p class="mt-2 text-slate-400 text-sm leading-relaxed">
+                Adaptive learning paths that adjust in real-time based on progress, performance, and learning style.
               </p>
             </div>
 
             <div
-              class="group p-10 rounded-[2.5rem] bg-[#0a0f1d] border border-white/5 flex flex-col transition-all hover:border-white/10 shadow-2xl"
+              class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col hover:border-slate-700 transition-colors"
             >
               <div
-                class="size-14 rounded-2xl bg-sky-600/20 border border-sky-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-sky-900/20"
+                class="size-12 rounded-xl bg-sky-600/15 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-6"
               >
                 <svg
-                  class="size-6 text-sky-400"
+                  class="size-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -168,23 +152,20 @@ import { Component, signal } from '@angular/core';
                   />
                 </svg>
               </div>
-
-              <h3 class="mt-6 text-xl font-bold tracking-tight text-white">Talent Matching</h3>
-
-              <p class="mt-3 text-slate-400 text-sm leading-relaxed font-medium">
-                AI-powered matching that connects skilled professionals with the right opportunities
-                at the right time.
+              <h3 class="text-lg font-bold text-white">Talent Matching</h3>
+              <p class="mt-2 text-slate-400 text-sm leading-relaxed">
+                AI-powered matching that connects skilled professionals with the right opportunities at the right time.
               </p>
             </div>
 
             <div
-              class="group p-10 rounded-[2.5rem] bg-[#0a0f1d] border border-white/5 flex flex-col transition-all hover:border-white/10 shadow-2xl"
+              class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col hover:border-slate-700 transition-colors"
             >
               <div
-                class="size-14 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-900/20"
+                class="size-12 rounded-xl bg-emerald-600/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-6"
               >
                 <svg
-                  class="size-6 text-emerald-400"
+                  class="size-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -197,23 +178,20 @@ import { Component, signal } from '@angular/core';
                   />
                 </svg>
               </div>
-
-              <h3 class="mt-6 text-xl font-bold tracking-tight text-white">Skills Intelligence</h3>
-
-              <p class="mt-3 text-slate-400 text-sm leading-relaxed font-medium">
-                Analyze skills gaps, identify development opportunities, and build future-ready
-                capabilities with AI insights.
+              <h3 class="text-lg font-bold text-white">Skills Intelligence</h3>
+              <p class="mt-2 text-slate-400 text-sm leading-relaxed">
+                Analyze skills gaps, identify development opportunities, and build future-ready capabilities with AI insights.
               </p>
             </div>
 
             <div
-              class="group p-10 rounded-[2.5rem] bg-[#0a0f1d] border border-white/5 flex flex-col transition-all hover:border-white/10 shadow-2xl"
+              class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col hover:border-slate-700 transition-colors"
             >
               <div
-                class="size-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-purple-900/20"
+                class="size-12 rounded-xl bg-purple-600/15 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6"
               >
                 <svg
-                  class="size-6 text-purple-400"
+                  class="size-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -226,23 +204,20 @@ import { Component, signal } from '@angular/core';
                   />
                 </svg>
               </div>
-
-              <h3 class="mt-6 text-xl font-bold tracking-tight text-white">Automation</h3>
-
-              <p class="mt-3 text-slate-400 text-sm leading-relaxed font-medium">
-                Automate repetitive tasks, streamline workflows, and focus on what matters most with
-                intelligent automation.
+              <h3 class="text-lg font-bold text-white">Automation</h3>
+              <p class="mt-2 text-slate-400 text-sm leading-relaxed">
+                Automate repetitive tasks, streamline workflows, and focus on what matters most with intelligent automation.
               </p>
             </div>
 
             <div
-              class="group p-10 rounded-[2.5rem] bg-[#0a0f1d] border border-white/5 flex flex-col transition-all hover:border-white/10 shadow-2xl"
+              class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col hover:border-slate-700 transition-colors"
             >
               <div
-                class="size-14 rounded-2xl bg-pink-600/20 border border-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-pink-900/20"
+                class="size-12 rounded-xl bg-pink-600/15 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-6"
               >
                 <svg
-                  class="size-6 text-pink-400"
+                  class="size-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -255,40 +230,35 @@ import { Component, signal } from '@angular/core';
                   />
                 </svg>
               </div>
-
-              <h3 class="mt-6 text-xl font-bold tracking-tight text-white">Analytics</h3>
-
-              <p class="mt-3 text-slate-400 text-sm leading-relaxed font-medium">
-                Real-time analytics and insights that help you understand performance, engagement,
-                and impact across the ecosystem.
+              <h3 class="text-lg font-bold text-white">Analytics</h3>
+              <p class="mt-2 text-slate-400 text-sm leading-relaxed">
+                Real-time analytics and insights that help you understand performance, engagement, and impact across the ecosystem.
               </p>
             </div>
 
             <div
-              class="p-10 rounded-[2.5rem] bg-[#0a0f1d] border border-white/5 flex flex-col justify-center transition-all hover:border-white/10 shadow-2xl"
+              class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col justify-center hover:border-slate-700 transition-colors"
             >
-              <div class="text-xs text-sky-400 font-bold uppercase tracking-[0.25em]">And More</div>
-
-              <p class="mt-3 text-slate-400 text-sm leading-relaxed font-medium">
-                Continuous innovation with new AI capabilities being added to enhance learning and
-                talent development.
+              <div class="text-xs text-sky-400 font-bold uppercase tracking-widest mb-3">And More</div>
+              <h3 class="text-lg font-bold text-white">Continuous Innovation</h3>
+              <p class="mt-2 text-slate-400 text-sm leading-relaxed">
+                New AI capabilities continuously added to enhance learning and talent development.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <footer class="border-t border-white/10 bg-[#030712]/90 backdrop-blur-2xl">
-        <div class="max-w-7xl mx-auto px-6 md:px-8 py-16">
+      <footer class="border-t border-white/10 bg-[#030712]">
+        <div class="max-w-7xl mx-auto px-6 py-12">
           <div
-            class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400 font-medium"
+            class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 font-normal"
           >
             <p>&copy; {{ currentYear }} Amatum. All rights reserved.</p>
 
-            <div class="flex gap-8">
-              <a href="#" class="hover:text-white transition-colors">Privacy(GDPR)</a>
-
-              <a href="#" class="hover:text-white transition-colors">Terms</a>
+            <div class="flex gap-6">
+              <a href="#" class="hover:text-slate-300 transition-colors">Privacy</a>
+              <a href="#" class="hover:text-slate-300 transition-colors">Terms</a>
             </div>
           </div>
         </div>
