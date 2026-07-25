@@ -242,13 +242,14 @@ import { AuthService } from '../../../services/auth.service';
           </div>
         </div>
       </section>
-
-      <!-- FOOTER -->
+      
       <footer class="py-20 border-t border-white/5">
         <div
           class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"
         >
-          <p class="text-slate-500 text-sm">© 2026 AMATUM LUMINA. Secure, Private, Simple.</p>
+          <p class="text-slate-500 text-sm">
+            © {{ currentYear }} AMATUM LUMINA. Secure, Private, Simple.
+          </p>
           <div class="flex gap-6">
             <a href="#" class="text-slate-500 hover:text-white text-sm">Privacy (GDPR)</a>
             <a href="#" class="text-slate-500 hover:text-white text-sm">Terms</a>
@@ -261,6 +262,8 @@ import { AuthService } from '../../../services/auth.service';
 export class GettingStarted {
   isMenuOpen = signal(false);
   private readonly authService = inject(AuthService);
+
+  currentYear = new Date().getFullYear();
 
   async launch() {
     this.authService.login();

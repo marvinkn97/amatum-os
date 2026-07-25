@@ -1,0 +1,22 @@
+name: Deploy Talemai Web
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'talemai-web/**'
+      - '.github/workflows/deploy-talemai-web.yml'
+      - '.github/workflows/angular-template.yml'
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/angular-template.yml
+    with:
+      project-name: 'talemai-web'
+      project-path: 'talemai-web'
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

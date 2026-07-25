@@ -248,7 +248,7 @@ import { AuthService } from '../../../services/auth.service';
           class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"
         >
           <p class="text-slate-500 text-sm font-medium">
-            © 2026 AMATUM OPUS. Secure. Professional. Simple.
+            © {{currentYear}} AMATUM OPUS. Secure. Professional. Simple.
           </p>
           <div class="flex gap-8">
             <a href="#" class="text-slate-500 hover:text-white text-sm transition-colors"
@@ -264,6 +264,8 @@ import { AuthService } from '../../../services/auth.service';
 export class GettingStarted {
   isMenuOpen = signal(false);
   private readonly authService = inject(AuthService);
+
+    currentYear = new Date().getFullYear();
 
   async launch() {
     this.authService.login();
