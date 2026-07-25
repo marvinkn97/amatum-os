@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -7,9 +7,7 @@ import { Component, signal } from '@angular/core';
   imports: [CommonModule],
   host: { class: 'dark block font-sans antialiased' },
   template: `
-    <div
-      class="min-h-screen bg-[#030712] text-slate-100 overflow-x-hidden selection:bg-sky-500/30"
-    >
+    <div class="min-h-screen bg-[#030712] text-slate-100 overflow-x-hidden selection:bg-sky-500/30">
       <div class="fixed inset-0 overflow-hidden pointer-events-none opacity-40">
         <div
           class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-150 h-150 rounded-full bg-indigo-600/10 blur-[120px]"
@@ -30,15 +28,13 @@ import { Component, signal } from '@angular/core';
         <div class="max-w-7xl mx-auto h-20 px-6 sm:px-8 flex items-center justify-between">
           <div class="flex items-center gap-3 cursor-pointer">
             <div
-              class="size-8 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-white text-sm"
+              class="size-8 rounded-lg bg-linear-to-tr from-indigo-600 to-emerald-500 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-emerald-500/20"
             >
               A
             </div>
 
             <div class="flex items-baseline gap-2">
-              <div class="font-bold tracking-tight text-lg text-white leading-none">
-                AMATUM
-              </div>
+              <div class="font-bold tracking-tight text-lg text-white leading-none">AMATUM</div>
               <span
                 class="text-sky-400 text-xs uppercase tracking-widest font-semibold leading-none"
                 >Talemai</span
@@ -49,8 +45,10 @@ import { Component, signal } from '@angular/core';
       </nav>
 
       <section class="relative pt-36 md:pt-48 pb-20 md:pb-32 px-6 text-center">
-        <div class="max-w-4xl mx-auto relative z-10">
-          <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+        <div class="max-w-5xl mx-auto relative z-10">
+          <h1
+            class="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white leading-[1.08]"
+          >
             The Intelligence Platform
             <br />
             <span
@@ -61,7 +59,7 @@ import { Component, signal } from '@angular/core';
           </h1>
 
           <p
-            class="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed font-normal"
+            class="mt-8 max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 leading-relaxed font-normal"
           >
             Join the ecosystem that's redefining how people learn, develop, and discover
             opportunities through Artificial Intelligence.
@@ -70,14 +68,14 @@ import { Component, signal } from '@angular/core';
           <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
             <a
               href="https://lumina.amatum.luv2kode.co.ke"
-              class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-200 transition-colors shadow-lg shadow-white/5"
+              class="w-full inline-flex items-center justify-center px-6 py-4 rounded-xl bg-white text-slate-900 font-semibold text-base hover:bg-slate-200 transition-colors shadow-lg shadow-white/5"
             >
               Explore Learning
             </a>
 
             <a
               href="https://opus.amatum.luv2kode.co.ke"
-              class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-700 border border-slate-700 transition-colors shadow-lg shadow-black/20"
+              class="w-full inline-flex items-center justify-center px-6 py-4 rounded-xl bg-slate-800 text-white font-semibold text-base hover:bg-slate-700 border border-slate-700 transition-colors shadow-lg shadow-black/20"
             >
               Explore Careers
             </a>
@@ -99,7 +97,8 @@ import { Component, signal } from '@angular/core';
             </h2>
 
             <p class="mt-3 text-slate-400 text-base max-w-xl mx-auto font-normal">
-              AI-powered features that transform how people learn, develop, and discover opportunities.
+              AI-powered features that transform how people learn, develop, and discover
+              opportunities.
             </p>
           </div>
 
@@ -110,12 +109,7 @@ import { Component, signal } from '@angular/core';
               <div
                 class="size-12 rounded-xl bg-indigo-600/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6"
               >
-                <svg
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-width="2"
                     stroke-linecap="round"
@@ -124,11 +118,10 @@ import { Component, signal } from '@angular/core';
                   />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-white">
-                Personalized Learning
-              </h3>
+              <h3 class="text-lg font-bold text-white">Personalized Learning</h3>
               <p class="mt-2 text-slate-400 text-sm leading-relaxed">
-                Adaptive learning paths that adjust in real-time based on progress, performance, and learning style.
+                Adaptive learning paths that adjust in real-time based on progress, performance, and
+                learning style.
               </p>
             </div>
 
@@ -138,12 +131,7 @@ import { Component, signal } from '@angular/core';
               <div
                 class="size-12 rounded-xl bg-sky-600/15 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-6"
               >
-                <svg
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-width="2"
                     stroke-linecap="round"
@@ -154,7 +142,8 @@ import { Component, signal } from '@angular/core';
               </div>
               <h3 class="text-lg font-bold text-white">Talent Matching</h3>
               <p class="mt-2 text-slate-400 text-sm leading-relaxed">
-                AI-powered matching that connects skilled professionals with the right opportunities at the right time.
+                AI-powered matching that connects skilled professionals with the right opportunities
+                at the right time.
               </p>
             </div>
 
@@ -164,12 +153,7 @@ import { Component, signal } from '@angular/core';
               <div
                 class="size-12 rounded-xl bg-emerald-600/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-6"
               >
-                <svg
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-width="2"
                     stroke-linecap="round"
@@ -180,7 +164,8 @@ import { Component, signal } from '@angular/core';
               </div>
               <h3 class="text-lg font-bold text-white">Skills Intelligence</h3>
               <p class="mt-2 text-slate-400 text-sm leading-relaxed">
-                Analyze skills gaps, identify development opportunities, and build future-ready capabilities with AI insights.
+                Analyze skills gaps, identify development opportunities, and build future-ready
+                capabilities with AI insights.
               </p>
             </div>
 
@@ -190,12 +175,7 @@ import { Component, signal } from '@angular/core';
               <div
                 class="size-12 rounded-xl bg-purple-600/15 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6"
               >
-                <svg
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-width="2"
                     stroke-linecap="round"
@@ -206,7 +186,8 @@ import { Component, signal } from '@angular/core';
               </div>
               <h3 class="text-lg font-bold text-white">Automation</h3>
               <p class="mt-2 text-slate-400 text-sm leading-relaxed">
-                Automate repetitive tasks, streamline workflows, and focus on what matters most with intelligent automation.
+                Automate repetitive tasks, streamline workflows, and focus on what matters most with
+                intelligent automation.
               </p>
             </div>
 
@@ -216,12 +197,7 @@ import { Component, signal } from '@angular/core';
               <div
                 class="size-12 rounded-xl bg-pink-600/15 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-6"
               >
-                <svg
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-width="2"
                     stroke-linecap="round"
@@ -232,14 +208,17 @@ import { Component, signal } from '@angular/core';
               </div>
               <h3 class="text-lg font-bold text-white">Analytics</h3>
               <p class="mt-2 text-slate-400 text-sm leading-relaxed">
-                Real-time analytics and insights that help you understand performance, engagement, and impact across the ecosystem.
+                Real-time analytics and insights that help you understand performance, engagement,
+                and impact across the ecosystem.
               </p>
             </div>
 
             <div
               class="p-8 rounded-2xl bg-[#0a0f1d] border border-slate-800/80 flex flex-col justify-center hover:border-slate-700 transition-colors"
             >
-              <div class="text-xs text-sky-400 font-bold uppercase tracking-widest mb-3">And More</div>
+              <div class="text-xs text-sky-400 font-bold uppercase tracking-widest mb-3">
+                And More
+              </div>
               <h3 class="text-lg font-bold text-white">Continuous Innovation</h3>
               <p class="mt-2 text-slate-400 text-sm leading-relaxed">
                 New AI capabilities continuously added to enhance learning and talent development.
