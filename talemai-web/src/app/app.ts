@@ -23,7 +23,7 @@ import { Component } from '@angular/core';
       </div>
 
       <nav
-        class="fixed top-0 inset-x-0 z-50 border-b border-white/10 bg-[#030712]/90 backdrop-blur-xl"
+        class="fixed top-0 inset-x-0 z-50 bg-[#030712]/90 backdrop-blur-xl"
       >
         <div class="max-w-7xl mx-auto h-20 px-6 sm:px-8 flex items-center justify-between">
           <div class="flex items-center gap-3 cursor-pointer">
@@ -36,7 +36,7 @@ import { Component } from '@angular/core';
             <div class="flex items-baseline gap-2">
               <div class="font-bold tracking-tight text-lg text-white leading-none">AMATUM</div>
               <span
-                class="text-sky-400 text-xs uppercase tracking-widest font-semibold leading-none"
+                class="text-sky-400 text-sm uppercase tracking-widest font-semibold leading-none"
                 >Talemai</span
               >
             </div>
@@ -77,7 +77,7 @@ import { Component } from '@angular/core';
               href="https://opus.amatum.luv2kode.co.ke"
               class="w-full inline-flex items-center justify-center px-6 py-4 rounded-xl bg-slate-800 text-white font-semibold text-base hover:bg-slate-700 border border-slate-700 transition-colors shadow-lg shadow-black/20"
             >
-              Explore Careers
+              Explore Talent
             </a>
           </div>
         </div>
