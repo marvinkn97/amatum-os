@@ -1,9 +1,11 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import 'tailwindcss';
 
 html {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   scrollbar-gutter: stable;
   /* Tells the browser to render the scrollbar elements using a dark color scheme */
-  color-scheme: dark; 
+  color-scheme: dark;
 }
 
 /* Modern cross-browser scrollbar styling */

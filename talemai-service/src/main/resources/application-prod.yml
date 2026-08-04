@@ -1,6 +1,3 @@
-server:
-  port: 8085
-
 spring:
   security:
     oauth2:
@@ -13,7 +10,7 @@ spring:
       base-url: http://localhost:11435
       chat:
         model: mistral
-        temperature: 0.0
+        temperature: 0.4
 
 
 keycloak:
@@ -23,7 +20,4 @@ keycloak:
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.security.web.FilterChainProxy: DEBUG
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.ai: DEBUG
+    root: info

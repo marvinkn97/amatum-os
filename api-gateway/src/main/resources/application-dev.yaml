@@ -118,4 +118,11 @@ resilience4j:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-    
+
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka

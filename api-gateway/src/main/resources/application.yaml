@@ -8,3 +8,8 @@ spring:
 logging:
   level:
     root: info
+
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.value}
