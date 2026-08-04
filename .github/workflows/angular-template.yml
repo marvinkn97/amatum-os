@@ -73,7 +73,11 @@ jobs:
             # Login and pull latest images
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
             
+            # Pull latest images
             docker compose pull
             
-            # Restart services
+            # Stop and remove existing containers gracefully to avoid race conditions
+            docker compose down --remove-orphans
+
+            # Bring services back up fresh
             docker compose up -d
