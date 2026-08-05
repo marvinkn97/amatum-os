@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/auth.service';
   host: { class: 'dark block' },
   template: `
     <div
-      class="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-indigo-500/30"
+      class="min-h-screen bg-[#030712] text-slate-100 antialiased selection:bg-indigo-500/30"
     >
       <!-- NAVBAR -->
       <nav class="fixed top-0 w-full z-50 backdrop-blur-xl bg-[#030712]/50">

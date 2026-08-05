@@ -12,7 +12,7 @@ import { NotificationService } from '../../../services/notification.service';
   imports: [CommonModule, RouterModule],
   template: `
     <div
-      class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30 p-4 lg:p-8"
+      class="min-h-screen bg-[#030712] text-slate-200 selection:bg-indigo-500/30 p-4 lg:p-8"
     >
       @if (isLoading()) {
         <div class="max-w-7xl mx-auto px-6 py-20 text-center">

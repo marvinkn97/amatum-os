@@ -9,9 +9,7 @@ import { AuthService } from '../../../services/auth.service';
   imports: [CommonModule, RouterModule, RouterLink],
   host: { class: 'dark block' },
   template: `
-    <div
-      class="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-emerald-500/30"
-    >
+    <div class="min-h-screen bg-[#030712] text-slate-100 antialiased selection:bg-emerald-500/30">
       <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div
           class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-600/10 blur-[120px] rounded-full"
@@ -21,15 +19,21 @@ import { AuthService } from '../../../services/auth.service';
         ></div>
       </div>
 
-      <nav class="fixed top-0 w-full z-40 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
+      <nav class="fixed top-0 w-full z-40 backdrop-blur-xl bg-[#030712]/50">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <div class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer">
             <div
-              class="size-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg shadow-emerald-600/20"
+              class="size-9 rounded-xl bg-emerald-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform"
             >
               A
             </div>
-            AMATUM<span class="text-emerald-500 ml-1 text-xs uppercase tracking-[0.2em]">Opus</span>
+            <div class="flex items-baseline gap-2">
+              <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
+              <span
+                class="text-emerald-400 text-xl uppercase tracking-widest font-semibold leading-none"
+                >Opus</span
+              >
+            </div>
           </div>
 
           <div class="hidden md:flex items-center gap-8">
@@ -153,22 +157,23 @@ import { AuthService } from '../../../services/auth.service';
             >
               <div class="space-y-4">
                 <div
-                  class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group-hover:bg-white/[0.07] transition-colors"
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 group-hover:bg-white/[0.07] transition-colors"
                 >
                   <div class="flex items-center gap-4">
                     <div
-                      class="size-10 bg-emerald-600/20 rounded-xl flex items-center justify-center"
+                      class="size-10 bg-emerald-600/20 rounded-xl flex items-center justify-center shrink-0"
                     >
                       <div
                         class="size-2.5 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.8)]"
                       ></div>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                       <div class="h-2.5 w-24 bg-white/20 rounded-full mb-2"></div>
                       <div class="h-1.5 w-16 bg-white/10 rounded-full"></div>
                     </div>
                   </div>
-                  <span class="text-[10px] font-black text-emerald-500 tracking-widest uppercase"
+                  <span
+                    class="text-[10px] font-black text-emerald-500 tracking-widest uppercase self-start sm:self-auto shrink-0"
                     >Interviewing</span
                   >
                 </div>
@@ -176,7 +181,7 @@ import { AuthService } from '../../../services/auth.service';
                   class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 opacity-40"
                 >
                   <div class="flex items-center gap-4">
-                    <div class="size-10 bg-slate-700/30 rounded-xl"></div>
+                    <div class="size-10 bg-slate-700/30 rounded-xl shrink-0"></div>
                     <div>
                       <div class="h-2.5 w-32 bg-white/20 rounded-full"></div>
                     </div>
@@ -190,16 +195,18 @@ import { AuthService } from '../../../services/auth.service';
             class="group p-10 rounded-[2.5rem] bg-linear-to-b from-emerald-500/10 to-transparent border border-emerald-500/10 flex flex-col transition-all hover:border-emerald-500/20"
           >
             <div class="mb-12 text-right md:text-left">
-              <h2 class="text-3xl font-bold mb-3 text-white">For Managers</h2>
+              <h2 class="text-3xl font-bold mb-3 text-white">For Organizations</h2>
               <p class="text-slate-400 text-lg">
                 Streamline hiring with built-in pipeline management.
               </p>
             </div>
 
             <div
-              class="mt-auto bg-[#0a0f1d] rounded-3xl border border-emerald-500/20 p-8 shadow-2xl relative overflow-hidden"
+              class="mt-auto bg-[#0a0f1d] rounded-3xl border border-emerald-500/20 p-8 shadow-2xl relative overflow-hidden pb-16"
             >
-              <div class="flex justify-between items-center mb-8">
+              <div
+                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
+              >
                 <div class="flex flex-col gap-2">
                   <div class="h-4 w-32 bg-emerald-500/20 rounded-full"></div>
                   <div class="h-2 w-16 bg-white/5 rounded-full"></div>
@@ -209,7 +216,7 @@ import { AuthService } from '../../../services/auth.service';
                     class="size-10 rounded-full bg-slate-800 border-2 border-[#0a0f1d] ring-2 ring-emerald-500/20"
                   ></div>
                   <div
-                    class="size-10 rounded-full bg-emerald-600 border-2 border-[#0a0f1d] flex items-center justify-center text-[10px] font-bold"
+                    class="size-10 rounded-full bg-emerald-600 border-2 border-[#0a0f1d] flex items-center justify-center text-[10px] font-bold text-white"
                   >
                     JD
                   </div>
@@ -234,7 +241,7 @@ import { AuthService } from '../../../services/auth.service';
                 </div>
               </div>
               <div
-                class="absolute bottom-4 right-4 bg-emerald-600 text-[10px] font-black px-4 py-2 rounded-xl shadow-xl tracking-tighter hover:scale-105 transition-transform cursor-pointer"
+                class="absolute bottom-4 right-4 bg-emerald-600 text-[10px] font-black px-4 py-2 rounded-xl shadow-xl tracking-tighter hover:scale-105 transition-transform cursor-pointer text-white"
               >
                 PUBLISH VACANCY
               </div>
@@ -248,7 +255,7 @@ import { AuthService } from '../../../services/auth.service';
           class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"
         >
           <p class="text-slate-500 text-sm font-medium">
-            © {{currentYear}} AMATUM OPUS. Secure. Professional. Simple.
+            © {{ currentYear }} AMATUM OPUS. Secure. Professional. Simple.
           </p>
           <div class="flex gap-8">
             <a href="#" class="text-slate-500 hover:text-white text-sm transition-colors"
@@ -265,7 +272,7 @@ export class GettingStarted {
   isMenuOpen = signal(false);
   private readonly authService = inject(AuthService);
 
-    currentYear = new Date().getFullYear();
+  currentYear = new Date().getFullYear();
 
   async launch() {
     this.authService.login();

@@ -44,7 +44,7 @@ type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QU
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div
-      class="flex flex-col w-full h-full bg-[#030712] text-slate-200 overflow-hidden font-sans selection:bg-indigo-500/30"
+      class="flex flex-col w-full h-full bg-[#030712] text-slate-200 overflow-hidden selection:bg-indigo-500/30"
     >
       @if (isLoading()) {
         <div class="fixed inset-0 z-110 bg-[#030712] flex flex-col items-center justify-center">
