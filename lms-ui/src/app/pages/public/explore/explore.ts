@@ -33,13 +33,17 @@ import { AuthService } from '../../../services/auth.service';
             routerLink="/"
           >
             <div
-              class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-sm"
+              class="size-9 rounded-xl  bg-indigo-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform"
             >
               A
             </div>
-            AMATUM<span class="text-indigo-600 ml-1 text-xs uppercase tracking-[0.2em]"
-              >Lumina</span
-            >
+            <div class="flex items-baseline gap-2">
+              <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
+              <span
+                class="text-indigo-400 text-xl uppercase tracking-widest font-semibold leading-none"
+                >Lumina</span
+              >
+            </div>
           </div>
 
           <div class="hidden md:flex items-center gap-8">

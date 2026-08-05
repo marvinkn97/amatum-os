@@ -13,18 +13,22 @@ import { AuthService } from '../../../services/auth.service';
       class="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-indigo-500/30"
     >
       <!-- NAVBAR -->
-      <nav class="fixed top-0 w-full z-50 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
+      <nav class="fixed top-0 w-full z-50 backdrop-blur-xl bg-[#030712]/50">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <!-- Logo -->
           <div class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer">
             <div
-              class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-sm"
+              class="size-9 rounded-xl  bg-indigo-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform"
             >
               A
             </div>
-            AMATUM<span class="text-indigo-600 ml-1 text-xs uppercase tracking-[0.2em]"
-              >Lumina</span
-            >
+            <div class="flex items-baseline gap-2">
+              <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
+              <span
+                class="text-indigo-400 text-xl uppercase tracking-widest font-semibold leading-none"
+                >Lumina</span
+              >
+            </div>
           </div>
 
           <!-- Desktop Menu -->
@@ -242,7 +246,7 @@ import { AuthService } from '../../../services/auth.service';
           </div>
         </div>
       </section>
-      
+
       <footer class="py-20 border-t border-white/5">
         <div
           class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"

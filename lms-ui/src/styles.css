@@ -1,11 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
-@import "tailwindcss";
+@import 'tailwindcss';
 @import 'quill/dist/quill.snow.css';
 
-html {
+
+html,
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   scrollbar-gutter: stable;
   /* Tells the browser to render the scrollbar elements using a dark color scheme */
-  color-scheme: dark; 
+  color-scheme: dark;
 }
 
 /* Modern cross-browser scrollbar styling */
@@ -43,7 +45,9 @@ markdown {
 }
 
 /* 2. Headings - Use Indigo highlights */
-markdown h1, markdown h2, markdown h3 {
+markdown h1,
+markdown h2,
+markdown h3 {
   font-weight: 700;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
