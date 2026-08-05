@@ -18,7 +18,7 @@ import { Component } from '@angular/core';
             </div>
             <div class="flex items-baseline gap-2">
               <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
-              <span class="text-sky-400 text-lg uppercase tracking-widest font-semibold leading-none">Talemai</span>
+              <span class="text-sky-400 text-xl uppercase tracking-widest font-semibold leading-none">Talemai</span>
             </div>
           </div>
         </div>
