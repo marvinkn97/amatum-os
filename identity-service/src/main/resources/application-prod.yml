@@ -23,3 +23,5 @@ keycloak:
   groups:
     learner-id: ${KEYCLOAK_LEARNER_GROUP_ID}
     manager-id: ${KEYCLOAK_MANAGER_GROUP_ID}
+  organizations:
+    redirect-uri: ${KEYCLOAK_ORGANIZATION_REDIRECT_URI}

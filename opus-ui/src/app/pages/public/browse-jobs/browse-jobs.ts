@@ -129,9 +129,7 @@ interface ChatMessage {
         class="rounded-[2.5rem] bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-emerald-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
       >
         <!-- Window Title Bar -->
-        <div
-          class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between"
-        >
+        <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="flex gap-1.5">
               <div class="size-3 rounded-full bg-rose-500/80"></div>
@@ -218,7 +216,10 @@ interface ChatMessage {
               >Employment Type</label
             >
             <div class="flex flex-wrap gap-1.5">
-              @for (type of ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance']; track type) {
+              @for (
+                type of ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'];
+                track type
+              ) {
                 <button
                   (click)="toggleType(type)"
                   [class]="
@@ -262,7 +263,10 @@ interface ChatMessage {
               >Experience Level</label
             >
             <div class="flex flex-wrap gap-1.5">
-              @for (level of ['Junior', 'Mid', 'Senior', 'Exec']; track level) {
+              @for (
+                level of ['Entry(0-1)', 'Junior(1-3)', 'Mid(3-5)', 'Senior(5+)', 'Executive(8+)'];
+                track level
+              ) {
                 <button
                   (click)="toggleExperience(level)"
                   [class]="

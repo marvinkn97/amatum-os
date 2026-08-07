@@ -783,7 +783,7 @@ import { RatingRequest, RatingService } from '../../../services/rating.service';
                     >
                     <span
                       class="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-black text-indigo-500 uppercase tracking-widest rounded-md"
-                      >{{ enrollment()?.progress }}% Overall</span
+                      >{{ enrollment()?.progress }}% Completed</span
                     >
                   </div>
                   <div

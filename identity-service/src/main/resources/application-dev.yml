@@ -33,3 +33,5 @@ keycloak:
   groups:
     learner-id: ${KEYCLOAK_LEARNER_GROUP_ID}
     manager-id: ${KEYCLOAK_MANAGER_GROUP_ID}
+  organizations:
+    redirect-uri: http://localhost:4200

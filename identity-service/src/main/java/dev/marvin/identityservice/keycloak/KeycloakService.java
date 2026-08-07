@@ -34,6 +34,9 @@ public class KeycloakService {
     @Value("${keycloak.groups.manager-id}")
     private String managerGroupId;
 
+    @Value("${keycloak.organizations.redirect-uri}")
+    private String organizationsRedirectUri;
+
     public void updateUserAttribute(String userId, String key, String value) {
         var userResource = keycloak.realm(realm).users().get(userId);
         var userRep = userResource.toRepresentation();
@@ -75,6 +78,7 @@ public class KeycloakService {
             OrganizationRepresentation orgRep = new OrganizationRepresentation();
             orgRep.setName(organizationRequest.name());
             orgRep.setAlias(organizationRequest.slug());
+            orgRep.setRedirectUrl(organizationsRedirectUri);
 
             OrganizationDomainRepresentation domain = new OrganizationDomainRepresentation();
             domain.setName(organizationRequest.domain());
