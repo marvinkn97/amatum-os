@@ -139,85 +139,6 @@ interface ChatMessage {
           </p>
         </header>
 
-        <!-- AI Chat Window (Refined Terminal/Assistant Look) -->
-        <section
-          class="mb-12 rounded-[2.5rem] bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
-        >
-          <!-- Window Title Bar -->
-          <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="flex gap-1.5">
-                <div class="size-3 rounded-full bg-rose-500/80"></div>
-                <div class="size-3 rounded-full bg-amber-500/80"></div>
-                <div class="size-3 rounded-full bg-indigo-500/80"></div>
-              </div>
-              <span class="text-xs font-bold text-slate-400 ml-2 font-mono"
-                >talemai://learning-assistant</span
-              >
-            </div>
-          </div>
-
-          <!-- Chat Stream Body -->
-          <div class="p-6 md:p-8 space-y-6 max-h-80 overflow-y-auto custom-scrollbar">
-            @for (msg of messages(); track $index) {
-              <div class="flex items-start gap-4">
-                @if (msg.sender === 'ai') {
-                  <div
-                    class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
-                  >
-                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div
-                    class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
-                  >
-                    {{ msg.text }}
-                  </div>
-                } @else {
-                  <div
-                    class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
-                  >
-                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div
-                    class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1"
-                  >
-                    {{ msg.text }}
-                  </div>
-                }
-              </div>
-            }
-          </div>
-
-          <!-- Chat Input Bar -->
-          <div class="p-4 md:p-6 bg-white/1 border-t border-white/5">
-            <div class="relative flex items-center">
-              <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
-              <input
-                type="text"
-                [ngModel]="currentMessage()"
-                (ngModelChange)="currentMessage.set($event)"
-                (keydown.enter)="handleEnter($event)"
-                placeholder="Ask AI to query courses (e.g., 'Advanced TypeScript & Architecture')..."
-                class="w-full bg-[#030712] border border-white/10 rounded-2xl pl-9 pr-5 py-4 text-xs md:text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
-              />
-            </div>
-          </div>
-        </section>
-
         @if (isPageLoading()) {
           <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
             <div
@@ -263,229 +184,308 @@ interface ChatMessage {
             </div>
           </div>
         } @else {
-          <!-- Search Controls Row: Category and Name Search -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div>
-              <div class="mb-6">
-                <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
-                  Search by Category
-                </h2>
-                <p class="text-[14px] text-slate-500 font-medium mt-1">
-                  Narrow down your selection to find the right training for your needs.
-                </p>
-              </div>
-              <div
-                class="relative w-full"
-                appClickOutside
-                (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
-              >
-                <button
-                  (click)="isDropdownOpen.set(!isDropdownOpen())"
-                  class="w-full flex items-center justify-between px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
+          <!-- AI Chat Window (Refined Terminal/Assistant Look) -->
+          <section
+            class="mb-12 rounded-[2.5rem] bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
+          >
+            <!-- Window Title Bar -->
+            <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="flex gap-1.5">
+                  <div class="size-3 rounded-full bg-rose-500/80"></div>
+                  <div class="size-3 rounded-full bg-amber-500/80"></div>
+                  <div class="size-3 rounded-full bg-indigo-500/80"></div>
+                </div>
+                <span class="text-xs font-bold text-slate-400 ml-2 font-mono"
+                  >talemai://learning-assistant</span
                 >
-                  <div class="flex flex-col items-start overflow-hidden">
-                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
-                      >Category</span
-                    >
-                    <span class="text-sm font-bold truncate w-full text-left">{{
-                      activeCategoryName()
-                    }}</span>
-                  </div>
-                  <svg
-                    class="size-4 text-slate-500 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-
-                @if (isDropdownOpen()) {
-                  <div
-                    class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
-                  >
-                    <input
-                      type="text"
-                      placeholder="Filter categories..."
-                      (input)="searchTerm.set($any($event.target).value)"
-                      class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
-                    />
-
-                    <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
-                      @for (cat of filteredCategories(); track cat.id) {
-                        <button
-                          (click)="selectCategory(cat.id, cat.name)"
-                          class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
-                        >
-                          {{ cat.name }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-                }
               </div>
             </div>
 
-            <div>
-              <div class="mb-6">
-                <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
-                  Search by Name
-                </h2>
-                <p class="text-[14px] text-slate-500 font-medium mt-1">
-                  Type a course title or keyword to quickly find specific training.
-                </p>
-              </div>
-              <div class="relative w-full">
-                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                  <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+            <!-- Chat Stream Body -->
+            <div class="p-6 md:p-8 space-y-6 max-h-80 overflow-y-auto custom-scrollbar">
+              @for (msg of messages(); track $index) {
+                <div class="flex items-start gap-4">
+                  @if (msg.sender === 'ai') {
+                    <div
+                      class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
+                    >
+                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
+                    >
+                      {{ msg.text }}
+                    </div>
+                  } @else {
+                    <div
+                      class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
+                    >
+                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1"
+                    >
+                      {{ msg.text }}
+                    </div>
+                  }
                 </div>
+              }
+            </div>
+
+            <!-- Chat Input Bar -->
+            <div class="p-4 md:p-6 bg-white/1 border-t border-white/5">
+              <div class="relative flex items-center">
+                <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
                 <input
                   type="text"
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="onSearchQueryChange($event)"
-                  placeholder="Search courses by name..."
-                  class="w-full pl-14 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 text-sm hover:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all placeholder-slate-600"
+                  [ngModel]="currentMessage()"
+                  (ngModelChange)="currentMessage.set($event)"
+                  (keydown.enter)="handleEnter($event)"
+                  placeholder="Ask AI to query courses (e.g., 'Advanced TypeScript & Architecture')..."
+                  class="w-full bg-[#030712] border border-white/10 rounded-2xl pl-9 pr-5 py-4 text-xs md:text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
                 />
               </div>
             </div>
-          </div>
+          </section>
+        }
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
-            @for (course of courses(); track course.id) {
-              <div
-                class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
+        <!-- Search Controls Row: Category and Name Search -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <div>
+            <div class="mb-6">
+              <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+                Search by Category
+              </h2>
+              <p class="text-[14px] text-slate-500 font-medium mt-1">
+                Filter courses by specific categories to find targeted training.
+              </p>
+            </div>
+            <div
+              class="relative w-full"
+              appClickOutside
+              (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
+            >
+              <button
+                (click)="isDropdownOpen.set(!isDropdownOpen())"
+                class="w-full flex items-center justify-between px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
               >
-                <div [class]="'h-40 relative ' + getAccent(course.categoryId)">
-                  <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
-                  <div class="absolute top-6 left-8">
-                    <div
-                      class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md"
-                    >
-                      <svg class="size-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
-                        <path
-                          d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                        />
-                      </svg>
-                      <span class="text-[11px] font-black text-white tracking-tighter">
-                        {{ course.rating || '0.0' }}
-                      </span>
-                    </div>
+                <div class="flex flex-col items-start overflow-hidden">
+                  <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
+                    >Category</span
+                  >
+                  <span class="text-sm font-bold truncate w-full text-left">{{
+                    activeCategoryName()
+                  }}</span>
+                </div>
+                <svg
+                  class="size-4 text-slate-500 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              @if (isDropdownOpen()) {
+                <div
+                  class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+                >
+                  <input
+                    type="text"
+                    placeholder="Filter categories..."
+                    (input)="searchTerm.set($any($event.target).value)"
+                    class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  />
+
+                  <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
+                    @for (cat of filteredCategories(); track cat.id) {
+                      <button
+                        (click)="selectCategory(cat.id, cat.name)"
+                        class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
                   </div>
                 </div>
+              }
+            </div>
+          </div>
 
-                <div class="p-8 pt-4 flex flex-col flex-1">
-                  <div class="flex items-center gap-2 mb-4">
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
-                      >{{ course.moduleCount || 0 }} Modules</span
-                    >
-                    <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
-                      >•</span
-                    >
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
-                      >{{ course.learningStepCount || 0 }} Lessons</span
-                    >
-                  </div>
+          <div>
+            <div class="mb-6">
+              <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+                Search by Name
+              </h2>
+              <p class="text-[14px] text-slate-500 font-medium mt-1">
+                Type a course title or keyword to quickly find specific training.
+              </p>
+            </div>
+            <div class="relative w-full h-14.5 flex items-center">
+              <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                [ngModel]="searchQuery()"
+                (ngModelChange)="onSearchQueryChange($event)"
+                placeholder="Search courses by name..."
+                class="w-full h-full pl-14 pr-6 bg-white/5 border border-white/10 rounded-2xl text-slate-200 text-sm hover:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all placeholder-slate-600"
+              />
+            </div>
+          </div>
+        </div>
 
-                  <h3
-                    class="text-md font-black text-white mb-3 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+          @for (course of courses(); track course.id) {
+            <div
+              class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
+            >
+              <div [class]="'h-40 relative ' + getAccent(course.categoryId)">
+                <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
+                <div class="absolute top-6 left-8">
+                  <div
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md"
                   >
-                    {{ course.title }}
-                  </h3>
+                    <svg class="size-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                    <span class="text-[11px] font-black text-white tracking-tighter">
+                      {{ course.rating || '0.0' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-                  <div class="flex flex-wrap gap-2 mb-8">
-                    @for (tag of course.tags; track tag) {
-                      <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
-                        >#{{ tag }}</span
+              <div class="p-8 pt-4 flex flex-col flex-1">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+                    >{{ course.moduleCount || 0 }} Modules</span
+                  >
+                  <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
+                    >•</span
+                  >
+                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+                    >{{ course.learningStepCount || 0 }} Lessons</span
+                  >
+                </div>
+
+                <h3
+                  class="text-md font-black text-white mb-3 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
+                >
+                  {{ course.title }}
+                </h3>
+
+                <div class="flex flex-wrap gap-2 mb-8">
+                  @for (tag of course.tags; track tag) {
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+                      >#{{ tag }}</span
+                    >
+                  }
+                </div>
+
+                <div
+                  class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5"
+                >
+                  <div class="mr-auto flex flex-col items-start">
+                    @if (course.accessTier === 'PREMIUM') {
+                      <span
+                        class="text-[7px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5"
+                        >Premium Access</span
+                      >
+                      <span class="text-[13px] font-black text-white italic tracking-tighter">{{
+                        course.price | currency
+                      }}</span>
+                    } @else {
+                      <span
+                        class="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5"
+                        >Free Access</span
+                      >
+                      <span class="text-[13px] font-black text-slate-400 italic tracking-tighter"
+                        >Free</span
                       >
                     }
                   </div>
 
-                  <div
-                    class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5"
+                  <button
+                    title="View Course"
+                    (click)="exploreCourse(course?.id)"
+                    class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
                   >
-                    <div class="mr-auto flex flex-col items-start">
-                      @if (course.accessTier === 'PREMIUM') {
-                        <span
-                          class="text-[7px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5"
-                          >Premium Access</span
-                        >
-                        <span class="text-[13px] font-black text-white italic tracking-tighter">{{
-                          course.price | currency
-                        }}</span>
-                      } @else {
-                        <span
-                          class="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5"
-                          >Free Access</span
-                        >
-                        <span class="text-[13px] font-black text-slate-400 italic tracking-tighter"
-                          >Free</span
-                        >
-                      }
-                    </div>
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            @if (!isLoadingCourses() && !isLoadingCategories()) {
+              <div
+                class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
+              >
+                <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                  >No Courses Available</span
+                >
+              </div>
+            }
+          }
 
-                    <button
-                      title="View Course"
-                      (click)="exploreCourse(course?.id)"
-                      class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
-                    >
-                      <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
-                    </button>
+          @if (isLoadingCourses() && courses().length > 0) {
+            @for (i of [1, 2, 3]; track i) {
+              <div
+                class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
+              >
+                <div class="h-40 bg-white/5 relative"></div>
+                <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
+                  <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
+                  <div class="space-y-3">
+                    <div class="h-5 w-full bg-white/10 rounded-lg"></div>
+                    <div class="h-5 w-2/3 bg-white/10 rounded-lg"></div>
+                  </div>
+                  <div class="mt-auto pt-10 border-t border-white/5 flex justify-between">
+                    <div class="h-10 w-24 bg-white/5 rounded-xl"></div>
+                    <div class="flex gap-2">
+                      <div class="size-11 bg-white/5 rounded-2xl"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            } @empty {
-              @if (!isLoadingCourses() && !isLoadingCategories()) {
-                <div
-                  class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
-                >
-                  <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
-                    >No Courses Available</span
-                  >
-                </div>
-              }
             }
+          }
+        </div>
 
-            @if (isLoadingCourses() && courses().length > 0) {
-              @for (i of [1, 2, 3]; track i) {
-                <div
-                  class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
-                >
-                  <div class="h-40 bg-white/5 relative"></div>
-                  <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
-                    <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
-                    <div class="space-y-3">
-                      <div class="h-5 w-full bg-white/10 rounded-lg"></div>
-                      <div class="h-5 w-2/3 bg-white/10 rounded-lg"></div>
-                    </div>
-                    <div class="mt-auto pt-10 border-t border-white/5 flex justify-between">
-                      <div class="h-10 w-24 bg-white/5 rounded-xl"></div>
-                      <div class="flex gap-2">
-                        <div class="size-11 bg-white/5 rounded-2xl"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-            }
-          </div>
-
-          <div #courseSentinel class="h-20 w-full pointer-events-none"></div>
-        }
+        <div #courseSentinel class="h-20 w-full pointer-events-none"></div>
       </main>
     </div>
   `,
