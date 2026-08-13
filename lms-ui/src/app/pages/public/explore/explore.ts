@@ -281,7 +281,7 @@ interface ChatMessage {
               >
                 <button
                   (click)="isDropdownOpen.set(!isDropdownOpen())"
-                  class="w-full h-16 flex items-center justify-between px-6 py-2 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
+                  class="w-full h-15.5 flex items-center justify-between px-6 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
                 >
                   <div class="flex flex-col items-start overflow-hidden">
                     <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
@@ -341,7 +341,7 @@ interface ChatMessage {
                   Type a course title or keyword to quickly find specific training.
                 </p>
               </div>
-              <div class="relative w-full h-16 py-2 flex items-center">
+              <div class="relative w-full h-15.5 flex items-center">
                 <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
                   <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
