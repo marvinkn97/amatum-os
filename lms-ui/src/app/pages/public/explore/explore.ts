@@ -12,15 +12,21 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { CategoryService } from '../../../services/category.service';
 import { CourseService } from '../../../services/course.service';
 import { AuthService } from '../../../services/auth.service';
 
+interface ChatMessage {
+  sender: 'user' | 'ai';
+  text: string;
+}
+
 @Component({
   selector: 'app-explore',
   standalone: true,
-  imports: [CommonModule, RouterModule, RouterLink],
+  imports: [CommonModule, RouterModule, RouterLink, FormsModule],
   host: { class: 'dark block' },
   template: `
     <div
@@ -133,6 +139,85 @@ import { AuthService } from '../../../services/auth.service';
           </p>
         </header>
 
+        <!-- AI Chat Window (Refined Terminal/Assistant Look) -->
+        <section
+          class="mb-12 rounded-[2.5rem] bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
+        >
+          <!-- Window Title Bar -->
+          <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="flex gap-1.5">
+                <div class="size-3 rounded-full bg-rose-500/80"></div>
+                <div class="size-3 rounded-full bg-amber-500/80"></div>
+                <div class="size-3 rounded-full bg-indigo-500/80"></div>
+              </div>
+              <span class="text-xs font-bold text-slate-400 ml-2 font-mono"
+                >talemai://learning-assistant</span
+              >
+            </div>
+          </div>
+
+          <!-- Chat Stream Body -->
+          <div class="p-6 md:p-8 space-y-6 max-h-80 overflow-y-auto custom-scrollbar">
+            @for (msg of messages(); track $index) {
+              <div class="flex items-start gap-4">
+                @if (msg.sender === 'ai') {
+                  <div
+                    class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
+                  >
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
+                  >
+                    {{ msg.text }}
+                  </div>
+                } @else {
+                  <div
+                    class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
+                  >
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1"
+                  >
+                    {{ msg.text }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Chat Input Bar -->
+          <div class="p-4 md:p-6 bg-white/1 border-t border-white/5">
+            <div class="relative flex items-center">
+              <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
+              <input
+                type="text"
+                [ngModel]="currentMessage()"
+                (ngModelChange)="currentMessage.set($event)"
+                (keydown.enter)="handleEnter($event)"
+                placeholder="Ask AI to query courses (e.g., 'Advanced TypeScript & Architecture')..."
+                class="w-full bg-[#030712] border border-white/10 rounded-2xl pl-9 pr-5 py-4 text-xs md:text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
+              />
+            </div>
+          </div>
+        </section>
+
         @if (isPageLoading()) {
           <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
             <div
@@ -178,69 +263,99 @@ import { AuthService } from '../../../services/auth.service';
             </div>
           </div>
         } @else {
-          <div class="mb-6">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
-              Search by Category
-            </h2>
-            <p class="text-[14px] text-slate-500 font-medium mt-1">
-              Narrow down your selection to find the right training for your needs.
-            </p>
-          </div>
-          <div
-            class="relative mb-12 w-full md:w-1/2 lg:w-1/3 xl:w-96"
-            appClickOutside
-            (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
-          >
-            <button
-              (click)="isDropdownOpen.set(!isDropdownOpen())"
-              class="w-full flex items-center justify-between px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
-            >
-              <div class="flex flex-col items-start overflow-hidden">
-                <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
-                  >Category</span
-                >
-                <span class="text-sm font-bold truncate w-full text-left">{{
-                  activeCategoryName()
-                }}</span>
+          <!-- Search Controls Row: Category and Name Search -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div>
+              <div class="mb-6">
+                <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+                  Search by Category
+                </h2>
+                <p class="text-[14px] text-slate-500 font-medium mt-1">
+                  Narrow down your selection to find the right training for your needs.
+                </p>
               </div>
-              <svg
-                class="size-4 text-slate-500 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            @if (isDropdownOpen()) {
               <div
-                class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+                class="relative w-full"
+                appClickOutside
+                (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
               >
+                <button
+                  (click)="isDropdownOpen.set(!isDropdownOpen())"
+                  class="w-full flex items-center justify-between px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
+                >
+                  <div class="flex flex-col items-start overflow-hidden">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
+                      >Category</span
+                    >
+                    <span class="text-sm font-bold truncate w-full text-left">{{
+                      activeCategoryName()
+                    }}</span>
+                  </div>
+                  <svg
+                    class="size-4 text-slate-500 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                @if (isDropdownOpen()) {
+                  <div
+                    class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Filter categories..."
+                      (input)="searchTerm.set($any($event.target).value)"
+                      class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                    />
+
+                    <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
+                      @for (cat of filteredCategories(); track cat.id) {
+                        <button
+                          (click)="selectCategory(cat.id, cat.name)"
+                          class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
+                        >
+                          {{ cat.name }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-6">
+                <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+                  Search by Name
+                </h2>
+                <p class="text-[14px] text-slate-500 font-medium mt-1">
+                  Type a course title or keyword to quickly find specific training.
+                </p>
+              </div>
+              <div class="relative w-full">
+                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                  <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
                 <input
                   type="text"
-                  placeholder="Filter categories..."
-                  (input)="searchTerm.set($any($event.target).value)"
-                  class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  [ngModel]="searchQuery()"
+                  (ngModelChange)="onSearchQueryChange($event)"
+                  placeholder="Search courses by name..."
+                  class="w-full pl-14 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-slate-200 text-sm hover:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all placeholder-slate-600"
                 />
-
-                <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
-                  @for (cat of filteredCategories(); track cat.id) {
-                    <button
-                      (click)="selectCategory(cat.id, cat.name)"
-                      class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
-                    >
-                      {{ cat.name }}
-                    </button>
-                  }
-                </div>
               </div>
-            }
+            </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
@@ -418,6 +533,17 @@ export class Explore implements OnInit, OnDestroy {
 
   isDropdownOpen = signal(false);
   searchTerm = signal('');
+  searchQuery = signal('');
+  private searchDebounceTimer: any;
+
+  // AI Chat State
+  currentMessage = signal('');
+  messages = signal<ChatMessage[]>([
+    {
+      sender: 'ai',
+      text: 'Hello! I am your learning assistant. Type any training requirement below and press Enter to instantly search sovereign modules and courses.',
+    },
+  ]);
 
   private destroy$ = new Subject<void>();
   private categoryObserver?: IntersectionObserver;
@@ -452,6 +578,9 @@ export class Explore implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.categoryObserver?.disconnect();
     this.courseObserver?.disconnect();
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
   }
 
   async launch() {
@@ -503,6 +632,35 @@ export class Explore implements OnInit, OnDestroy {
     this.resetAndReloadCourses();
   }
 
+  onSearchQueryChange(query: string) {
+    this.searchQuery.set(query);
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+    this.searchDebounceTimer = setTimeout(() => {
+      this.resetAndReloadCourses();
+    }, 300);
+  }
+
+  handleEnter(event: Event) {
+    event.preventDefault();
+    const text = this.currentMessage().trim();
+    if (!text) return;
+
+    this.messages.update((msgs) => [...msgs, { sender: 'user', text }]);
+    this.currentMessage.set('');
+
+    setTimeout(() => {
+      this.messages.update((msgs) => [
+        ...msgs,
+        {
+          sender: 'ai',
+          text: `Processed query: "${text}". Filtering training modules across our sovereign catalog.`,
+        },
+      ]);
+    }, 1000);
+  }
+
   private resetAndReloadCourses() {
     if (this.hasError()) return;
     this.currentCoursePage.set(0);
@@ -550,7 +708,7 @@ export class Explore implements OnInit, OnDestroy {
     this.isLoadingCourses.set(true);
 
     this.courseService
-      .fetchCPublic('', this.activeCategoryId(), this.currentCoursePage())
+      .fetchCPublic(this.searchQuery(), this.activeCategoryId(), this.currentCoursePage())
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.isLoadingCourses.set(false)),

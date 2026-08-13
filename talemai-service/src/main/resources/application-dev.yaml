@@ -14,12 +14,17 @@ spring:
       chat:
         model: mistral
         temperature: 0.0
-
+      init:
+        pull-model-strategy: when_missing
 
 keycloak:
   clients:
     lumina-client-id: lms-ui
     opus-client-id: opus-ui
+
+logbook:
+  format:
+    style: http
 
 logging:
   level:
@@ -27,3 +32,4 @@ logging:
     org.springframework.security.web.FilterChainProxy: DEBUG
     org.springframework.security.oauth2: DEBUG
     org.springframework.ai: DEBUG
+    org.zalando.logbook: TRACE
