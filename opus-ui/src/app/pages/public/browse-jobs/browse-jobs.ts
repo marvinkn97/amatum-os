@@ -137,7 +137,7 @@ interface ChatMessage {
               <div class="size-3 rounded-full bg-emerald-500/80"></div>
             </div>
             <span class="text-xs font-bold text-slate-400 ml-2 font-mono"
-              >opus-ai-agent://search</span
+              >talemai://talent-assistant</span
             >
           </div>
         </div>
