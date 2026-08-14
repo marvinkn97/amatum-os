@@ -8,7 +8,7 @@ on:
       - 'course-service/**'
       - 'enrollment-service/**'
       - 'rating-service/**'
-#      - 'talemai-service/**'
+      - 'talemai-service/**'
       - 'api-gateway/**'
       # Add other paths here
 
@@ -26,8 +26,8 @@ jobs:
             path: enrollment-service
           - name: rating-service
             path: rating-service
-#          - name: talemai-service
-#            path: talemai-service
+          - name: talemai-service
+            path: talemai-service
           - name: api-gateway
             path: api-gateway
     uses: ./.github/workflows/spring-boot-template.yml

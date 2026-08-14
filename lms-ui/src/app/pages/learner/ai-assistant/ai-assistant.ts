@@ -4,7 +4,7 @@ import {
   inject,
   model,
   signal,
-  ViewChild,
+  viewChild,
   ElementRef,
   effect,
 } from '@angular/core';
@@ -30,195 +30,157 @@ import { AuthService } from '../../../services/auth.service';
     <aside
       [class.translate-x-0]="isOpen()"
       [class.translate-x-full]="!isOpen()"
-      class="fixed top-16 z-90 right-0 h-[calc(100%-4rem)] w-full lg:w-130 xl:w-155 max-w-full bg-[#0b1120]/95 backdrop-blur-2xl border-l border-white/5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl shadow-black"
+      class="fixed top-16 z-90 right-0 h-[calc(100%-4rem)] w-full lg:w-130 xl:w-155 max-w-full bg-[#0b1120]/95 backdrop-blur-2xl border-l border-white/5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl shadow-black flex flex-col"
     >
-      <div class="flex flex-col h-full">
-        <div class="p-4 sm:p-5 border-b border-white/5 bg-[#0b1120]/80 backdrop-blur-xl">
-          <div class="flex items-center justify-between gap-3 min-w-0">
-            <div class="flex items-center gap-3 min-w-0 flex-1">
-              <div
-                class="size-6 shrink-0 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20"
-              >
-                <svg
-                  class="size-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      <!-- Terminal/Assistant Window Title Bar -->
+      <div class="px-6 py-4 bg-white/2 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="flex gap-1.5">
+            <div class="size-3 rounded-full bg-rose-500/80"></div>
+            <div class="size-3 rounded-full bg-amber-500/80"></div>
+            <div class="size-3 rounded-full bg-indigo-500/80"></div>
+          </div>
+          <span class="text-xs font-bold text-slate-400 ml-2 font-mono">talemai://learning-assistant</span>
+        </div>
+
+        <button
+          type="button"
+          (click)="isOpen.set(false)"
+          class="size-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
+          aria-label="Close Assistant"
+        >
+          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Chat Stream Body -->
+      <div #scrollContainer class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar">
+        @if (messages().length === 0) {
+          <div class="h-full flex flex-col items-center justify-center text-center px-4 text-slate-500 space-y-3">
+            <div class="size-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p class="text-xs font-mono text-slate-400">Type any query below to interact with Talemai.</p>
+          </div>
+        }
+
+        @for (msg of messages(); track $index) {
+          <div class="flex items-start gap-4">
+            @if (msg.role === 'ai') {
+              <div class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20">
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-
-              <div class="min-w-0 flex-1">
-                <h3 class="font-bold text-sm text-white truncate">TALEMAI</h3>
-                <p
-                  class="text-[9px] text-indigo-400 font-bold uppercase tracking-[0.25em] truncate"
-                >
-                  AI Assistant
-                </p>
+              <div class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner">
+                <markdown [data]="msg.text" class="prose prose-invert max-w-none text-xs md:text-sm"></markdown>
               </div>
-            </div>
+            } @else {
+              <div class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2">
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1 flex flex-col gap-2">
+                <div>{{ msg.text }}</div>
 
-            <button
-              (click)="isOpen.set(false)"
-              class="size-9 text-slate-400 cursor-pointer"
-            >
-              <svg
-                class="size-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div #scrollContainer class="flex-1 overflow-y-auto p-6 space-y-4">
-          @for (msg of messages(); track $index) {
-            <div
-              class="rounded-2xl p-4 border border-white/5 text-sm"
-              [ngClass]="
-                msg.role === 'user'
-                  ? msg.status === 'failed'
-                    ? 'bg-indigo-600/20 text-white ml-auto max-w-[80%] border-red-500/30'
-                    : 'bg-indigo-600/20 text-white ml-auto max-w-[80%]'
-                  : 'bg-white/5 text-slate-300'
-              "
-            >
-              @if (msg.role === 'ai') {
-                <markdown [data]="msg.text"></markdown>
-              } @else {
-                <div class="flex flex-col gap-2">
-                  <div>
-                    {{ msg.text }}
-                  </div>
-
-                  @if (msg.status === 'failed') {
-                    <div class="flex items-center justify-between gap-3 pt-2">
-                      <span class="text-xs text-red-400">
-                        Failed to send. Tap retry.
-                      </span>
-
-                      <div class="flex items-center gap-2">
-                        <!-- Retry -->
-                        <button
-                          type="button"
-                          (click)="retryMessage($index)"
-                          [disabled]="isLoading()"
-                          class="size-8 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                          title="Retry"
-                        >
-                          <svg
-                            class="size-4 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              d="M20 11a8.1 8.1 0 0 0-15.5-2M4 5v4h4M4 13a8.1 8.1 0 0 0 15.5 2M20 19v-4h-4"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </button>
-
-                        <!-- Delete -->
-                        <button
-                          type="button"
-                          (click)="deleteMessage($index)"
-                          [disabled]="isLoading()"
-                          class="size-8 rounded-lg bg-white/10 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                          title="Delete"
-                        >
-                          <svg
-                            class="size-4 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
+                @if (msg.status === 'failed') {
+                  <div class="flex items-center justify-between gap-3 pt-2 border-t border-red-500/20 mt-1">
+                    <span class="text-[11px] text-red-400">Failed to send.</span>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="retryMessage($index)"
+                        [disabled]="isLoading()"
+                        class="text-[11px] text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
+                      >
+                        Retry
+                      </button>
+                      <span class="text-slate-600">•</span>
+                      <button
+                        type="button"
+                        (click)="deleteMessage($index)"
+                        [disabled]="isLoading()"
+                        class="text-[11px] text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
                     </div>
-                  }
-                </div>
-              }
-            </div>
-          }
-
-          @if (isLoading()) {
-            <div class="flex gap-1.5 px-4 py-3">
-              <div
-                class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"
-              ></div>
-
-              <div
-                class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"
-              ></div>
-
-              <div
-                class="size-2 bg-indigo-500 rounded-full animate-bounce"
-              ></div>
-            </div>
-          }
-        </div>
-
-        <div class="p-6 border-t border-white/5 bg-white/2">
-          <div class="relative">
-            <input
-              [(ngModel)]="userQuery"
-              (keyup.enter)="sendMessage()"
-              type="text"
-              placeholder="Ask anything..."
-              class="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:border-indigo-500 outline-none transition-all pr-14"
-            />
-
-            <button
-              (click)="sendMessage()"
-              [disabled]="isLoading()"
-              class="absolute right-2 top-2 size-10 bg-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg
-                class="size-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  d="M5 12h14M12 5l7 7-7 7"
-                  stroke-width="2"
-                />
-              </svg>
-            </button>
+                  </div>
+                }
+              </div>
+            }
           </div>
+        }
+
+        @if (isLoading()) {
+          <div class="flex items-center gap-1.5 px-4 py-3 bg-white/3 border border-white/5 rounded-2xl w-fit">
+            <div class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="size-2 bg-indigo-500 rounded-full animate-bounce"></div>
+          </div>
+        }
+      </div>
+
+      <!-- Chat Input Bar -->
+      <div class="p-4 md:p-6 bg-white/1 shrink-0">
+        <div class="relative flex items-center">
+          <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
+          <input
+            [(ngModel)]="userQuery"
+            (keyup.enter)="sendMessage()"
+            type="text"
+            placeholder="Type your query..."
+            class="w-full bg-black/40 border border-white/10 rounded-2xl pl-9 pr-14 py-4 text-xs md:text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
+          />
+
+          <button
+            type="button"
+            (click)="sendMessage()"
+            [disabled]="isLoading() || !userQuery().trim()"
+            class="absolute right-2 size-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-indigo-500/20 cursor-pointer disabled:cursor-not-allowed"
+            aria-label="Send Message"
+          >
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
     </aside>
   `,
+  styles: [
+    `
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+      }
+    `,
+  ],
 })
 export class AiAssistant {
-  @ViewChild('scrollContainer')
-  private scrollContainer!: ElementRef;
+  private readonly scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
 
-  isOpen = model(false);
+  readonly isOpen = model(false);
 
-  private talemaiService = inject(TalemaiService);
-  private chatService = inject(ChatService);
-  private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
+  private readonly talemaiService = inject(TalemaiService);
+  private readonly chatService = inject(ChatService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly authService = inject(AuthService);
 
-  userQuery = signal('');
-  messages = this.chatService.messages;
-  isLoading = signal(false);
+  readonly userQuery = signal('');
+  readonly messages = this.chatService.messages;
+  readonly isLoading = signal(false);
 
   constructor() {
     effect(() => {
@@ -236,9 +198,9 @@ export class AiAssistant {
       this.isLoading();
 
       setTimeout(() => {
-        if (this.scrollContainer) {
-          this.scrollContainer.nativeElement.scrollTop =
-            this.scrollContainer.nativeElement.scrollHeight;
+        const container = this.scrollContainer()?.nativeElement;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
         }
       });
     });
@@ -253,7 +215,6 @@ export class AiAssistant {
 
     const messageIndex = this.messages().length;
 
-    // Add user message immediately.
     this.messages.update((prev) => [
       ...prev,
       {
@@ -264,7 +225,6 @@ export class AiAssistant {
     ]);
 
     this.userQuery.set('');
-
     this.sendQuery(query, messageIndex);
   }
 
@@ -279,8 +239,6 @@ export class AiAssistant {
           const messages = [...prev];
 
           if (!aiMessageCreated) {
-            // Create the AI message only when the first
-            // response chunk actually arrives.
             messages.push({
               role: 'ai',
               text: chunk,
@@ -288,7 +246,6 @@ export class AiAssistant {
 
             aiMessageCreated = true;
           } else {
-            // Append subsequent streamed chunks.
             const lastIndex = messages.length - 1;
 
             messages[lastIndex] = {
@@ -304,10 +261,6 @@ export class AiAssistant {
       error: (err) => {
         console.error('AI Connection Failed:', err);
 
-        /*
-         * If the backend started streaming a response but then
-         * failed, remove the incomplete AI response.
-         */
         if (aiMessageCreated) {
           this.messages.update((prev) => {
             const messages = [...prev];
@@ -320,10 +273,6 @@ export class AiAssistant {
           });
         }
 
-        /*
-         * Keep the user's message but mark it as failed.
-         * This gives the user the option to retry or delete it.
-         */
         this.messages.update((prev) => {
           const messages = [...prev];
 
@@ -362,7 +311,6 @@ export class AiAssistant {
       return;
     }
 
-    // Mark the existing message as being retried.
     this.messages.update((prev) => {
       const messages = [...prev];
 
