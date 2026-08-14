@@ -1,8 +1,8 @@
-package dev.marvin.talemaiservice.chat;
+package dev.marvin.talemaiservice.api;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record ChatRequest(
+public record TalemaiRequest(
         @NotBlank
         String question
 ) {

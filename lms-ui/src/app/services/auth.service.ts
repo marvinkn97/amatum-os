@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
 import { environment } from '../../environments/environment';
 import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs } from 'keycloak-angular';
+import { ChatService } from './chat.service';
 
 interface AmatumToken extends KeycloakTokenParsed {
   amatum_onboarded?: boolean | 'true' | 'false';
@@ -12,7 +13,7 @@ interface AmatumToken extends KeycloakTokenParsed {
 export class AuthService {
   private router = inject(Router);
   private keycloak = inject(Keycloak);
-
+ 
   public isAuthenticated = signal(false);
   public isLoading = signal(true);
   public userRoles = signal<string[]>([]);

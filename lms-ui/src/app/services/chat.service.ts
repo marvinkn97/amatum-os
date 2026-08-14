@@ -1,42 +1,187 @@
 import { Injectable, signal, effect } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+export interface ChatMessage {
+  role: 'user' | 'ai';
+  text: string;
+  status?: 'sending' | 'sent' | 'failed';
+}
+
+@Injectable({
+  providedIn: 'root',
+})
 export class ChatService {
-  private readonly SESSION_KEY = 'talemai_chat_session';
- 
-  // Initialize from sessionStorage to survive F5 refreshes
-  messages = signal<{ role: 'user' | 'ai'; text: string }[]>(this.loadFromSession());
+  private readonly STORAGE_PREFIX = 'talemai_chat_';
+
+  messages = signal<ChatMessage[]>([]);
+
+  private currentUserId: string | null = null;
 
   constructor() {
-    // Keep session storage in sync with our state automatically
     effect(() => {
-      sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(this.messages()));
+      const userId = this.currentUserId;
+
+      if (!userId) {
+        return;
+      }
+
+      sessionStorage.setItem(
+        this.getStorageKey(userId),
+        JSON.stringify(this.messages()),
+      );
     });
   }
 
-  private loadFromSession() {
-    const saved = sessionStorage.getItem(this.SESSION_KEY);
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            role: 'ai',
-            text: "Hello! I'm TALEMAI, your personal learning assistant. Tell me what you would like to learn and I will find the perfect course course for you!",
-          },
-        ];
+  initialize(userId: string): void {
+    // Don't reload unnecessarily for the same user
+    if (this.currentUserId === userId) {
+      return;
+    }
+
+    this.currentUserId = userId;
+
+    const saved = sessionStorage.getItem(this.getStorageKey(userId));
+
+    this.messages.set(
+      saved
+        ? JSON.parse(saved)
+        : [this.createWelcomeMessage()],
+    );
   }
 
-  addMessage(role: 'user' | 'ai', text: string) {
-    this.messages.update((prev) => [...prev, { role, text }]);
+  clearChat(): void {
+    if (this.currentUserId) {
+      sessionStorage.removeItem(this.getStorageKey(this.currentUserId));
+    }
+
+    this.messages.set([this.createWelcomeMessage()]);
   }
 
-  clearChat() {
-    sessionStorage.removeItem(this.SESSION_KEY);
-    this.messages.set([
+  reset(): void {
+    this.currentUserId = null;
+    this.messages.set([]);
+  }
+
+  addMessage(
+    role: ChatMessage['role'],
+    text: string,
+    status: ChatMessage['status'] = 'sent',
+  ): void {
+    this.messages.update((prev) => [
+      ...prev,
       {
-        role: 'ai',
-        text: "Hello! I'm TALEMAI, your personal learning assistant. Tell me what you would like to learn and I will find the perfect course course for you!",
+        role,
+        text,
+        status,
       },
     ]);
+  }
+
+  addUserMessage(text: string): number {
+    let messageIndex = -1;
+
+    this.messages.update((prev) => {
+      messageIndex = prev.length;
+
+      return [
+        ...prev,
+        {
+          role: 'user',
+          text,
+          status: 'sending',
+        },
+      ];
+    });
+
+    return messageIndex;
+  }
+
+  markMessageSent(index: number): void {
+    this.messages.update((prev) => {
+      if (!prev[index]) {
+        return prev;
+      }
+
+      const messages = [...prev];
+
+      messages[index] = {
+        ...messages[index],
+        status: 'sent',
+      };
+
+      return messages;
+    });
+  }
+
+  markMessageFailed(index: number): void {
+    this.messages.update((prev) => {
+      if (!prev[index]) {
+        return prev;
+      }
+
+      const messages = [...prev];
+
+      messages[index] = {
+        ...messages[index],
+        status: 'failed',
+      };
+
+      return messages;
+    });
+  }
+
+  updateMessage(index: number, text: string): void {
+    this.messages.update((prev) => {
+      if (!prev[index]) {
+        return prev;
+      }
+
+      const messages = [...prev];
+
+      messages[index] = {
+        ...messages[index],
+        text,
+      };
+
+      return messages;
+    });
+  }
+
+  appendToMessage(index: number, chunk: string): void {
+    this.messages.update((prev) => {
+      if (!prev[index]) {
+        return prev;
+      }
+
+      const messages = [...prev];
+
+      messages[index] = {
+        ...messages[index],
+        text: messages[index].text + chunk,
+      };
+
+      return messages;
+    });
+  }
+
+  removeMessage(index: number): void {
+    this.messages.update((prev) =>
+      prev.filter((_, i) => i !== index),
+    );
+  }
+
+  getMessage(index: number): ChatMessage | undefined {
+    return this.messages()[index];
+  }
+
+  private getStorageKey(userId: string): string {
+    return `${this.STORAGE_PREFIX}${userId}`;
+  }
+
+  private createWelcomeMessage(): ChatMessage {
+    return {
+      role: 'ai',
+      text: "Hello! I'm TALEMAI, your personal learning assistant. Tell me what you would like to learn and I will find the perfect course for you!",
+      status: 'sent',
+    };
   }
 }

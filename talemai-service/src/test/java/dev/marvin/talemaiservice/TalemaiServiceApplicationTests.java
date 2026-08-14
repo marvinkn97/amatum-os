@@ -1,5 +1,7 @@
 package dev.marvin.talemaiservice;
 
+import dev.marvin.talemaiservice.api.TalemaiRequest;
+import dev.marvin.talemaiservice.api.TalemaiService;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @SpringBootTest
@@ -43,7 +46,11 @@ class TalemaiServiceApplicationTests {
     void evaluateRelevancy() {
         String question = "Why is the sky blue?";
 
-        String answer = talemaiService.sampleCall(question);
+        String answer = Objects.requireNonNull(talemaiService.sampleCall(new TalemaiRequest(question))
+                        .collectList()
+                        .block())
+                .stream()
+                .reduce("", String::concat);
 
         EvaluationRequest evaluationRequest = new EvaluationRequest(question, answer);
 
@@ -65,7 +72,11 @@ class TalemaiServiceApplicationTests {
     void evaluateFactualAccuracy() {
         String question = "Why is the sky blue?";
 
-        String answer = talemaiService.sampleCall(question);
+        String answer = Objects.requireNonNull(talemaiService.sampleCall(new TalemaiRequest(question))
+                        .collectList()
+                        .block())
+                .stream()
+                .reduce("", String::concat);
 
         // Note: FactCheckingEvaluator expects a context/document to verify the claim against.
         // If your service uses RAG, supply the retrieved context document.

@@ -237,7 +237,7 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
         next: (data) => this.counters.set(data),
         error: (err) => {
           console.error('Failed to update counter snapshot analytics', err)
-          this.notificationService.error('Failed to load dashboard counters. Please try again later.');
+          this.notificationService.error('Failed to load dashboard data. Please try again later.');
         },
       });
   }

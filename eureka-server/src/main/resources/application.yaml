@@ -2,6 +2,10 @@ spring:
   application:
     name: eureka-server
 
+  profiles:
+    active:
+      - dev
+
 eureka:
   client:
     fetch-registry: false
