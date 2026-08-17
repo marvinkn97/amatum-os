@@ -16,6 +16,12 @@ export class ChatService {
 
   private currentUserId: string | null = null;
 
+  // AI typing state
+  private typingQueue = '';
+  private typingTimer: ReturnType<typeof setTimeout> | null = null;
+  private typingMessageIndex: number | null = null;
+  private isTyping = false;
+
   constructor() {
     effect(() => {
       const userId = this.currentUserId;
@@ -32,10 +38,11 @@ export class ChatService {
   }
 
   initialize(userId: string): void {
-    // Don't reload unnecessarily for the same user
     if (this.currentUserId === userId) {
       return;
     }
+
+    this.stopTyping();
 
     this.currentUserId = userId;
 
@@ -49,14 +56,20 @@ export class ChatService {
   }
 
   clearChat(): void {
+    this.stopTyping();
+
     if (this.currentUserId) {
-      sessionStorage.removeItem(this.getStorageKey(this.currentUserId));
+      sessionStorage.removeItem(
+        this.getStorageKey(this.currentUserId),
+      );
     }
 
     this.messages.set([this.createWelcomeMessage()]);
   }
 
   reset(): void {
+    this.stopTyping();
+
     this.currentUserId = null;
     this.messages.set([]);
   }
@@ -163,7 +176,104 @@ export class ChatService {
     });
   }
 
+  /**
+   * Adds incoming AI chunks to a queue and displays them
+   * progressively in small batches.
+   */
+  queueMessageChunk(index: number, chunk: string): void {
+    if (!chunk) {
+      return;
+    }
+
+    // If a different AI message is being typed,
+    // stop the previous typing process.
+    if (
+      this.typingMessageIndex !== null &&
+      this.typingMessageIndex !== index
+    ) {
+      this.stopTyping();
+    }
+
+    this.typingMessageIndex = index;
+    this.typingQueue += chunk;
+
+    if (!this.isTyping) {
+      this.processTypingQueue();
+    }
+  }
+
+  /**
+   * Call this when the backend has finished streaming.
+   * It ensures everything remaining in the queue is displayed.
+   */
+  finishTyping(): void {
+    if (this.typingMessageIndex === null) {
+      return;
+    }
+
+    if (this.typingQueue.length > 0) {
+      this.appendToMessage(
+        this.typingMessageIndex,
+        this.typingQueue,
+      );
+    }
+
+    this.stopTyping();
+  }
+
+  private processTypingQueue(): void {
+    if (
+      !this.typingQueue.length ||
+      this.typingMessageIndex === null
+    ) {
+      this.isTyping = false;
+      this.typingTimer = null;
+      return;
+    }
+
+    this.isTyping = true;
+
+    // Display small batches rather than one character at a time.
+    const batchSize = Math.min(
+      this.typingQueue.length,
+      this.typingQueue.length > 20 ? 3 : 2,
+    );
+
+    const batch = this.typingQueue.substring(0, batchSize);
+
+    this.typingQueue = this.typingQueue.substring(batchSize);
+
+    this.appendToMessage(
+      this.typingMessageIndex,
+      batch,
+    );
+
+    // Slightly longer pause after punctuation.
+    const delay = /[.!?,:;]\s*$/.test(batch)
+      ? 50
+      : 20;
+
+    this.typingTimer = setTimeout(() => {
+      this.processTypingQueue();
+    }, delay);
+  }
+
+  private stopTyping(): void {
+    if (this.typingTimer) {
+      clearTimeout(this.typingTimer);
+    }
+
+    this.typingTimer = null;
+    this.typingQueue = '';
+    this.typingMessageIndex = null;
+    this.isTyping = false;
+  }
+
   removeMessage(index: number): void {
+    if (this.typingMessageIndex === index) {
+      this.stopTyping();
+    }
+
     this.messages.update((prev) =>
       prev.filter((_, i) => i !== index),
     );

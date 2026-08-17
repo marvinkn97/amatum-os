@@ -40,7 +40,9 @@ import { AuthService } from '../../../services/auth.service';
             <div class="size-3 rounded-full bg-amber-500/80"></div>
             <div class="size-3 rounded-full bg-indigo-500/80"></div>
           </div>
-          <span class="text-xs font-bold text-slate-400 ml-2 font-mono">talemai://learning-assistant</span>
+          <span class="text-xs font-bold text-slate-400 ml-2 font-mono">
+            talemai://learning-assistant
+          </span>
         </div>
 
         <button
@@ -49,48 +51,115 @@ import { AuthService } from '../../../services/auth.service';
           class="size-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
           aria-label="Close Assistant"
         >
-          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="size-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Chat Stream Body -->
-      <div #scrollContainer class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar">
+      <div
+        #scrollContainer
+        class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar"
+      >
         @if (messages().length === 0) {
-          <div class="h-full flex flex-col items-center justify-center text-center px-4 text-slate-500 space-y-3">
-            <div class="size-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          <div
+            class="h-full flex flex-col items-center justify-center text-center px-4 text-slate-500 space-y-3"
+          >
+            <div
+              class="size-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400"
+            >
+              <svg
+                class="size-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 00-2 2z"
+                />
               </svg>
             </div>
-            <p class="text-xs font-mono text-slate-400">Type any query below to interact with Talemai.</p>
+            <p class="text-xs font-mono text-slate-400">
+              Type any query below to interact with Talemai.
+            </p>
           </div>
         }
 
         @for (msg of messages(); track $index) {
           <div class="flex items-start gap-4">
             @if (msg.role === 'ai') {
-              <div class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20">
-                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <div
+                class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
+              >
+                <svg
+                  class="size-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
-              <div class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner">
-                <markdown [data]="msg.text" class="prose prose-invert max-w-none text-xs md:text-sm"></markdown>
+
+              <div
+                class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
+              >
+                <markdown
+                  [data]="msg.text"
+                  class="prose prose-invert max-w-none text-xs md:text-sm"
+                ></markdown>
               </div>
             } @else {
-              <div class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2">
-                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <div
+                class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
+              >
+                <svg
+                  class="size-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7-7h14a7 7 0 00-7 7z"
+                  />
                 </svg>
               </div>
-              <div class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1 flex flex-col gap-2">
+
+              <div
+                class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1 flex flex-col gap-2"
+              >
                 <div>{{ msg.text }}</div>
 
                 @if (msg.status === 'failed') {
-                  <div class="flex items-center justify-between gap-3 pt-2 border-t border-red-500/20 mt-1">
-                    <span class="text-[11px] text-red-400">Failed to send.</span>
+                  <div
+                    class="flex items-center justify-between gap-3 pt-2 border-t border-red-500/20 mt-1"
+                  >
+                    <span class="text-[11px] text-red-400">
+                      Failed to send.
+                    </span>
+
                     <div class="flex items-center gap-2">
                       <button
                         type="button"
@@ -100,7 +169,9 @@ import { AuthService } from '../../../services/auth.service';
                       >
                         Retry
                       </button>
+
                       <span class="text-slate-600">•</span>
+
                       <button
                         type="button"
                         (click)="deleteMessage($index)"
@@ -118,10 +189,18 @@ import { AuthService } from '../../../services/auth.service';
         }
 
         @if (isLoading()) {
-          <div class="flex items-center gap-1.5 px-4 py-3 bg-white/3 border border-white/5 rounded-2xl w-fit">
-            <div class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div class="size-2 bg-indigo-500 rounded-full animate-bounce"></div>
+          <div
+            class="flex items-center gap-1.5 px-4 py-3 bg-white/3 border border-white/5 rounded-2xl w-fit"
+          >
+            <div
+              class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"
+            ></div>
+            <div
+              class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"
+            ></div>
+            <div
+              class="size-2 bg-indigo-500 rounded-full animate-bounce"
+            ></div>
           </div>
         }
       </div>
@@ -129,7 +208,12 @@ import { AuthService } from '../../../services/auth.service';
       <!-- Chat Input Bar -->
       <div class="p-4 md:p-6 bg-white/1 shrink-0">
         <div class="relative flex items-center">
-          <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
+          <span
+            class="absolute left-4 text-indigo-500 font-mono text-sm font-bold"
+          >
+            >
+          </span>
+
           <input
             [(ngModel)]="userQuery"
             (keyup.enter)="sendMessage()"
@@ -145,8 +229,18 @@ import { AuthService } from '../../../services/auth.service';
             class="absolute right-2 size-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-indigo-500/20 cursor-pointer disabled:cursor-not-allowed"
             aria-label="Send Message"
           >
-            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+            <svg
+              class="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M5 12h14M12 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
@@ -158,9 +252,11 @@ import { AuthService } from '../../../services/auth.service';
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
       }
+
       .custom-scrollbar::-webkit-scrollbar-track {
         background: rgba(255, 255, 255, 0.02);
       }
+
       .custom-scrollbar::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 10px;
@@ -169,13 +265,15 @@ import { AuthService } from '../../../services/auth.service';
   ],
 })
 export class AiAssistant {
-  private readonly scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
+  private readonly scrollContainer =
+    viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
 
   readonly isOpen = model(false);
 
   private readonly talemaiService = inject(TalemaiService);
   private readonly chatService = inject(ChatService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly notificationService =
+    inject(NotificationService);
   private readonly authService = inject(AuthService);
 
   readonly userQuery = signal('');
@@ -198,7 +296,9 @@ export class AiAssistant {
       this.isLoading();
 
       setTimeout(() => {
-        const container = this.scrollContainer()?.nativeElement;
+        const container =
+          this.scrollContainer()?.nativeElement;
+
         if (container) {
           container.scrollTop = container.scrollHeight;
         }
@@ -225,52 +325,48 @@ export class AiAssistant {
     ]);
 
     this.userQuery.set('');
+
     this.sendQuery(query, messageIndex);
   }
 
-  private sendQuery(query: string, messageIndex: number): void {
+  private sendQuery(
+    query: string,
+    messageIndex: number,
+  ): void {
     this.isLoading.set(true);
 
-    let aiMessageCreated = false;
+    let aiMessageIndex: number | null = null;
 
     this.talemaiService.sendMessage(query).subscribe({
       next: (chunk) => {
-        this.messages.update((prev) => {
-          const messages = [...prev];
+        // Create the AI message only when the first chunk arrives.
+        if (aiMessageIndex === null) {
+          aiMessageIndex = this.messages().length;
 
-          if (!aiMessageCreated) {
-            messages.push({
+          this.messages.update((prev) => [
+            ...prev,
+            {
               role: 'ai',
-              text: chunk,
-            });
+              text: '',
+              status: 'sending',
+            },
+          ]);
+        }
 
-            aiMessageCreated = true;
-          } else {
-            const lastIndex = messages.length - 1;
-
-            messages[lastIndex] = {
-              ...messages[lastIndex],
-              text: messages[lastIndex].text + chunk,
-            };
-          }
-
-          return messages;
-        });
+        this.chatService.queueMessageChunk(
+          aiMessageIndex,
+          chunk,
+        );
       },
 
       error: (err) => {
         console.error('AI Connection Failed:', err);
 
-        if (aiMessageCreated) {
-          this.messages.update((prev) => {
-            const messages = [...prev];
-
-            if (messages[messages.length - 1]?.role === 'ai') {
-              messages.pop();
-            }
-
-            return messages;
-          });
+        // Remove incomplete AI response.
+        if (aiMessageIndex !== null) {
+          this.chatService.removeMessage(
+            aiMessageIndex,
+          );
         }
 
         this.messages.update((prev) => {
@@ -294,6 +390,14 @@ export class AiAssistant {
       },
 
       complete: () => {
+        this.chatService.finishTyping();
+
+        if (aiMessageIndex !== null) {
+          this.chatService.markMessageSent(
+            aiMessageIndex,
+          );
+        }
+
         this.isLoading.set(false);
       },
     });
