@@ -39,6 +39,7 @@ export class TalemaiService {
               const response = event.partialText ?? '';
 
               const newChunk = response.substring(lastLength);
+
               lastLength = response.length;
 
               if (newChunk) {

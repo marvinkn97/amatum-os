@@ -33,14 +33,19 @@ import { AuthService } from '../../../services/auth.service';
       class="fixed top-16 z-90 right-0 h-[calc(100%-4rem)] w-full lg:w-130 xl:w-155 max-w-full bg-[#0b1120]/95 backdrop-blur-2xl border-l border-white/5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl shadow-black flex flex-col"
     >
       <!-- Terminal/Assistant Window Title Bar -->
-      <div class="px-6 py-4 bg-white/2 flex items-center justify-between shrink-0">
+      <div
+        class="px-6 py-4 bg-white/2 flex items-center justify-between shrink-0"
+      >
         <div class="flex items-center gap-2.5">
           <div class="flex gap-1.5">
             <div class="size-3 rounded-full bg-rose-500/80"></div>
             <div class="size-3 rounded-full bg-amber-500/80"></div>
             <div class="size-3 rounded-full bg-indigo-500/80"></div>
           </div>
-          <span class="text-xs font-bold text-slate-400 ml-2 font-mono">
+
+          <span
+            class="text-xs font-bold text-slate-400 ml-2 font-mono"
+          >
             talemai://learning-assistant
           </span>
         </div>
@@ -79,20 +84,40 @@ import { AuthService } from '../../../services/auth.service';
             <div
               class="size-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400"
             >
+              <!-- AI icon -->
               <svg
                 class="size-5"
                 fill="none"
-                stroke="currentColor"
                 viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.8"
               >
                 <path
-                  stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 00-2 2z"
+                  d="M9.75 3.75h4.5a3 3 0 013 3v.75h.75a2.25 2.25 0 012.25 2.25v5.5a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-5.5A2.25 2.25 0 016 7.5h.75v-.75a3 3 0 013-3z"
+                />
+
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8.25 12h.01M15.75 12h.01"
+                />
+
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 15.25c.85.55 1.75.825 3 .825s2.15-.275 3-.825"
+                />
+
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 3.75v-1.5"
                 />
               </svg>
             </div>
+
             <p class="text-xs font-mono text-slate-400">
               Type any query below to interact with Talemai.
             </p>
@@ -102,51 +127,85 @@ import { AuthService } from '../../../services/auth.service';
         @for (msg of messages(); track $index) {
           <div class="flex items-start gap-4">
             @if (msg.role === 'ai') {
+              <!-- AI avatar -->
               <div
-                class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
+                class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 shadow-lg shadow-indigo-900/20"
               >
                 <svg
                   class="size-4"
                   fill="none"
-                  stroke="currentColor"
                   viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="1.8"
                 >
                   <path
-                    stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z"
+                    d="M9.75 3.75h4.5a3 3 0 013 3v.75h.75a2.25 2.25 0 012.25 2.25v5.5a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-5.5A2.25 2.25 0 016 7.5h.75v-.75a3 3 0 013-3z"
+                  />
+
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8.25 12h.01M15.75 12h.01"
+                  />
+
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 15.25c.85.55 1.75.825 3 .825s2.15-.275 3-.825"
+                  />
+
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 3.75v-1.5"
                   />
                 </svg>
               </div>
 
+              <!-- AI message -->
               <div
                 class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
               >
-                <markdown
-                  [data]="msg.text"
-                  class="prose prose-invert max-w-none text-xs md:text-sm"
-                ></markdown>
+                @if (msg.status === 'sending') {
+                  <div class="whitespace-pre-wrap">
+                    {{ msg.text }}<span class="inline-block ml-1 animate-pulse">▍</span>
+                  </div>
+                } @else {
+                  <markdown
+                    [data]="msg.text"
+                    class="prose prose-invert max-w-none text-xs md:text-sm"
+                  ></markdown>
+                }
               </div>
             } @else {
+              <!-- User avatar -->
               <div
-                class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
+                class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 shrink-0 ml-auto order-2"
               >
                 <svg
                   class="size-4"
                   fill="none"
-                  stroke="currentColor"
                   viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="1.8"
                 >
+                  <circle
+                    cx="12"
+                    cy="8"
+                    r="3.25"
+                  />
+
                   <path
-                    stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7-7h14a7 7 0 00-7 7z"
+                    d="M5.5 20.25c.55-3.25 2.85-5.25 6.5-5.25s5.95 2 6.5 5.25"
                   />
                 </svg>
               </div>
 
+              <!-- User message -->
               <div
                 class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1 flex flex-col gap-2"
               >
@@ -195,9 +254,11 @@ import { AuthService } from '../../../services/auth.service';
             <div
               class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"
             ></div>
+
             <div
               class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"
             ></div>
+
             <div
               class="size-2 bg-indigo-500 rounded-full animate-bounce"
             ></div>
@@ -339,7 +400,10 @@ export class AiAssistant {
 
     this.talemaiService.sendMessage(query).subscribe({
       next: (chunk) => {
-        // Create the AI message only when the first chunk arrives.
+        /*
+         * Create the AI message as soon as the
+         * first streaming chunk arrives.
+         */
         if (aiMessageIndex === null) {
           aiMessageIndex = this.messages().length;
 
@@ -353,7 +417,14 @@ export class AiAssistant {
           ]);
         }
 
-        this.chatService.queueMessageChunk(
+        /*
+         * Append the chunk immediately.
+         *
+         * No artificial typing queue or delay.
+         * This means the UI reflects the actual
+         * backend stream as it arrives.
+         */
+        this.chatService.appendToMessage(
           aiMessageIndex,
           chunk,
         );
@@ -362,13 +433,18 @@ export class AiAssistant {
       error: (err) => {
         console.error('AI Connection Failed:', err);
 
-        // Remove incomplete AI response.
+        /*
+         * Remove any incomplete AI response.
+         */
         if (aiMessageIndex !== null) {
           this.chatService.removeMessage(
             aiMessageIndex,
           );
         }
 
+        /*
+         * Mark the user's message as failed.
+         */
         this.messages.update((prev) => {
           const messages = [...prev];
 
@@ -390,8 +466,13 @@ export class AiAssistant {
       },
 
       complete: () => {
-        this.chatService.finishTyping();
-
+        /*
+         * Streaming is finished.
+         *
+         * Change the AI message from `sending`
+         * to `sent`, which causes the completed
+         * response to be rendered as Markdown.
+         */
         if (aiMessageIndex !== null) {
           this.chatService.markMessageSent(
             aiMessageIndex,
