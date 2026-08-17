@@ -12,7 +12,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 @Slf4j
 public class TokenUsageAuditAdvisor implements CallAdvisor {
     @Override
-    public ChatClientResponse adviseCall(@NonNull ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
+    public @NonNull ChatClientResponse adviseCall(@NonNull ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
         ChatClientResponse chatClientResponse = callAdvisorChain.nextCall(chatClientRequest);
         ChatResponse chatResponse = chatClientResponse.chatResponse();
 
@@ -24,7 +24,7 @@ public class TokenUsageAuditAdvisor implements CallAdvisor {
     }
 
     @Override
-    public String getName() {
+    public @NonNull String getName() {
         return "TokenUsageAuditAdvisor";
     }
 
