@@ -9,6 +9,7 @@ import {
   ViewChild,
   AfterViewInit,
   untracked,
+  computed,
 } from '@angular/core';
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -41,331 +42,377 @@ interface ChatMessage {
         </div>
       </header>
 
-      <!-- AI Chat Section -->
-      <section
-        class="mb-12 rounded-2xl bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
-      >
-        <!-- Window Title Bar -->
-        <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="flex gap-1.5">
-              <div class="size-3 rounded-full bg-rose-500/80"></div>
-              <div class="size-3 rounded-full bg-amber-500/80"></div>
-              <div class="size-3 rounded-full bg-indigo-500/80"></div>
-            </div>
-            <span class="text-xs font-bold text-slate-400 ml-2 font-mono"
-              >talemai://learning-assistant</span
-            >
-          </div>
-        </div>
-
-        <!-- Chat Stream Body -->
-        <div class="p-6 md:p-8 space-y-6 max-h-80 overflow-y-auto custom-scrollbar">
-          @for (msg of messages(); track $index) {
-            <div class="flex items-start gap-4">
-              @if (msg.sender === 'ai') {
-                <div
-                  class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
-                >
-                  <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <div
-                  class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
-                >
-                  {{ msg.text }}
-                </div>
-              } @else {
-                <div
-                  class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
-                >
-                  <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </div>
-                <div
-                  class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1"
-                >
-                  {{ msg.text }}
-                </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Chat Input Bar -->
-        <div class="p-4 md:p-6 bg-white/1 border-t border-white/5">
-          <div class="relative flex items-center">
-            <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
-            <input
-              type="text"
-              [ngModel]="currentMessage()"
-              (ngModelChange)="currentMessage.set($event)"
-              (keydown.enter)="handleEnter($event)"
-              placeholder="Ask AI to query courses (e.g., 'Advanced TypeScript & Architecture')..."
-              class="w-full bg-[#030712] border border-white/10 rounded-2xl pl-9 pr-5 py-4 text-xs md:text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
-            />
-          </div>
-        </div>
-      </section>
-
-      <!-- Search Controls Row: Category and Name Search -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-        <div>
-          <div class="mb-6">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
-              Search by Category
-            </h2>
-            <p class="text-[14px] text-slate-500 font-medium mt-1">
-              Filter courses by specific categories to find targeted training.
-            </p>
-          </div>
+      @if (isPageLoading()) {
+        <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
           <div
-            class="relative w-full"
-            appClickOutside
-            (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
+            class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"
+          ></div>
+          <div
+            class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold space-y-1 text-center"
           >
-            <button
-              (click)="toggleDropdown($event)"
-              class="w-full h-15.5 flex items-center justify-between px-6 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
+            @if (isLoadingCategories() || (isLoading() && courses().length === 0)) {
+              <div>Loading...</div>
+            }
+          </div>
+        </div>
+      } @else if (hasError()) {
+        <div
+          class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300"
+        >
+          <div class="max-w-md mx-auto text-center space-y-4">
+            <div
+              class="size-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-rose-400"
             >
-              <div class="flex flex-col items-start overflow-hidden">
-                <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
-                  >Category</span
-                >
-                <span class="text-sm font-bold truncate w-full text-left">{{
-                  activeCategoryName()
-                }}</span>
-              </div>
-              <svg
-                class="size-4 text-slate-500 shrink-0 transition-transform"
-                [class.rotate-180]="isDropdownOpen()"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M19 9l-7 7-7-7"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
+            </div>
+            <h2 class="text-md font-black tracking-widest uppercase text-slate-200">
+              Catalog Offline
+            </h2>
+            <p class="text-slate-500 text-xs leading-relaxed">
+              We're having trouble reaching our servers right now. Please try again shortly.
+            </p>
+            <button
+              (click)="retryConnections()"
+              class="px-6 py-2 bg-white text-black hover:bg-indigo-600 hover:text-white font-black text-[10px] tracking-widest uppercase rounded-xl transition-all active:scale-95 cursor-pointer"
+            >
+              Retry
             </button>
-
-            @if (isDropdownOpen()) {
-              <div
-                class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+          </div>
+        </div>
+      } @else {
+        <!-- AI Chat Section -->
+        <section
+          class="mb-12 rounded-2xl bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
+        >
+          <!-- Window Title Bar -->
+          <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="flex gap-1.5">
+                <div class="size-3 rounded-full bg-rose-500/80"></div>
+                <div class="size-3 rounded-full bg-amber-500/80"></div>
+                <div class="size-3 rounded-full bg-indigo-500/80"></div>
+              </div>
+              <span class="text-xs font-bold text-slate-400 ml-2 font-mono"
+                >talemai://learning-assistant</span
               >
-                <input
-                  type="text"
-                  placeholder="Filter categories..."
-                  (input)="searchTerm.set($any($event.target).value)"
-                  class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
-                />
+            </div>
+          </div>
 
-                <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
-                  <button
-                    (click)="selectCategory({ id: '', name: 'All Categories' })"
-                    class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
+          <!-- Chat Stream Body -->
+          <div class="p-6 md:p-8 space-y-6 max-h-80 overflow-y-auto custom-scrollbar">
+            @for (msg of messages(); track $index) {
+              <div class="flex items-start gap-4">
+                @if (msg.sender === 'ai') {
+                  <div
+                    class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xs shrink-0 shadow-lg shadow-indigo-900/20"
                   >
-                    All Categories
-                  </button>
-                  @for (cat of filteredCategories(); track cat.id) {
-                    <button
-                      (click)="selectCategory(cat)"
-                      class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
-                    >
-                      {{ cat.name }}
-                    </button>
-                  }
-                </div>
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="flex-1 bg-white/3 border border-white/5 rounded-2xl p-4 text-slate-200 text-xs md:text-sm leading-relaxed shadow-inner"
+                  >
+                    {{ msg.text }}
+                  </div>
+                } @else {
+                  <div
+                    class="size-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0 ml-auto order-2"
+                  >
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="flex-1 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 text-white text-xs md:text-sm leading-relaxed ml-12 order-1"
+                  >
+                    {{ msg.text }}
+                  </div>
+                }
               </div>
             }
           </div>
-        </div>
 
-        <div>
-          <div class="mb-6">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
-              Search by Name
-            </h2>
-            <p class="text-[14px] text-slate-500 font-medium mt-1">
-              Type a course title or keyword to quickly find specific training.
-            </p>
-          </div>
-          <div class="relative w-full h-15.5 flex items-center">
-            <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-              <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <!-- Chat Input Bar -->
+          <div class="p-4 md:p-6 bg-white/1 border-t border-white/5">
+            <div class="relative flex items-center">
+              <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold">></span>
+              <input
+                type="text"
+                [ngModel]="currentMessage()"
+                (ngModelChange)="currentMessage.set($event)"
+                (keydown.enter)="handleEnter($event)"
+                placeholder="Ask AI to query courses (e.g., 'Advanced TypeScript & Architecture')..."
+                class="w-full bg-[#030712] border border-white/10 rounded-2xl pl-9 pr-5 py-4 text-xs md:text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
+              />
             </div>
-            <input
-              type="text"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="onSearchQueryChange($event)"
-              placeholder="Search courses by name..."
-              class="w-full h-full pl-14 pr-6 bg-white/5 border border-white/10 rounded-2xl text-slate-200 text-sm hover:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all placeholder-slate-600"
-            />
           </div>
-        </div>
-      </div>
+        </section>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
-        @for (course of courses(); track course.id) {
-          <div
-            [class.border-indigo-500/30]="course.isEnrolled"
-            [class.bg-indigo-500/5]="course.isEnrolled"
-            class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
-          >
-            <!-- Card Header Area -->
-            <div [class]="'h-40 relative ' + getAccent(course.categoryId)">
-              <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
-
-              <!-- Course Rating (Far Left) -->
-              <div class="absolute top-6 left-8">
-                <div
-                  class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md"
-                >
-                  <svg class="size-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
-                    <path
-                      d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                    />
-                  </svg>
-                  <span class="text-[11px] font-black text-white tracking-tighter">
-                    {{ course.rating || '0.0' }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Enrolled Badge (Right) -->
-              @if (course.isEnrolled) {
-                <div class="absolute top-6 right-8">
-                  <span
-                    class="px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-[8px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2 backdrop-blur-md"
+        <!-- Search Controls Row: Category and Name Search -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <div>
+            <div class="mb-6">
+              <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+                Search by Category
+              </h2>
+              <p class="text-[14px] text-slate-500 font-medium mt-1">
+                Filter courses by specific categories to find targeted training.
+              </p>
+            </div>
+            <div
+              class="relative w-full"
+              appClickOutside
+              (clickOutside)="isDropdownOpen.set(!isDropdownOpen())"
+            >
+              <button
+                (click)="toggleDropdown($event)"
+                class="w-full h-15.5 flex items-center justify-between px-6 bg-white/5 border border-white/10 rounded-2xl text-slate-200 hover:border-indigo-500/50 transition-all focus:ring-2 focus:ring-indigo-500/20 active:scale-[0.98] cursor-pointer"
+              >
+                <div class="flex flex-col items-start overflow-hidden">
+                  <span class="text-[10px] uppercase tracking-widest text-slate-500 font-black"
+                    >Category</span
                   >
-                    <div class="size-1 rounded-full bg-indigo-400 animate-pulse"></div>
-                    Enrolled
-                  </span>
+                  <span class="text-sm font-bold truncate w-full text-left">{{
+                    activeCategoryName()
+                  }}</span>
+                </div>
+                <svg
+                  class="size-4 text-slate-500 shrink-0 transition-transform"
+                  [class.rotate-180]="isDropdownOpen()"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              @if (isDropdownOpen()) {
+                <div
+                  class="absolute top-full mt-3 w-full bg-[#111827] border border-white/10 rounded-3xl p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+                >
+                  <input
+                    type="text"
+                    placeholder="Filter categories..."
+                    (input)="searchTerm.set($any($event.target).value)"
+                    class="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  />
+
+                  <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
+                    <button
+                      (click)="selectCategory({ id: '', name: 'All Categories' })"
+                      class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
+                    >
+                      All Categories
+                    </button>
+                    @for (cat of filteredCategories(); track cat.id) {
+                      <button
+                        (click)="selectCategory(cat)"
+                        class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
                 </div>
               }
             </div>
+          </div>
 
-            <!-- Card Body -->
-            <div class="p-8 pt-4 flex flex-col flex-1">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
-                  >{{ course.moduleCount }} Modules</span
-                >
-                <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
-                  >•</span
-                >
-                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
-                  >{{ course.learningStepCount }} Lessons</span
-                >
+          <div>
+            <div class="mb-6">
+              <h2 class="text-xs font-black uppercase tracking-widest text-slate-300">
+                Search by Name
+              </h2>
+              <p class="text-[14px] text-slate-500 font-medium mt-1">
+                Type a course title or keyword to quickly find specific training.
+              </p>
+            </div>
+            <div class="relative w-full h-15.5 flex items-center">
+              <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
+              <input
+                type="text"
+                [ngModel]="searchQuery()"
+                (ngModelChange)="onSearchQueryChange($event)"
+                placeholder="Search courses by name..."
+                class="w-full h-full pl-14 pr-6 bg-white/5 border border-white/10 rounded-2xl text-slate-200 text-sm hover:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all placeholder-slate-600"
+              />
+            </div>
+          </div>
+        </div>
 
-              <h3
-                class="text-md font-black text-white mb-3 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
-              >
-                {{ course.title }}
-              </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+          @for (course of courses(); track course.id) {
+            <div
+              [class.border-indigo-500/30]="course.isEnrolled"
+              [class.bg-indigo-500/5]="course.isEnrolled"
+              class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
+            >
+              <!-- Card Header Area -->
+              <div [class]="'h-40 relative ' + getAccent(course.categoryId)">
+                <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
 
-              <div class="flex flex-wrap gap-2 mb-8">
-                @for (tag of course.tags; track tag) {
-                  <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
-                    >#{{ tag }}</span
+                <!-- Course Rating (Far Left) -->
+                <div class="absolute top-6 left-8">
+                  <div
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 border border-white/5 backdrop-blur-md"
                   >
+                    <svg class="size-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                    <span class="text-[11px] font-black text-white tracking-tighter">
+                      {{ course.rating || '0.0' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Enrolled Badge (Right) -->
+                @if (course.isEnrolled) {
+                  <div class="absolute top-6 right-8">
+                    <span
+                      class="px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-[8px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2 backdrop-blur-md"
+                    >
+                      <div class="size-1 rounded-full bg-indigo-400 animate-pulse"></div>
+                      Enrolled
+                    </span>
+                  </div>
                 }
               </div>
 
-              <!-- Footer Actions -->
-              <div class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5">
-                <div class="mr-auto flex flex-col items-start">
-                  @if (course.accessTier === 'PREMIUM') {
-                    <span
-                      class="text-[7px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5"
-                      >Premium Access</span
-                    >
-                    <span class="text-[13px] font-black text-white italic tracking-tighter">{{
-                      course.price | currency
-                    }}</span>
-                  } @else {
-                    <span
-                      class="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5"
-                      >Free Access</span
-                    >
-                    <span class="text-[13px] font-black text-slate-400 italic tracking-tighter"
-                      >Free</span
+              <!-- Card Body -->
+              <div class="p-8 pt-4 flex flex-col flex-1">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+                    >{{ course.moduleCount }} Modules</span
+                  >
+                  <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest"
+                    >•</span
+                  >
+                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+                    >{{ course.learningStepCount }} Lessons</span
+                  >
+                </div>
+
+                <h3
+                  class="text-md font-black text-white mb-3 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
+                >
+                  {{ course.title }}
+                </h3>
+
+                <div class="flex flex-wrap gap-2 mb-8">
+                  @for (tag of course.tags; track tag) {
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+                      >#{{ tag }}</span
                     >
                   }
                 </div>
 
-                <a
-                  [routerLink]="['/learner/course-catalogue', course.id]"
-                  class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90"
-                  title="View Curriculum"
-                >
-                  <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                </a>
+                <!-- Footer Actions -->
+                <div class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5">
+                  <div class="mr-auto flex flex-col items-start">
+                    @if (course.accessTier === 'PREMIUM') {
+                      <span
+                        class="text-[7px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5"
+                        >Premium Access</span
+                      >
+                      <span class="text-[13px] font-black text-white italic tracking-tighter">{{
+                        course.price | currency
+                      }}</span>
+                    } @else {
+                      <span
+                        class="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5"
+                        >Free Access</span
+                      >
+                      <span class="text-[13px] font-black text-slate-400 italic tracking-tighter"
+                        >Free</span
+                      >
+                    }
+                  </div>
+
+                  <a
+                    [routerLink]="['/learner/course-catalogue', course.id]"
+                    class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90"
+                    title="View Curriculum"
+                  >
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
-        } @empty {
-          @if (!isLoading()) {
-            <div
-              class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
-            >
-              <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
-                >No Courses Available</span
+          } @empty {
+            @if (!isLoading()) {
+              <div
+                class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
               >
-            </div>
+                <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                  >No Courses Available</span
+                >
+              </div>
+            }
           }
-        }
 
-        <!-- Skeleton Loading State -->
-        @if (isLoading()) {
-          @for (i of [1, 2, 3]; track i) {
-            <div
-              class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
-            >
-              <div class="h-40 bg-white/5 relative"></div>
-              <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
-                <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
-                <div class="space-y-3">
-                  <div class="h-5 w-full bg-white/10 rounded-lg"></div>
-                  <div class="h-5 w-2/3 bg-white/10 rounded-lg"></div>
-                </div>
-                <div class="mt-auto pt-10 border-t border-white/5 flex justify-between">
-                  <div class="h-10 w-24 bg-white/5 rounded-xl"></div>
-                  <div class="flex gap-2">
-                    <div class="size-11 bg-white/5 rounded-2xl"></div>
-                    <div class="size-11 bg-white/5 rounded-2xl"></div>
+          <!-- Skeleton Loading State -->
+          @if (isLoading()) {
+            @for (i of [1, 2, 3]; track i) {
+              <div
+                class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
+              >
+                <div class="h-40 bg-white/5 relative"></div>
+                <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
+                  <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
+                  <div class="space-y-3">
+                    <div class="h-5 w-full bg-white/10 rounded-lg"></div>
+                    <div class="h-5 w-2/3 bg-white/10 rounded-lg"></div>
+                  </div>
+                  <div class="mt-auto pt-10 border-t border-white/5 flex justify-between">
+                    <div class="h-10 w-24 bg-white/5 rounded-xl"></div>
+                    <div class="flex gap-2">
+                      <div class="size-11 bg-white/5 rounded-2xl"></div>
+                      <div class="size-11 bg-white/5 rounded-2xl"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            }
           }
-        }
-      </div>
+        </div>
+      }
 
       <!-- Infinite Scroll Sentinel -->
       <div #scrollSentinel class="h-20 w-full pointer-events-none"></div>
@@ -418,9 +465,13 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   hasNextPage = signal(true);
   isLoading = signal(false);
   categoriesData = signal<any[]>([]);
+  isLoadingCategories = signal(false);
+  hasError = signal(false);
   isDropdownOpen = signal(false);
   searchTerm = signal('');
   showBackToTop = signal(false);
+
+  isPageLoading = computed(() => this.isLoadingCategories() || (this.isLoading() && this.courses().length === 0 && !this.hasError()));
 
   // AI Chat State
   currentMessage = signal('');
@@ -433,6 +484,7 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
 
   private searchDebounceTimer: any;
   isEnrolling = signal(false);
+  private courseObserver?: IntersectionObserver;
 
   constructor() {
     effect(() => {
@@ -442,18 +494,56 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
       this.tenantService.tenantId();
       untracked(() => this.resetAndReload());
     });
+
+    effect(() => {
+      const loading = this.isPageLoading();
+      const error = this.hasError();
+      if (!loading && !error) {
+        setTimeout(() => {
+          this.initCourseInfiniteScroll();
+        }, 0);
+      }
+    });
   }
 
   ngOnInit(): void {
-    this.categoryService
-      .getAllActiveCategories()
-      .subscribe((cats) => this.categoriesData.set(cats));
+    this.fetchCategories();
+    this.loadData(true);
   }
 
   ngAfterViewInit() {
-    const observer = new IntersectionObserver(
+    this.initCourseInfiniteScroll();
+  }
+
+  private fetchCategories() {
+    this.isLoadingCategories.set(true);
+    this.categoryService
+      .getAllActiveCategories()
+      .pipe(finalize(() => this.isLoadingCategories.set(false)))
+      .subscribe({
+        next: (cats) => {
+          this.categoriesData.set(cats);
+        },
+        error: () => {
+          this.isLoadingCategories.set(false);
+          this.hasError.set(true);
+        },
+      });
+  }
+
+  retryConnections() {
+    this.hasError.set(false);
+    this.categoriesData.set([]);
+    this.courses.set([]);
+    this.fetchCategories();
+    this.resetAndReload();
+  }
+
+  private initCourseInfiniteScroll() {
+    this.courseObserver?.disconnect();
+    this.courseObserver = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage()) {
+        if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage() && this.courses().length > 0 && !this.hasError()) {
           untracked(() => {
             this.currentPage.update((p) => p + 1);
             this.loadData(false);
@@ -462,7 +552,9 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
       },
       { threshold: 0.1 },
     );
-    observer.observe(this.scrollSentinel.nativeElement);
+    if (this.scrollSentinel) {
+      this.courseObserver.observe(this.scrollSentinel.nativeElement);
+    }
   }
 
   @HostListener('window:scroll', [])
@@ -506,14 +598,23 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   }
 
   private resetAndReload() {
+    if (this.hasError()) return;
     this.currentPage.set(0);
     this.hasNextPage.set(true);
     this.courses.set([]);
+
+    setTimeout(() => {
+      if (this.courseObserver && this.scrollSentinel) {
+        this.courseObserver.disconnect();
+        this.courseObserver.observe(this.scrollSentinel.nativeElement);
+      }
+    }, 50);
+
     this.loadData(true);
   }
 
   private loadData(reset: boolean) {
-    if (this.isLoading()) return;
+    if (this.isLoading() || this.hasError()) return;
     this.isLoading.set(true);
 
     this.courseService
@@ -527,8 +628,8 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
           this.hasNextPage.set(response.page.number < response.page.totalPages - 1);
         },
         error: () => {
-          this.notificationService.error('Failed to load courses. Please try again later.');
           this.hasNextPage.set(false);
+          this.hasError.set(true);
           if (reset) this.courses.set([]);
         },
       });
