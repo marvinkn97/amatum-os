@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
 import { environment } from '../../environments/environment';
 import { KEYCLOAK_EVENT_SIGNAL, KeycloakEventType, ReadyArgs } from 'keycloak-angular';
-import { ChatService } from './chat.service';
 
 interface AmatumToken extends KeycloakTokenParsed {
   amatum_onboarded?: boolean | 'true' | 'false';

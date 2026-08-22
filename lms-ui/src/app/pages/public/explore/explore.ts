@@ -184,9 +184,8 @@ interface ChatMessage {
             </div>
           </div>
         } @else {
-          <!-- AI Chat Window (Refined Terminal/Assistant Look) -->
           <section
-            class="mb-12 rounded-[2.5rem] bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
+            class="mb-12 rounded-2xl bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
           >
             <!-- Window Title Bar -->
             <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">

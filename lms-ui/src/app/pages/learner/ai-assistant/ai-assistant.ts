@@ -1,13 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  inject,
-  model,
-  signal,
-  viewChild,
-  ElementRef,
-  effect,
-} from '@angular/core';
+import { Component, inject, model, signal, viewChild, ElementRef, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TalemaiService } from '../../../services/talemai.service';
 import { MarkdownComponent } from 'ngx-markdown';
@@ -33,9 +25,7 @@ import { AuthService } from '../../../services/auth.service';
       class="fixed top-16 z-90 right-0 h-[calc(100%-4rem)] w-full lg:w-130 xl:w-155 max-w-full bg-[#0b1120]/95 backdrop-blur-2xl border-l border-white/5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl shadow-black flex flex-col"
     >
       <!-- Terminal/Assistant Window Title Bar -->
-      <div
-        class="px-6 py-4 bg-white/2 flex items-center justify-between shrink-0"
-      >
+      <div class="px-6 py-4 bg-white/2 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="flex gap-1.5">
             <div class="size-3 rounded-full bg-rose-500/80"></div>
@@ -43,9 +33,7 @@ import { AuthService } from '../../../services/auth.service';
             <div class="size-3 rounded-full bg-indigo-500/80"></div>
           </div>
 
-          <span
-            class="text-xs font-bold text-slate-400 ml-2 font-mono"
-          >
+          <span class="text-xs font-bold text-slate-400 ml-2 font-mono">
             talemai://learning-assistant
           </span>
         </div>
@@ -56,12 +44,7 @@ import { AuthService } from '../../../services/auth.service';
           class="size-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
           aria-label="Close Assistant"
         >
-          <svg
-            class="size-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-width="2"
               stroke-linecap="round"
@@ -73,10 +56,7 @@ import { AuthService } from '../../../services/auth.service';
       </div>
 
       <!-- Chat Stream Body -->
-      <div
-        #scrollContainer
-        class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar"
-      >
+      <div #scrollContainer class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar">
         @if (messages().length === 0) {
           <div
             class="h-full flex flex-col items-center justify-center text-center px-4 text-slate-500 space-y-3"
@@ -110,11 +90,7 @@ import { AuthService } from '../../../services/auth.service';
                   d="M9 15.25c.85.55 1.75.825 3 .825s2.15-.275 3-.825"
                 />
 
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 3.75v-1.5"
-                />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v-1.5" />
               </svg>
             </div>
 
@@ -131,35 +107,12 @@ import { AuthService } from '../../../services/auth.service';
               <div
                 class="size-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 shadow-lg shadow-indigo-900/20"
               >
-                <svg
-                  class="size-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                >
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
+                    stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    d="M9.75 3.75h4.5a3 3 0 013 3v.75h.75a2.25 2.25 0 012.25 2.25v5.5a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-5.5A2.25 2.25 0 016 7.5h.75v-.75a3 3 0 013-3z"
-                  />
-
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M8.25 12h.01M15.75 12h.01"
-                  />
-
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9 15.25c.85.55 1.75.825 3 .825s2.15-.275 3-.825"
-                  />
-
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 3.75v-1.5"
+                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
               </div>
@@ -191,11 +144,7 @@ import { AuthService } from '../../../services/auth.service';
                   stroke="currentColor"
                   stroke-width="1.8"
                 >
-                  <circle
-                    cx="12"
-                    cy="8"
-                    r="3.25"
-                  />
+                  <circle cx="12" cy="8" r="3.25" />
 
                   <path
                     stroke-linecap="round"
@@ -215,9 +164,7 @@ import { AuthService } from '../../../services/auth.service';
                   <div
                     class="flex items-center justify-between gap-3 pt-2 border-t border-red-500/20 mt-1"
                   >
-                    <span class="text-[11px] text-red-400">
-                      Failed to send.
-                    </span>
+                    <span class="text-[11px] text-red-400"> Failed to send. </span>
 
                     <div class="flex items-center gap-2">
                       <button
@@ -259,9 +206,7 @@ import { AuthService } from '../../../services/auth.service';
               class="size-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"
             ></div>
 
-            <div
-              class="size-2 bg-indigo-500 rounded-full animate-bounce"
-            ></div>
+            <div class="size-2 bg-indigo-500 rounded-full animate-bounce"></div>
           </div>
         }
       </div>
@@ -269,11 +214,7 @@ import { AuthService } from '../../../services/auth.service';
       <!-- Chat Input Bar -->
       <div class="p-4 md:p-6 bg-white/1 shrink-0">
         <div class="relative flex items-center">
-          <span
-            class="absolute left-4 text-indigo-500 font-mono text-sm font-bold"
-          >
-            >
-          </span>
+          <span class="absolute left-4 text-indigo-500 font-mono text-sm font-bold"> > </span>
 
           <input
             [(ngModel)]="userQuery"
@@ -290,12 +231,7 @@ import { AuthService } from '../../../services/auth.service';
             class="absolute right-2 size-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-indigo-500/20 cursor-pointer disabled:cursor-not-allowed"
             aria-label="Send Message"
           >
-            <svg
-              class="size-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-width="2"
                 stroke-linecap="round"
@@ -326,15 +262,13 @@ import { AuthService } from '../../../services/auth.service';
   ],
 })
 export class AiAssistant {
-  private readonly scrollContainer =
-    viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
+  private readonly scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
 
   readonly isOpen = model(false);
 
   private readonly talemaiService = inject(TalemaiService);
   private readonly chatService = inject(ChatService);
-  private readonly notificationService =
-    inject(NotificationService);
+  private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthService);
 
   readonly userQuery = signal('');
@@ -357,8 +291,7 @@ export class AiAssistant {
       this.isLoading();
 
       setTimeout(() => {
-        const container =
-          this.scrollContainer()?.nativeElement;
+        const container = this.scrollContainer()?.nativeElement;
 
         if (container) {
           container.scrollTop = container.scrollHeight;
@@ -390,10 +323,7 @@ export class AiAssistant {
     this.sendQuery(query, messageIndex);
   }
 
-  private sendQuery(
-    query: string,
-    messageIndex: number,
-  ): void {
+  private sendQuery(query: string, messageIndex: number): void {
     this.isLoading.set(true);
 
     let aiMessageIndex: number | null = null;
@@ -424,10 +354,7 @@ export class AiAssistant {
          * This means the UI reflects the actual
          * backend stream as it arrives.
          */
-        this.chatService.appendToMessage(
-          aiMessageIndex,
-          chunk,
-        );
+        this.chatService.appendToMessage(aiMessageIndex, chunk);
       },
 
       error: (err) => {
@@ -437,9 +364,7 @@ export class AiAssistant {
          * Remove any incomplete AI response.
          */
         if (aiMessageIndex !== null) {
-          this.chatService.removeMessage(
-            aiMessageIndex,
-          );
+          this.chatService.removeMessage(aiMessageIndex);
         }
 
         /*
@@ -474,9 +399,7 @@ export class AiAssistant {
          * response to be rendered as Markdown.
          */
         if (aiMessageIndex !== null) {
-          this.chatService.markMessageSent(
-            aiMessageIndex,
-          );
+          this.chatService.markMessageSent(aiMessageIndex);
         }
 
         this.isLoading.set(false);
@@ -487,12 +410,7 @@ export class AiAssistant {
   retryMessage(index: number): void {
     const message = this.messages()[index];
 
-    if (
-      !message ||
-      message.role !== 'user' ||
-      message.status !== 'failed' ||
-      this.isLoading()
-    ) {
+    if (!message || message.role !== 'user' || message.status !== 'failed' || this.isLoading()) {
       return;
     }
 
@@ -513,11 +431,7 @@ export class AiAssistant {
   deleteMessage(index: number): void {
     const message = this.messages()[index];
 
-    if (
-      !message ||
-      message.role !== 'user' ||
-      message.status !== 'failed'
-    ) {
+    if (!message || message.role !== 'user' || message.status !== 'failed') {
       return;
     }
 
