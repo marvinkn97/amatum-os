@@ -66,7 +66,6 @@ import { Loader } from '../../../components/loader/loader';
       @if (isLoading()) {
         <app-loader />
       } @else {
-        <!-- Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
           @for (enrollment of enrollments(); track enrollment?.id) {
             <div
@@ -147,8 +146,6 @@ import { Loader } from '../../../components/loader/loader';
           }
         </div>
       }
-
-      <div #scrollSentinel class="h-20 w-full"></div>
 
       <!-- Back to Top -->
       <button
