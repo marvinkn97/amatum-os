@@ -19,6 +19,7 @@ import { CourseService } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
 import { TenantService } from '../../../services/tenant.service';
 import { NotificationService } from '../../../services/notification.service';
+import { Loader } from "../../../components/loader/loader";
 
 interface ChatMessage {
   sender: 'user' | 'ai';
@@ -28,7 +29,7 @@ interface ChatMessage {
 @Component({
   selector: 'app-course-catalogue',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, Loader],
   template: `
     <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
       <header
@@ -223,10 +224,10 @@ interface ChatMessage {
 
                   <div class="max-h-64 overflow-y-auto mt-2 space-y-1 custom-scrollbar">
                     <button
-                      (click)="selectCategory({ id: '', name: 'All Categories' })"
+                      (click)="selectCategory({ id: '', name: 'All' })"
                       class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors truncate cursor-pointer"
                     >
-                      All Categories
+                      All
                     </button>
                     @for (cat of filteredCategories(); track cat.id) {
                       <button
@@ -387,29 +388,8 @@ interface ChatMessage {
             }
           }
 
-          <!-- Skeleton Loading State -->
           @if (isLoading()) {
-            @for (i of [1, 2, 3]; track i) {
-              <div
-                class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
-              >
-                <div class="h-40 bg-white/5 relative"></div>
-                <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
-                  <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
-                  <div class="space-y-3">
-                    <div class="h-5 w-full bg-white/10 rounded-lg"></div>
-                    <div class="h-5 w-2/3 bg-white/10 rounded-lg"></div>
-                  </div>
-                  <div class="mt-auto pt-10 border-t border-white/5 flex justify-between">
-                    <div class="h-10 w-24 bg-white/5 rounded-xl"></div>
-                    <div class="flex gap-2">
-                      <div class="size-11 bg-white/5 rounded-2xl"></div>
-                      <div class="size-11 bg-white/5 rounded-2xl"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
+            <app-loader />
           }
         </div>
       }

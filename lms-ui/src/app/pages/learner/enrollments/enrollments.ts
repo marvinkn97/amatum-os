@@ -17,11 +17,12 @@ import { finalize } from 'rxjs';
 import { EnrollmentService } from '../../../services/enrollment.service';
 import { NotificationService } from '../../../services/notification.service';
 import { TenantService } from '../../../services/tenant.service';
+import { Loader } from '../../../components/loader/loader';
 
 @Component({
   selector: 'app-enrollments',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, Loader],
   template: `
     <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
       <!-- Header -->
@@ -43,14 +44,18 @@ import { TenantService } from '../../../services/tenant.service';
         <div class="flex p-1 bg-white/5 border border-white/10 rounded-xl backdrop-blur-3xl">
           <button
             (click)="viewMode.set('active')"
-            [class]="viewMode() === 'active' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'"
+            [class]="
+              viewMode() === 'active' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'
+            "
             class="px-6 py-2 rounded-lg text-[12px] font-black uppercase tracking-widest transition-all cursor-pointer"
           >
             Active
           </button>
           <button
             (click)="viewMode.set('completed')"
-            [class]="viewMode() === 'completed' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'"
+            [class]="
+              viewMode() === 'completed' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'
+            "
             class="px-6 py-2 rounded-lg text-[12px] font-black uppercase tracking-widest transition-all cursor-pointer"
           >
             Completed
@@ -79,8 +84,12 @@ import { TenantService } from '../../../services/tenant.service';
               <!-- Progress Showcase -->
               <div class="space-y-4 mb-10">
                 <div class="flex items-center justify-between">
-                   <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Progress</span>
-                   <span class="text-[10px] font-black text-white italic">{{ enrollment?.progress }}%</span>
+                  <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+                    >Progress</span
+                  >
+                  <span class="text-[10px] font-black text-white italic"
+                    >{{ enrollment?.progress }}%</span
+                  >
                 </div>
                 <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
                   <div
@@ -97,7 +106,7 @@ import { TenantService } from '../../../services/tenant.service';
                     >Last Activity</span
                   >
                   <span class="text-[10px] text-white font-bold italic uppercase">{{
-                    (enrollment?.lastActivityAt) | date: 'MMM d, y'
+                    enrollment?.lastActivityAt | date: 'MMM d, y'
                   }}</span>
                 </div>
 
@@ -106,8 +115,18 @@ import { TenantService } from '../../../services/tenant.service';
                   class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
                   title="Open Enrollment"
                 >
-                  <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  <svg
+                    class="size-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                    />
                   </svg>
                 </a>
               </div>
@@ -115,26 +134,18 @@ import { TenantService } from '../../../services/tenant.service';
           </div>
         } @empty {
           @if (!isLoading()) {
-            <div class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center">
-              <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">No Courses Found</span>
+            <div
+              class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
+            >
+              <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                >No Courses Found</span
+              >
             </div>
           }
         }
 
-        <!-- SKELETONS -->
         @if (isLoading()) {
-          @for (i of [1, 2, 3]; track i) {
-            <div class="bg-white/2 border border-white/5 rounded-[2.5rem] h-80 overflow-hidden flex flex-col animate-pulse backdrop-blur-md">
-              <div class="h-32 bg-white/5"></div>
-              <div class="p-8 space-y-8 flex-1">
-                <div class="h-4 w-full bg-white/10 rounded-lg"></div>
-                <div class="space-y-3">
-                   <div class="h-1 w-10 bg-white/10 rounded"></div>
-                   <div class="h-2 w-full bg-white/5 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-          }
+          <app-loader />
         }
       </div>
 
@@ -176,7 +187,7 @@ export class EnrollmentsComponent implements OnInit, AfterViewInit {
     effect(() => {
       this.viewMode();
 
-       this.tenantService.tenantId();   // track changes, null allowed
+      this.tenantService.tenantId(); // track changes, null allowed
 
       untracked(() => this.resetAndReload());
     });
@@ -215,9 +226,10 @@ export class EnrollmentsComponent implements OnInit, AfterViewInit {
     if (this.isLoading()) return;
     this.isLoading.set(true);
 
-    const request = this.viewMode() === 'active'
-      ? this.enrollmentService.getActiveEnrollments(this.currentPage(), 10)
-      : this.enrollmentService.getCompletedEnrollments(this.currentPage(), 10);
+    const request =
+      this.viewMode() === 'active'
+        ? this.enrollmentService.getActiveEnrollments(this.currentPage(), 10)
+        : this.enrollmentService.getCompletedEnrollments(this.currentPage(), 10);
 
     request.pipe(finalize(() => this.isLoading.set(false))).subscribe({
       next: (response: any) => {

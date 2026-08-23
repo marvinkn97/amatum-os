@@ -20,18 +20,15 @@ import {
 import { TenantService } from '../../../services/tenant.service';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../../services/notification.service';
+import { Loader } from "../../../components/loader/loader";
 
 @Component({
   selector: 'app-learner-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Loader],
   template: `
     @if (isLoading()) {
-      <div class="max-w-7xl mx-auto px-6 py-20 text-center">
-        <div
-          class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin mx-auto"
-        ></div>
-      </div>
+      <app-loader />
     } @else {
       <div
         class="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20 p-4 lg:p-8 text-white"

@@ -15,11 +15,12 @@ import { CertificateService } from '../../../services/certificate.service';
 import { CertificateResponse } from '../../../services/certificate.service';
 import { TenantService } from '../../../services/tenant.service';
 import { NotificationService } from '../../../services/notification.service';
+import { Loader } from '../../../components/loader/loader';
 
 @Component({
   selector: 'app-my-certificates',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Loader],
   template: `
     <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
       <header
@@ -116,18 +117,7 @@ import { NotificationService } from '../../../services/notification.service';
 
       <div #sentinel class="w-full py-10 flex justify-center items-center">
         @if (isLoading()) {
-          <div class="flex gap-2 items-center">
-            <div
-              class="size-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"
-            ></div>
-            <div
-              class="size-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"
-            ></div>
-            <div class="size-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
-            <span class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] ml-2"
-              >Loading</span
-            >
-          </div>
+          <app-loader />
         }
       </div>
     </div>
@@ -156,17 +146,16 @@ export class MyCertificatesComponent implements AfterViewInit {
 
   constructor() {
     effect(() => {
-      // Re-trigger reload when filter signals change
       this.tenantService.tenantId();
       untracked(() => this.resetAndReload());
     });
   }
 
   private resetAndReload() {
-    this.certificates.set([]); // Clear current list
-    this.currentPage.set(0); // Reset to page 0
-    this.hasMore.set(true); // Reset pagination flag
-    this.fetchCertificates(); // Trigger fresh load
+    this.certificates.set([]);
+    this.currentPage.set(0);
+    this.hasMore.set(true);
+    this.fetchCertificates();
   }
 
   ngAfterViewInit() {
@@ -209,7 +198,7 @@ export class MyCertificatesComponent implements AfterViewInit {
           this.isLoading.set(false);
         },
         error: () => {
-          this.isLoading.set(false)
+          this.isLoading.set(false);
           this.notificationService.error('Failed to load certificates. Please try again later.');
         },
       });
