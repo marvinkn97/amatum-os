@@ -63,79 +63,77 @@ import { Loader } from '../../../components/loader/loader';
         </div>
       </div>
 
-      @if (isLoading()) {
-        <app-loader />
-      } @else {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
-          @for (enrollment of enrollments(); track enrollment?.id) {
-            <div
-              class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
-            >
-              <!-- Decorative Header (Thumbnail-like section) -->
-              <div [class]="'h-32 relative ' + getAccent(enrollment?.id)">
-                <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
+      <!-- Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
+        @for (enrollment of enrollments(); track enrollment?.id) {
+          <div
+            class="group bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 flex flex-col backdrop-blur-md"
+          >
+            <!-- Decorative Header (Thumbnail-like section) -->
+            <div [class]="'h-32 relative ' + getAccent(enrollment?.id)">
+              <div class="absolute inset-0 bg-linear-to-t from-[#030712] to-transparent"></div>
+            </div>
+
+            <div class="p-8 pt-6 flex flex-col flex-1">
+              <h3
+                class="text-md font-black text-white mb-8 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
+              >
+                {{ enrollment?.course?.title }}
+              </h3>
+
+              <!-- Progress Showcase -->
+              <div class="space-y-4 mb-10">
+                <div class="flex items-center justify-between">
+                  <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
+                    >Progress</span
+                  >
+                  <span class="text-[10px] font-black text-white italic"
+                    >{{ enrollment?.progress }}%</span
+                  >
+                </div>
+                <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
+                  <div
+                    class="h-full bg-indigo-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+                    [style.width.%]="enrollment?.progress"
+                  ></div>
+                </div>
               </div>
 
-              <div class="p-8 pt-6 flex flex-col flex-1">
-                <h3
-                  class="text-md font-black text-white mb-8 italic tracking-tighter leading-tight group-hover:text-indigo-400 transition-colors uppercase"
-                >
-                  {{ enrollment?.course?.title }}
-                </h3>
-
-                <!-- Progress Showcase -->
-                <div class="space-y-4 mb-10">
-                  <div class="flex items-center justify-between">
-                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest"
-                      >Progress</span
-                    >
-                    <span class="text-[10px] font-black text-white italic"
-                      >{{ enrollment?.progress }}%</span
-                    >
-                  </div>
-                  <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
-                    <div
-                      class="h-full bg-indigo-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(99,102,241,0.5)]"
-                      [style.width.%]="enrollment?.progress"
-                    ></div>
-                  </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="mt-auto pt-6 flex items-center justify-between border-t border-white/5">
-                  <div class="flex flex-col">
-                    <span
-                      class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1"
-                      >Last Activity</span
-                    >
-                    <span class="text-[10px] text-white font-bold italic uppercase">{{
-                      enrollment?.lastActivityAt | date: 'MMM d, y'
-                    }}</span>
-                  </div>
-
-                  <a
-                    [routerLink]="['/learner/enrollments', enrollment.id]"
-                    class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
-                    title="Open Enrollment"
+              <!-- Footer -->
+              <div class="mt-auto pt-6 flex items-center justify-between border-t border-white/5">
+                <div class="flex flex-col">
+                  <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1"
+                    >Last Activity</span
                   >
-                    <svg
-                      class="size-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-                      />
-                    </svg>
-                  </a>
+                  <span class="text-[10px] text-white font-bold italic uppercase">{{
+                    enrollment?.lastActivityAt | date: 'MMM d, y'
+                  }}</span>
                 </div>
+
+                <a
+                  [routerLink]="['/learner/enrollments', enrollment.id]"
+                  class="size-11 bg-white/5 border border-white/10 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-white/10 hover:text-white transition-all active:scale-90 cursor-pointer"
+                  title="Open Enrollment"
+                >
+                  <svg
+                    class="size-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                    />
+                  </svg>
+                </a>
               </div>
             </div>
-          } @empty {
+          </div>
+        } @empty {
+          @if (!isLoading()) {
             <div
               class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
             >
@@ -144,8 +142,17 @@ import { Loader } from '../../../components/loader/loader';
               >
             </div>
           }
-        </div>
-      }
+        }
+
+        <!-- SKELETONS -->
+        @if (isLoading()) {
+          @for (i of [1, 2, 3]; track i) {
+            <app-loader type="skeleton-card" />
+          }
+        }
+      </div>
+
+      <div #scrollSentinel class="h-20 w-full"></div>
 
       <!-- Back to Top -->
       <button
@@ -183,7 +190,7 @@ export class EnrollmentsComponent implements OnInit, AfterViewInit {
     effect(() => {
       this.viewMode();
 
-      this.tenantService.tenantId(); // track changes, null allowed
+      this.tenantService.tenantId();
 
       untracked(() => this.resetAndReload());
     });

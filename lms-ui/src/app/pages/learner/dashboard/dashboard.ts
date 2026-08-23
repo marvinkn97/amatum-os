@@ -20,7 +20,7 @@ import {
 import { TenantService } from '../../../services/tenant.service';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../../services/notification.service';
-import { Loader } from '../../../components/loader/loader';
+import { Loader } from "../../../components/loader/loader";
 
 @Component({
   selector: 'app-learner-dashboard',
@@ -177,9 +177,11 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
   currentPage = signal<number>(0);
   hasNextPage = signal<boolean>(true);
 
+  // Discrete signals for each request state
   isCountersLoading = signal<boolean>(false);
   isEnrollmentsLoading = signal<boolean>(false);
 
+  // Computed state evaluates true if either request is pending execution
   isLoading = computed(() => this.isCountersLoading() || this.isEnrollmentsLoading());
 
   private readonly PAGE_SIZE = 10;
@@ -194,24 +196,25 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    if (!this.scrollSentinel) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage()) {
-          untracked(() => {
-            this.currentPage.update((p) => p + 1);
-            this.loadActiveData(false);
-          });
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(this.scrollSentinel.nativeElement);
+  // Check if the element was actually found in the DOM
+  if (!this.scrollSentinel) {
+    return; 
   }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage()) {
+        untracked(() => {
+          this.currentPage.update((p) => p + 1);
+          this.loadActiveData(false);
+        });
+      }
+    },
+    { threshold: 0.1 },
+  );
+
+  observer.observe(this.scrollSentinel.nativeElement);
+}
 
   private resetAndReload(): void {
     this.currentPage.set(0);
@@ -230,7 +233,7 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (data) => this.counters.set(data),
         error: (err) => {
-          console.error('Failed to update counter snapshot analytics', err);
+          console.error('Failed to update counter snapshot analytics', err)
           this.notificationService.error('Failed to load dashboard data. Please try again later.');
         },
       });

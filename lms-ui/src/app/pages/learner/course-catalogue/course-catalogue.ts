@@ -440,7 +440,7 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   // Signals
   searchQuery = signal('');
   activeCategoryId = signal('');
-  activeCategoryName = signal('All Categories');
+  activeCategoryName = signal('All');
   courses = signal<any[]>([]);
   currentPage = signal(0);
   hasNextPage = signal(true);
