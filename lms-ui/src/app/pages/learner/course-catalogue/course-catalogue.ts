@@ -19,7 +19,7 @@ import { CourseService } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
 import { TenantService } from '../../../services/tenant.service';
 import { NotificationService } from '../../../services/notification.service';
-import { Loader } from "../../../components/loader/loader";
+import { Loader } from '../../../components/loader/loader';
 
 interface ChatMessage {
   sender: 'user' | 'ai';
@@ -57,9 +57,7 @@ interface ChatMessage {
           </div>
         </div>
       } @else if (hasError()) {
-        <div
-          class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300"
-        >
+        <div class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300">
           <div class="max-w-md mx-auto text-center space-y-4">
             <div
               class="size-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-rose-400"
@@ -93,7 +91,9 @@ interface ChatMessage {
           class="mb-12 rounded-2xl bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
         >
           <!-- Window Title Bar -->
-          <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
+          <div
+            class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between"
+          >
             <div class="flex items-center gap-2.5">
               <div class="flex gap-1.5">
                 <div class="size-3 rounded-full bg-rose-500/80"></div>
@@ -254,8 +254,18 @@ interface ChatMessage {
             </div>
             <div class="relative w-full h-15.5 flex items-center">
               <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  class="size-4 text-slate-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
               <input
@@ -338,7 +348,9 @@ interface ChatMessage {
                 </div>
 
                 <!-- Footer Actions -->
-                <div class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5">
+                <div
+                  class="mt-auto pt-6 flex items-center justify-end gap-3 border-t border-white/5"
+                >
                   <div class="mr-auto flex flex-col items-start">
                     @if (course.accessTier === 'PREMIUM') {
                       <span
@@ -451,7 +463,11 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   searchTerm = signal('');
   showBackToTop = signal(false);
 
-  isPageLoading = computed(() => this.isLoadingCategories() || (this.isLoading() && this.courses().length === 0 && !this.hasError()));
+  isPageLoading = computed(
+    () =>
+      this.isLoadingCategories() ||
+      (this.isLoading() && this.courses().length === 0 && !this.hasError()),
+  );
 
   // AI Chat State
   currentMessage = signal('');
@@ -523,7 +539,13 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
     this.courseObserver?.disconnect();
     this.courseObserver = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !this.isLoading() && this.hasNextPage() && this.courses().length > 0 && !this.hasError()) {
+        if (
+          entries[0].isIntersecting &&
+          !this.isLoading() &&
+          this.hasNextPage() &&
+          this.courses().length > 0 &&
+          !this.hasError()
+        ) {
           untracked(() => {
             this.currentPage.update((p) => p + 1);
             this.loadData(false);
