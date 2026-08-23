@@ -44,18 +44,7 @@ interface ChatMessage {
       </header>
 
       @if (isPageLoading()) {
-        <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
-          <div
-            class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"
-          ></div>
-          <div
-            class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold space-y-1 text-center"
-          >
-            @if (isLoadingCategories() || (isLoading() && courses().length === 0)) {
-              <div>Loading...</div>
-            }
-          </div>
-        </div>
+          <app-loader />
       } @else if (hasError()) {
         <div class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300">
           <div class="max-w-md mx-auto text-center space-y-4">
@@ -389,7 +378,7 @@ interface ChatMessage {
               </div>
             </div>
           } @empty {
-            @if (!isLoading()) {
+          
               <div
                 class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
               >
@@ -397,7 +386,7 @@ interface ChatMessage {
                   >No Courses Available</span
                 >
               </div>
-            }
+            
           }
 
           @if (isLoading()) {

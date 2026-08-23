@@ -8,21 +8,18 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { EnrollmentRequest, EnrollmentService } from '../../../services/enrollment.service';
 import { NotificationService } from '../../../services/notification.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Loader } from '../../../components/loader/loader';
 
 @Component({
   selector: 'app-course-details',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, Loader],
   template: `
     <div
       class="min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-indigo-500/30  p-4 lg:p-8"
     >
       @if (isLoading()) {
-        <div class="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div
-            class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin mx-auto"
-          ></div>
-        </div>
+        <app-loader></app-loader>
       } @else if (course()) {
         <nav
           class="h-16 border-b border-white/5 bg-[#030712]/95 backdrop-blur-3xl sticky top-0 z-100 px-4 md:px-8"
