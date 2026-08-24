@@ -17,6 +17,7 @@ import { Subject, takeUntil, finalize } from 'rxjs';
 import { CategoryService } from '../../../services/category.service';
 import { CourseService } from '../../../services/course.service';
 import { AuthService } from '../../../services/auth.service';
+import { Loader } from '../../../components/loader/loader';
 
 interface ChatMessage {
   sender: 'user' | 'ai';
@@ -26,7 +27,7 @@ interface ChatMessage {
 @Component({
   selector: 'app-explore',
   standalone: true,
-  imports: [CommonModule, RouterModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterModule, RouterLink, FormsModule, Loader],
   host: { class: 'dark block' },
   template: `
     <div
@@ -35,7 +36,7 @@ interface ChatMessage {
       <nav class="fixed top-0 w-full z-50 border-b border-white/5 backdrop-blur-xl bg-[#030712]/50">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <div
-            class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer"
+            class="flex items-center gap-2 font-black text-lg tracking-tighter cursor-pointer"
             routerLink="/"
           >
             <div
@@ -44,9 +45,9 @@ interface ChatMessage {
               A
             </div>
             <div class="flex items-baseline gap-2">
-              <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
+              <div class="font-bold tracking-tight text-lg text-white leading-none">AMATUM</div>
               <span
-                class="text-indigo-400 text-xl uppercase tracking-widest font-semibold leading-none"
+                class="text-indigo-400 text-lg uppercase tracking-widest font-semibold leading-none"
                 >Lumina</span
               >
             </div>
@@ -140,18 +141,11 @@ interface ChatMessage {
         </header>
 
         @if (isPageLoading()) {
-          <div class="py-32 flex flex-col items-center justify-center gap-4 animate-in fade-in">
-            <div
-              class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin"
-            ></div>
-            <div
-              class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold space-y-1 text-center"
-            >
-              @if (isLoadingCategories() || isLoadingCourses()) {
-                <div>Loading...</div>
-              }
-            </div>
-          </div>
+          <app-loader
+            type="spinner"
+            text="Loading Catalog"
+            containerClass="py-32 w-full flex items-center justify-center"
+          />
         } @else if (hasError()) {
           <div
             class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300"
@@ -188,7 +182,9 @@ interface ChatMessage {
             class="mb-12 rounded-2xl bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
           >
             <!-- Window Title Bar -->
-            <div class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
+            <div
+              class="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between"
+            >
               <div class="flex items-center gap-2.5">
                 <div class="flex gap-1.5">
                   <div class="size-3 rounded-full bg-rose-500/80"></div>
@@ -342,8 +338,18 @@ interface ChatMessage {
               </div>
               <div class="relative w-full h-15.5 flex items-center">
                 <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                  <svg class="size-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    class="size-4 text-slate-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 </div>
                 <input
@@ -461,24 +467,7 @@ interface ChatMessage {
 
             @if (isLoadingCourses() && courses().length > 0) {
               @for (i of [1, 2, 3]; track i) {
-                <div
-                  class="bg-white/2 border border-white/5 rounded-[2.5rem] h-105 overflow-hidden flex flex-col animate-pulse backdrop-blur-md"
-                >
-                  <div class="h-40 bg-white/5 relative"></div>
-                  <div class="p-8 pt-4 space-y-6 flex-1 flex flex-col">
-                    <div class="flex gap-2"><div class="h-2 w-12 bg-white/10 rounded"></div></div>
-                    <div class="space-y-3">
-                      <div class="h-5 w-full bg-white/10 rounded-lg"></div>
-                      <div class="h-5 w-2/3 bg-white/10 rounded-lg"></div>
-                    </div>
-                    <div class="mt-auto pt-10 border-t border-white/5 flex justify-between">
-                      <div class="h-10 w-24 bg-white/5 rounded-xl"></div>
-                      <div class="flex gap-2">
-                        <div class="size-11 bg-white/5 rounded-2xl"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <app-loader type="skeleton-card" />
               }
             }
           </div>

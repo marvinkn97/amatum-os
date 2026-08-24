@@ -834,7 +834,7 @@ import { RatingRequest, RatingService } from '../../../services/rating.service';
             <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 overflow-x-hidden">
               @if (activeTab() === 'content') {
                 <div class="divide-y divide-white/5 animate-in fade-in duration-300">
-                  @for (module of enrollment()?.course?.modules; track module.id; let i = $index) {
+                  @for (module of enrollment()?.course.modules; track module.id; let i = $index) {
                     <div class="group">
                       <button
                         (click)="toggleModule(module.id)"
@@ -876,12 +876,12 @@ import { RatingRequest, RatingService } from '../../../services/rating.service';
                                 <div
                                   class="size-5 rounded-md border-2 transition-all flex items-center justify-center shrink-0"
                                   [class]="
-                                    step?.progress?.isCompleted
+                                    step?.progress.isCompleted
                                       ? 'bg-indigo-500 border-indigo-500'
                                       : 'border-white/10 group-hover/step:border-indigo-500'
                                   "
                                 >
-                                  @if (step?.progress?.isCompleted) {
+                                  @if (step?.progress.isCompleted) {
                                     <svg
                                       class="size-3 text-white"
                                       fill="none"
