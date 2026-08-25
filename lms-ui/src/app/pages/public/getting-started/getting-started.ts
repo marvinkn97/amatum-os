@@ -17,11 +17,6 @@ import { AuthService } from '../../../services/auth.service';
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <!-- Logo -->
           <div class="flex items-center gap-2 font-black text-lg tracking-tighter cursor-pointer">
-            <div
-              class="size-9 rounded-xl  bg-indigo-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform"
-            >
-              A
-            </div>
             <div class="flex items-baseline gap-2">
               <div class="font-bold tracking-tight text-lg text-white leading-none">AMATUM</div>
               <span
