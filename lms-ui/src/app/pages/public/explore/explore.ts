@@ -136,9 +136,11 @@ interface ChatMessage {
         </header>
 
         @if (isPageLoading()) {
-          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-                <app-loader type="skeleton-card" />
-              }
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              <app-loader type="skeleton-card" />
+            }
+          </div>
         } @else if (hasError()) {
           <div
             class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300"
