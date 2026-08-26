@@ -13,12 +13,9 @@ import { Component } from '@angular/core';
       <nav class="fixed top-0 inset-x-0 z-50 bg-[#030712]/90 backdrop-blur-xl">
         <div class="max-w-7xl mx-auto h-20 px-6 sm:px-8 flex items-center justify-between">
           <div class="flex items-center gap-3 cursor-pointer group">
-            <div class="size-9 rounded-xl bg-linear-to-tr from-indigo-600 via-sky-500 to-emerald-400 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-              A
-            </div>
             <div class="flex items-baseline gap-2">
-              <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
-              <span class="text-sky-400 text-xl uppercase tracking-widest font-semibold leading-none">Talemai</span>
+              <div class="font-bold tracking-tight text-lg text-white leading-none">AMATUM</div>
+              <span class="text-sky-400 text-lg uppercase tracking-widest font-semibold leading-none">Talemai</span>
             </div>
           </div>
         </div>

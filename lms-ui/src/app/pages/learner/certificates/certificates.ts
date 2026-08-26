@@ -35,9 +35,8 @@ import { Loader } from '../../../components/loader/loader';
       </header>
 
       @if (isLoading()) {
-        <app-loader />
+        <app-loader type="spinner" />
       } @else {
-        <!-- Reduced max-width on the grid container to prevent empty space -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-5xl">
           @for (cert of certificates(); track cert.serialNumber; let i = $index) {
             <div

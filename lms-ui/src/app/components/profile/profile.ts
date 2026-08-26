@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import Keycloak from 'keycloak-js';
 import { finalize } from 'rxjs';
 import { IdentityService } from '../../services/identity.service';
+import { Loader } from '../loader/loader';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Loader],
   template: `
     <div class="max-w-6xl mx-auto md:px-6 p-4 lg:p-8 pb-20 px-6">
       <div class="mb-8 md:mb-12">
@@ -71,14 +72,8 @@ import { IdentityService } from '../../services/identity.service';
       }
 
       @if (loading()) {
-        <div class="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div
-            class="size-6 border-2 border-white/10 border-t-indigo-500 rounded-full animate-spin mx-auto"
-          ></div>
-        </div>
-      }
-
-      @if (!loading() && firstName) {
+        <app-loader type="spinner" />
+      } @else {
         <div class="space-y-12 md:space-y-20 animate-in fade-in duration-700">
           <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
             <div
@@ -350,8 +345,6 @@ export class ProfileComponent implements OnInit {
           this.lastName = user.lastName;
           this.email = user.email;
           this.originalData = { firstName: user.firstName, lastName: user.lastName };
-
-          // KEYCLOAK CHECK: Access the verified claim from the token
           const verified = this.keycloak.tokenParsed?.['email_verified'];
           this.isEmailVerified.set(!!verified);
         },

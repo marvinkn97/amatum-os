@@ -44,35 +44,10 @@ interface ChatMessage {
       </header>
 
       @if (isPageLoading()) {
-          <app-loader />
-      } @else if (hasError()) {
-        <div class="w-full py-20 flex items-center justify-center animate-in fade-in duration-300">
-          <div class="max-w-md mx-auto text-center space-y-4">
-            <div
-              class="size-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-rose-400"
-            >
-              <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-            <h2 class="text-md font-black tracking-widest uppercase text-slate-200">
-              Catalog Offline
-            </h2>
-            <p class="text-slate-500 text-xs leading-relaxed">
-              We're having trouble reaching our servers right now. Please try again shortly.
-            </p>
-            <button
-              (click)="retryConnections()"
-              class="px-6 py-2 bg-white text-black hover:bg-indigo-600 hover:text-white font-black text-[10px] tracking-widest uppercase rounded-xl transition-all active:scale-95 cursor-pointer"
-            >
-              Retry
-            </button>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <app-loader type="skeleton-card" />
+          }
         </div>
       } @else {
         <!-- AI Chat Section -->
@@ -378,15 +353,13 @@ interface ChatMessage {
               </div>
             </div>
           } @empty {
-          
-              <div
-                class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
+            <div
+              class="col-span-full py-32 border border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center text-center"
+            >
+              <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                >No Courses Available</span
               >
-                <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
-                  >No Courses Available</span
-                >
-              </div>
-            
+            </div>
           }
 
           @if (isLoading()) {

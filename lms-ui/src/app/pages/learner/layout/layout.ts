@@ -22,14 +22,6 @@ interface Organization {
       <header
         class="lg:hidden h-16 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl flex items-center justify-between px-4 z-100 shrink-0"
       >
-        <div class="flex items-center gap-3">
-          <div
-            class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white text-xs"
-          >
-            A
-          </div>
-          <span class="font-black tracking-tighter uppercase text-xs">Amatum</span>
-        </div>
         <button (click)="isMobileMenuOpen.set(!isMobileMenuOpen())" class="p-2 text-slate-400">
           <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             @if (!isMobileMenuOpen()) {
@@ -47,11 +39,6 @@ interface Organization {
         class="fixed inset-y-0 left-0 w-72 border-r border-white/10 bg-[#030712] flex flex-col z-110 transition-transform duration-300 lg:relative lg:translate-x-0 lg:w-64 lg:bg-[#030712]/50 lg:backdrop-blur-2xl"
       >
         <div class="h-16 hidden lg:flex items-center px-6 border-b border-white/5 shrink-0">
-          <div
-            class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20 text-xs"
-          >
-            A
-          </div>
           <span class="ml-3 font-black tracking-tighter uppercase text-sm">Amatum Lumina</span>
         </div>
 
