@@ -11,13 +11,17 @@ import { Loader } from '../loader/loader';
   standalone: true,
   imports: [CommonModule, FormsModule, Loader],
   template: `
-    <div class="max-w-6xl mx-auto md:px-6 p-4 lg:p-8 pb-20 px-6">
-      <div class="mb-8 md:mb-12">
-        <h1 class="text-md font-black text-white tracking-tighter uppercase italic">
-          Profile Settings
-        </h1>
-        <div class="h-1 w-10 bg-indigo-600 mt-3 rounded-full"></div>
-      </div>
+    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
+        <header
+        class="relative z-50 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
+      >
+        <div class="space-y-1">
+          <h1 class="text-md font-black text-white italic tracking-tighter uppercase">Profile Settings</h1>
+          <p class="text-slate-500 text-sm font-medium">
+            Manage your profile, preferences, and account details.
+          </p>
+        </div>
+      </header>
 
       @if (errorMessage() && !firstName) {
         <div

@@ -52,11 +52,6 @@ interface Organization {
           >
             A
           </div>
-          <div
-            class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white text-xs"
-          >
-            A
-          </div>
           <span class="ml-3 font-black tracking-tighter uppercase text-sm">Amatum Lumina</span>
         </div>
 
