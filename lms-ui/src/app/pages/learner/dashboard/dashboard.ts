@@ -28,7 +28,7 @@ import { Loader } from "../../../components/loader/loader";
   imports: [CommonModule, Loader],
   template: `
     @if (isLoading()) {
-      <app-loader />
+      <app-loader type="spinner" />
     } @else {
       <div
         class="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20 p-4 lg:p-8 text-white"
