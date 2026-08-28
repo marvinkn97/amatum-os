@@ -22,15 +22,10 @@ import { AuthService } from '../../../services/auth.service';
       <nav class="fixed top-0 w-full z-40 backdrop-blur-xl bg-[#030712]/50">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex justify-between items-center">
           <div class="flex items-center gap-2 font-black text-xl tracking-tighter cursor-pointer">
-            <div
-              class="size-9 rounded-xl bg-emerald-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform"
-            >
-              A
-            </div>
             <div class="flex items-baseline gap-2">
-              <div class="font-bold tracking-tight text-xl text-white leading-none">AMATUM</div>
+              <div class="font-bold tracking-tight text-lg text-white leading-none">AMATUM</div>
               <span
-                class="text-emerald-400 text-xl uppercase tracking-widest font-semibold leading-none"
+                class="text-emerald-400 text-lg uppercase tracking-widest font-semibold leading-none"
                 >Opus</span
               >
             </div>
@@ -82,7 +77,7 @@ import { AuthService } from '../../../services/auth.service';
 
           <nav class="flex flex-col space-y-4">
             <a
-              routerLink="/explore"
+              routerLink="browse-jobs"
               (click)="isMenuOpen.set(false)"
               class="flex items-center justify-between w-full px-4 py-4 bg-white/5 rounded-2xl text-white text-sm font-semibold"
             >

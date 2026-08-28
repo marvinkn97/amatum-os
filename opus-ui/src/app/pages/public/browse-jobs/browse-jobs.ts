@@ -207,12 +207,12 @@ interface ChatMessage {
       <section
         class="p-6 md:p-8 rounded-[2.5rem] bg-white/2 border border-white/5 backdrop-blur-sm space-y-6"
       >
-        <h2 class="text-xs font-black uppercase tracking-widest text-white">Refine Parameters</h2>
+        <h2 class="text-sm font-black uppercase tracking-widest text-white">Refine Parameters</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
           <!-- Job Type -->
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2.5"
+            <label class="text-xs font-bold text-slate-400 uppercase block mb-2.5"
               >Employment Type</label
             >
             <div class="flex flex-wrap gap-1.5">
@@ -225,9 +225,9 @@ interface ChatMessage {
                   [class]="
                     selectedTypes().includes(type)
                       ? 'bg-emerald-600 border-emerald-500 text-white'
-                      : 'bg-white/5 border-white/5 text-slate-400'
+                      : 'bg-white/5 border-white/5 text-slate-300'
                   "
-                  class="px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all hover:border-white/20 cursor-pointer"
+                  class="px-3.5 py-2 rounded-xl border text-xs font-bold transition-all hover:border-white/20 cursor-pointer"
                 >
                   {{ type }}
                 </button>
@@ -237,7 +237,7 @@ interface ChatMessage {
 
           <!-- Work Mode -->
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2.5"
+            <label class="text-xs font-bold text-slate-400 uppercase block mb-2.5"
               >Work Mode</label
             >
             <div class="flex flex-wrap gap-1.5">
@@ -247,9 +247,9 @@ interface ChatMessage {
                   [class]="
                     selectedWorkModes().includes(mode)
                       ? 'bg-emerald-600 border-emerald-500 text-white'
-                      : 'bg-white/5 border-white/5 text-slate-400'
+                      : 'bg-white/5 border-white/5 text-slate-300'
                   "
-                  class="px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all hover:border-white/20 cursor-pointer"
+                  class="px-3.5 py-2 rounded-xl border text-xs font-bold transition-all hover:border-white/20 cursor-pointer"
                 >
                   {{ mode }}
                 </button>
@@ -259,7 +259,7 @@ interface ChatMessage {
 
           <!-- Experience Level -->
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2.5"
+            <label class="text-xs font-bold text-slate-400 uppercase block mb-2.5"
               >Experience Level</label
             >
             <div class="flex flex-wrap gap-1.5">
@@ -272,9 +272,9 @@ interface ChatMessage {
                   [class]="
                     selectedExperience().includes(level)
                       ? 'bg-emerald-600 border-emerald-500 text-white'
-                      : 'bg-white/5 border-white/5 text-slate-400'
+                      : 'bg-white/5 border-white/5 text-slate-300'
                   "
-                  class="px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all hover:border-white/20 cursor-pointer"
+                  class="px-3.5 py-2 rounded-xl border text-xs font-bold transition-all hover:border-white/20 cursor-pointer"
                 >
                   {{ level }}
                 </button>
@@ -282,27 +282,19 @@ interface ChatMessage {
             </div>
           </div>
 
-          <!-- Salary Range Component -->
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <label class="text-[10px] font-bold text-slate-500 uppercase">Minimum Salary</label>
-              <span class="text-xs font-black text-emerald-400"
-                >\${{ salaryRange() | number }}k / yr</span
-              >
-            </div>
-            <input
-              type="range"
-              min="50"
-              max="350"
-              step="10"
-              [ngModel]="salaryRange()"
-              (ngModelChange)="salaryRange.set($event)"
-              class="w-full accent-emerald-500 bg-white/10 rounded-lg h-2 cursor-pointer"
-            />
-            <div class="flex justify-between text-[9px] font-bold text-slate-600">
-              <span>$50k</span>
-              <span>$200k</span>
-              <span>$350k+</span>
+          <!-- Search by Title Input -->
+          <div class="space-y-2.5">
+            <label class="text-xs font-bold text-slate-400 uppercase block"
+              >Search by Title</label
+            >
+            <div class="relative flex items-center">
+              <input
+                type="text"
+                [ngModel]="searchTitle()"
+                (ngModelChange)="searchTitle.set($event)"
+                placeholder="e.g., java developer"
+                class="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-xs md:text-sm focus:border-emerald-500/50 outline-none transition-all text-white placeholder-slate-500 shadow-inner"
+              />
             </div>
           </div>
         </div>
@@ -315,7 +307,7 @@ export class BrowseJobsComponent {
   selectedTypes = signal<string[]>([]);
   selectedWorkModes = signal<string[]>([]);
   selectedExperience = signal<string[]>([]);
-  salaryRange = signal<number>(120);
+  searchTitle = signal<string>('');
 
   currentMessage = signal('');
   messages = signal<ChatMessage[]>([
