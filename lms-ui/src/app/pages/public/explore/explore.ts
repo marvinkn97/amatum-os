@@ -257,7 +257,7 @@ interface ChatMessage {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <div>
               <div class="mb-6">
-                <h2 class="text-xs font-black tracking-widest text-slate-300">
+                <h2 class="text-xs uppercase font-black tracking-widest text-slate-300">
                   Search by Category
                 </h2>
                 <p class="text-[14px] text-slate-500 font-medium mt-1">
@@ -324,7 +324,7 @@ interface ChatMessage {
 
             <div>
               <div class="mb-6">
-                <h2 class="text-xs font-black tracking-widest text-slate-300">
+                <h2 class="text-xs uppercase font-black tracking-widest text-slate-300">
                   Search by Name
                 </h2>
                 <p class="text-[14px] text-slate-500 font-medium mt-1">
