@@ -5,15 +5,14 @@ import Keycloak from 'keycloak-js';
 import { finalize } from 'rxjs';
 import { IdentityService } from '../../services/identity.service';
 import { Loader } from '../loader/loader';
+import { ErrorStateComponent } from '../error-state/error-state';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, Loader],
+  imports: [CommonModule, FormsModule, Loader, ErrorStateComponent],
   template: `
-    <div
-      class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6"
-    >
+    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
       <header
         class="relative z-50 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
       >
@@ -30,59 +29,20 @@ import { Loader } from '../loader/loader';
       @if (loading()) {
         <app-loader type="spinner" />
       } @else if (profileLoadError()) {
-        <div
-          class="p-6 md:p-10 border border-red-500/20 bg-red-500/5 backdrop-blur-xl rounded-3xl animate-in fade-in slide-in-from-top-4 duration-500"
-        >
-          <div class="flex flex-col items-center text-center space-y-4">
-            <div
-              class="size-12 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 mb-2"
-            >
-              <svg
-                class="size-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-
-            <h2
-              class="text-xs font-black text-red-400 uppercase tracking-[0.3em]"
-            >
-              Profile Unavailable
-            </h2>
-
-            <p class="text-sm text-slate-400 max-w-xs mx-auto font-medium">
-              We couldn't load your profile information right now.
-            </p>
-
-            <button
-              (click)="loadUserProfile()"
-              class="mt-4 px-8 py-2.5 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-400 transition-all shadow-lg shadow-red-500/20"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
+        <app-error-state
+          title="Profile Unavailable"
+          message="We couldn't load your profile information right now."
+          (retry)="loadUserProfile()"
+        />
       } @else {
         <div class="space-y-12 md:space-y-20 animate-in fade-in duration-700">
           <!-- Identity -->
-          <section
-            class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start"
-          >
+          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
             <div
               class="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-sm order-2 lg:order-1 relative overflow-hidden"
             >
               @if (isSubmitting()) {
-                <div
-                  class="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500/20 overflow-hidden"
-                >
+                <div class="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500/20 overflow-hidden">
                   <div class="h-full bg-indigo-500 animate-progress-fast"></div>
                 </div>
               }
@@ -127,9 +87,7 @@ import { Loader } from '../loader/loader';
                 [class.opacity-50]="isSubmitting()"
               >
                 <div class="space-y-2">
-                  <label
-                    class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase"
-                  >
+                  <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase">
                     First Name
                   </label>
 
@@ -149,9 +107,7 @@ import { Loader } from '../loader/loader';
                 </div>
 
                 <div class="space-y-2">
-                  <label
-                    class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase"
-                  >
+                  <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase">
                     Last Name
                   </label>
 
@@ -173,9 +129,7 @@ import { Loader } from '../loader/loader';
             </div>
 
             <div class="lg:col-span-4 order-1 lg:order-2 px-1">
-              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">
-                Identity Details
-              </h3>
+              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">Identity Details</h3>
 
               <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
                 Modify your recorded name for official documentation purposes.
@@ -184,9 +138,7 @@ import { Loader } from '../loader/loader';
           </section>
 
           <!-- Communication -->
-          <section
-            class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-center"
-          >
+          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-center">
             <div
               class="lg:col-span-8 bg-white/5 border border-white/5 rounded-2xl p-6 flex flex-row items-center justify-between gap-4 order-2 lg:order-1 min-w-0 transition-all"
             >
@@ -209,9 +161,7 @@ import { Loader } from '../loader/loader';
                 <div
                   class="shrink-0 flex items-center gap-2 px-2.5 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg"
                 >
-                  <div
-                    class="size-1.5 rounded-full bg-green-500 animate-pulse"
-                  ></div>
+                  <div class="size-1.5 rounded-full bg-green-500 animate-pulse"></div>
 
                   <span
                     class="text-[8px] sm:text-[9px] font-black text-green-500 uppercase tracking-wider whitespace-nowrap"
@@ -235,9 +185,7 @@ import { Loader } from '../loader/loader';
             </div>
 
             <div class="lg:col-span-4 order-1 lg:order-2 px-1">
-              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">
-                Communication
-              </h3>
+              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">Communication</h3>
 
               <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
                 Primary contact for system alerts and security notifications.
@@ -246,9 +194,7 @@ import { Loader } from '../loader/loader';
           </section>
 
           <!-- Security -->
-          <section
-            class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start"
-          >
+          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
             <div
               class="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-sm order-2 lg:order-1 relative overflow-hidden"
             >
@@ -270,9 +216,7 @@ import { Loader } from '../loader/loader';
               </div>
 
               @if (isChangingPassword()) {
-                <div
-                  class="space-y-6 animate-in slide-in-from-left-4 duration-300"
-                >
+                <div class="space-y-6 animate-in slide-in-from-left-4 duration-300">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <input
                       type="password"
@@ -289,9 +233,7 @@ import { Loader } from '../loader/loader';
                     />
                   </div>
 
-                  <div
-                    class="flex justify-end gap-4 pt-4 border-t border-white/5"
-                  >
+                  <div class="flex justify-end gap-4 pt-4 border-t border-white/5">
                     <button
                       (click)="cancelPasswordChange()"
                       class="text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors"
@@ -317,9 +259,7 @@ import { Loader } from '../loader/loader';
             </div>
 
             <div class="lg:col-span-4 order-1 lg:order-2 px-1">
-              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">
-                Credentials
-              </h3>
+              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">Credentials</h3>
 
               <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
                 Update your password to keep your account secure.
@@ -393,9 +333,7 @@ export class ProfileComponent implements OnInit {
 
     this.identityService
       .getUserProfile()
-      .pipe(
-        finalize(() => this.loading.set(false))
-      )
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (user) => {
           this.firstName = user.firstName;
@@ -429,9 +367,7 @@ export class ProfileComponent implements OnInit {
         firstName: this.firstName,
         lastName: this.lastName,
       })
-      .pipe(
-        finalize(() => this.isSubmitting.set(false))
-      )
+      .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
           this.originalData = {
@@ -459,19 +395,13 @@ export class ProfileComponent implements OnInit {
       .updatePassword({
         password: this.newPassword,
       })
-      .pipe(
-        finalize(() => this.isSubmitting.set(false))
-      )
+      .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
           this.cancelPasswordChange();
 
           // Logout to force re-authentication with the new password.
-          this.keycloak
-            .logout()
-            .then((r) =>
-              console.log('Logged out after password change', r)
-            );
+          this.keycloak.logout().then((r) => console.log('Logged out after password change', r));
         },
 
         error: () => {
