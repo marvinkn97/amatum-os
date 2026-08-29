@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 
 export interface PagedResponse<T> {
   _embedded?: {
-    courseResponseList: T[]; // Name matches your Response DTO list
+    courseResponseList: T[];
   };
   _links: {
     self: { href: string };
@@ -40,19 +40,19 @@ export interface ModuleReOrderRequest {
 }
 
 export interface CourseResponse {
-  id: string; // UUIDs are handled as strings in JS/TS
+  id: string;
   title: string;
   slug: string;
   description: string;
-  tags: string[]; // Set<String> maps to string[]
+  tags: string[];
   isPublic: boolean;
-  accessTier: 'FREE' | 'PREMIUM'; // Using a union type for your Enum
-  price: number; // BigDecimal maps to number
+  accessTier: 'FREE' | 'PREMIUM';
+  price: number;
   categoryId: string; // UUID
-  status: 'DRAFT' | 'PUBLISHED'; // Matches your CourseStatus enum
+  status: 'DRAFT' | 'PUBLISHED';
   tenantId: string;
   modules: ModuleResponse[];
-  isReadyToPublish: boolean; // New field to indicate if the course is ready to publish
+  isReadyToPublish: boolean;
   moduleCount: number;
   learningStepCount: number;
   isEnrolled: boolean;
@@ -92,7 +92,7 @@ export class CourseService {
   fetchCourses(
     view: 'active' | 'archived',
     search: string = '',
-    categoryId: string = '', // Default to empty string
+    categoryId: string = '',
     page: number = 0,
     size: number = 9,
   ): Observable<PagedResponse<CourseResponse>> {

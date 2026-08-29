@@ -202,7 +202,7 @@ interface ChatMessage {
       <section
         class="p-6 md:p-8 rounded-[2.5rem] bg-white/2 border border-white/5 backdrop-blur-sm space-y-6"
       >
-        <h2 class="text-sm font-black uppercase tracking-widest text-white">Refine Parameters</h2>
+        <h2 class="text-xs font-black uppercase tracking-widest text-white">Refine Parameters</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
           <!-- Search by Title Input -->

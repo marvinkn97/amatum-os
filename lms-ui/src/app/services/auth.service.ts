@@ -222,7 +222,6 @@ export class AuthService {
     const orgClaim = this.user()?.['organization'];
     if (!orgClaim) return [];
 
-    // Get the group path dynamically from environment using the roleKey
     const requiredGroupPath = environment.orgRoles[roleKey];
 
     interface OrgClaimData {

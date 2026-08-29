@@ -2937,15 +2937,15 @@ export class CourseBuilder implements OnInit {
       return;
     }
 
-      console.log('📝 Saving course with data:', {
-    title: data.title,
-    categoryId: data.categoryId,
-    description: data.description?.length,
-    tags: data.tags.length,
-    tier: data.tier,
-    price: data.price,
-    isReady: this.isReadyToPublish()
-  });
+    console.log('📝 Saving course with data:', {
+      title: data.title,
+      categoryId: data.categoryId,
+      description: data.description?.length,
+      tags: data.tags.length,
+      tier: data.tier,
+      price: data.price,
+      isReady: this.isReadyToPublish(),
+    });
 
     if (this.isSaving()) return;
 
@@ -4338,8 +4338,15 @@ export class CourseBuilder implements OnInit {
           res.title || (type === 'LESSON' ? 'Untitled Lesson' : 'Untitled Quiz'),
         );
 
-        this.clearLessonEditorState();
-        this.setView('MODULE_STRUCTURE', moduleId);
+        // 🔥 THE FIX: Stay in the editor for quizzes
+        if (type === 'QUIZ') {
+          // Re-select the step with fresh backend data
+          this.selectStep(res);
+        } else {
+          // For lessons, go back to module structure
+          this.clearLessonEditorState();
+          this.setView('MODULE_STRUCTURE', moduleId);
+        }
       },
       error: (err: any) => {
         this.notificationService.error(

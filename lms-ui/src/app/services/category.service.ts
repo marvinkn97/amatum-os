@@ -17,7 +17,7 @@ export interface CourseCategoryResponse {
 
 export interface PagedResponse<T> {
   _embedded?: {
-    categoryResponseList: T[]; // Name matches your Response DTO list
+    categoryResponseList: T[];
   };
   _links: {
     self: { href: string };
@@ -41,13 +41,10 @@ export class CategoryService {
   private http = inject(HttpClient);
   private readonly API_URL =  environment.apiUrl + 'categories';
 
-  // Signals for state management
   categories = signal<CourseCategory[]>([]);
   pagination = signal<PagedResponse<CourseCategory>['page'] | null>(null);
 
-  /**
-   * Fetch all categories with HATEOAS pagination
-   */
+ 
   getAllCategories(page: number = 0, size: number = 10): Observable<PagedResponse<CourseCategory>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
 
@@ -61,24 +58,14 @@ export class CategoryService {
     );
   }
 
-
-  /**
-   * Create a new category
-   */
   createCategory(request: { name: string; description: string }): Observable<void> {
     return this.http.post<void>(this.API_URL, request);
   }
 
-  /**
-   * Update an existing category using PATCH
-   */
   updateCategory(id: string, request: { name: string; description: string }): Observable<void> {
     return this.http.patch<void>(`${this.API_URL}/${id}`, request);
   }
 
-  /**
-   * Toggle active/inactive status
-   */
   toggleStatus(id: string): Observable<void> {
     return this.http.patch<void>(`${this.API_URL}/${id}/toggle-status`, {});
   }

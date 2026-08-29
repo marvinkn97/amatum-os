@@ -174,7 +174,7 @@ interface ChatMessage {
           </div>
         } @else {
           <section
-            class="mb-12 rounded-2xl bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
+            class="mb-12 rounded-[2.5rem] bg-linear-to-b from-[#0a0f1d] to-[#030712] border border-indigo-500/20 shadow-2xl overflow-hidden backdrop-blur-md"
           >
             <!-- Window Title Bar -->
             <div

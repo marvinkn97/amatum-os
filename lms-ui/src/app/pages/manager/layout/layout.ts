@@ -1,12 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { Router, RouterModule, RouterOutlet } from '@angular/router';
-import Keycloak from 'keycloak-js';
-import { ACTIVE_TENANT_ID } from '../../../interceptors/tenant-context.token';
+import { RouterModule, RouterOutlet } from '@angular/router';
 import { TenantService } from '../../../services/tenant.service';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { lastValueFrom } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../services/auth.service';
 
 interface Organization {
@@ -28,7 +23,7 @@ interface Organization {
       >
         <div class="flex items-center gap-3">
           <div
-            class="size-8 bg-purple-600 rounded-lg flex items-center justify-center font-black text-white text-xs"
+            class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white text-xs"
           >
             A
           </div>
@@ -52,7 +47,7 @@ interface Organization {
       >
         <div class="h-16 hidden lg:flex items-center px-6 border-b border-white/5 shrink-0">
           <div
-            class="size-8 bg-purple-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-purple-500/20 text-xs"
+            class="size-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20 text-xs"
           >
             A
           </div>
@@ -69,7 +64,7 @@ interface Organization {
             <a
               [routerLink]="item.path"
               (click)="isMobileMenuOpen.set(false)"
-              routerLinkActive="bg-purple-600/10 text-purple-400 border-purple-500/50"
+              routerLinkActive="bg-indigo-600/10 text-indigo-400 border-indigo-500/50"
               [routerLinkActiveOptions]="{ exact: true }"
               class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 border border-transparent hover:bg-white/5 transition-all group"
             >
@@ -92,14 +87,14 @@ interface Organization {
         </nav>
 
         <div
-          class="p-4 mt-auto border-t border-white/5 bg-linear-to-b from-transparent to-purple-950/20"
+          class="p-4 mt-auto border-t border-white/5 bg-linear-to-b from-transparent to-indigo-950/20"
         >
           <div
-            class="relative group bg-white/2 border border-white/10 rounded-2xl p-5 overflow-hidden transition-all hover:border-purple-500/30"
+            class="relative group bg-white/2 border border-white/10 rounded-2xl p-5 overflow-hidden transition-all hover:border-indigo-500/30"
           >
             <div class="relative z-10">
               <span
-                class="text-[10px] font-black text-purple-400 uppercase tracking-widest bg-purple-400/10 px-2 py-0.5 rounded"
+                class="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-400/10 px-2 py-0.5 rounded"
                 >Academy Plan</span
               >
               <p class="text-xs font-bold text-white mt-3 mb-1 leading-tight">Scale Your Team</p>
@@ -107,7 +102,7 @@ interface Organization {
                 You have 12 active licenses remaining.
               </p>
               <button
-                class="w-full py-2.5 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all cursor-pointer"
+                class="w-full py-2.5 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
               >
                 Manage Billing
               </button>
@@ -130,10 +125,10 @@ interface Organization {
           <div class="relative">
             <button
               (click)="isOrgDropdownOpen.set(!isOrgDropdownOpen())"
-              class="flex items-center gap-2 lg:gap-3 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 hover:border-purple-500/50 transition-all cursor-pointer"
+              class="flex items-center gap-2 lg:gap-3 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 hover:border-indigo-500/50 transition-all cursor-pointer"
             >
               <div
-                class="size-5 rounded bg-purple-600 flex items-center justify-center text-[10px] font-black text-white uppercase"
+                class="size-5 rounded bg-indigo-600 flex items-center justify-center text-[10px] font-black text-white uppercase"
               >
                 {{ activeOrg().name.substring(0, 1) }}
               </div>
@@ -163,18 +158,18 @@ interface Organization {
                     class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-white/5 group text-left cursor-pointer"
                   >
                     <div
-                      class="size-6 shrink-0 rounded bg-purple-600/20 text-purple-400 border border-white/10 flex items-center justify-center text-[10px] font-bold uppercase"
+                      class="size-6 shrink-0 rounded bg-indigo-600/20 text-indigo-400 border border-white/10 flex items-center justify-center text-[10px] font-bold uppercase"
                     >
                       {{ org.name.substring(0, 1) }}
                     </div>
                     <span
                       class="text-xs font-bold text-slate-300 transition-colors"
-                      [class.text-purple-400]="activeOrg().id === org.id"
+                      [class.text-indigo-400]="activeOrg().id === org.id"
                       >{{ org.name }}</span
                     >
                     @if (activeOrg().id === org.id) {
                       <div
-                        class="ml-auto size-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+                        class="ml-auto size-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]"
                       ></div>
                     }
                   </button>
@@ -201,13 +196,13 @@ interface Organization {
                 class="flex items-center gap-3 p-1 rounded-full hover:bg-white/5 transition-all cursor-pointer group"
               >
                 <div
-                  class="size-8 rounded-full bg-linear-to-tr from-purple-600 to-indigo-600 border border-white/20 shadow-lg shadow-purple-500/10 flex items-center justify-center text-xs font-black text-white uppercase"
+                  class="size-8 rounded-full bg-linear-to-tr from-indigo-600 to-indigo-600 border border-white/20 shadow-lg shadow-indigo-500/10 flex items-center justify-center text-xs font-black text-white uppercase"
                 >
                   {{ fullName().substring(0, 1) }}
                 </div>
                 <div class="hidden lg:block text-left">
                   <p class="text-xs font-bold text-white leading-none mb-0.5">{{ fullName() }}</p>
-                  <p class="text-[10px] text-purple-400 font-bold uppercase tracking-tighter">
+                  <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-tighter">
                     Manager
                   </p>
                 </div>
@@ -320,7 +315,7 @@ interface Organization {
         <main class="flex-1 flex flex-col overflow-hidden p-4 lg:p-8 relative">
           <router-outlet />
           <div
-            class="fixed top-0 right-0 size-125 bg-purple-600/5 blur-[120px] -z-10 rounded-full pointer-events-none"
+            class="fixed top-0 right-0 size-125 bg-indigo-600/5 blur-[120px] -z-10 rounded-full pointer-events-none"
           ></div>
         </main>
       </div>
@@ -419,6 +414,16 @@ export class ManagerLayout {
       label: 'Members',
       path: '/manager/members',
       icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z',
+    },
+    {
+      label: 'Calendar',
+      path: '/manager/calendar',
+      icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
+    },
+    {
+      label: 'Help Center',
+      path: '/manager/help-center',
+      icon: 'M9.879 7.519a3.75 3.75 0 015.242 0c1.45 1.33 1.45 3.632 0 4.962-.488.448-1.077.77-1.621 1.117-.58.37-1.12.794-1.12 1.527v.375m0 3.75h.008v.008h-.008v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z',
     },
   ];
 
