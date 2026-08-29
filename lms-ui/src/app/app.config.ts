@@ -20,6 +20,7 @@ import { provideEchartsCore } from 'ngx-echarts';
 import { tenantInterceptor } from './interceptors/tenant.interceptor';
 import { ACTIVE_TENANT_ID } from './interceptors/tenant-context.token';
 import { provideMarkdown } from 'ngx-markdown';
+import { errorInterceptor } from './interceptors/ error.interceptor';
 
 const urlCondition = createInterceptorCondition({
   urlPattern: new RegExp(environment.apiUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '.*'),
@@ -62,7 +63,7 @@ export const appConfig: ApplicationConfig = {
       useValue: signal<string | null>(null),
     },
 
-    provideHttpClient(withInterceptors([includeBearerTokenInterceptor, tenantInterceptor])),
+    provideHttpClient(withInterceptors([includeBearerTokenInterceptor, tenantInterceptor, errorInterceptor])),
 
     provideRouter(routes),
 

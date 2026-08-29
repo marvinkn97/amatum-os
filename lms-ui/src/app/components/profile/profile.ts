@@ -11,19 +11,25 @@ import { Loader } from '../loader/loader';
   standalone: true,
   imports: [CommonModule, FormsModule, Loader],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6">
-        <header
+    <div
+      class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 p-4 lg:p-8 pb-20 px-6"
+    >
+      <header
         class="relative z-50 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10"
       >
         <div class="space-y-1">
-          <h1 class="text-md font-black text-white italic tracking-tighter uppercase">Profile Settings</h1>
+          <h1 class="text-md font-black text-white italic tracking-tighter uppercase">
+            Profile Settings
+          </h1>
           <p class="text-slate-500 text-sm font-medium">
             Manage your profile, preferences, and account details.
           </p>
         </div>
       </header>
 
-      @if (errorMessage() && !firstName) {
+      @if (loading()) {
+        <app-loader type="spinner" />
+      } @else if (profileLoadError()) {
         <div
           class="p-6 md:p-10 border border-red-500/20 bg-red-500/5 backdrop-blur-xl rounded-3xl animate-in fade-in slide-in-from-top-4 duration-500"
         >
@@ -31,7 +37,12 @@ import { Loader } from '../loader/loader';
             <div
               class="size-12 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 mb-2"
             >
-              <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                class="size-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -40,60 +51,49 @@ import { Loader } from '../loader/loader';
                 />
               </svg>
             </div>
-            <h2 class="text-xs font-black text-red-400 uppercase tracking-[0.3em]">
-              Connection Failed
+
+            <h2
+              class="text-xs font-black text-red-400 uppercase tracking-[0.3em]"
+            >
+              Profile Unavailable
             </h2>
+
             <p class="text-sm text-slate-400 max-w-xs mx-auto font-medium">
-              We couldn't sync your profile data. Please check your connection and try again.
+              We couldn't load your profile information right now.
             </p>
+
             <button
               (click)="loadUserProfile()"
               class="mt-4 px-8 py-2.5 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-400 transition-all shadow-lg shadow-red-500/20"
             >
-              Retry Sync
+              Retry
             </button>
           </div>
         </div>
-      } @else if (errorMessage()) {
-        <div
-          class="mb-8 flex items-center justify-between p-4 border border-indigo-500/20 bg-indigo-500/5 backdrop-blur-md rounded-xl animate-in fade-in slide-in-from-top-4"
-        >
-          <div class="flex items-center gap-3">
-            <div class="size-2 bg-indigo-500 rounded-full animate-pulse"></div>
-            <p
-              class="text-[9px] md:text-[10px] font-bold text-indigo-200 uppercase tracking-widest"
-            >
-              {{ errorMessage() }}
-            </p>
-          </div>
-          <button
-            (click)="errorMessage.set(null)"
-            class="text-[10px] text-white/20 hover:text-white transition-colors uppercase font-black"
-          >
-            Dismiss
-          </button>
-        </div>
-      }
-
-      @if (loading()) {
-        <app-loader type="spinner" />
       } @else {
         <div class="space-y-12 md:space-y-20 animate-in fade-in duration-700">
-          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
+          <!-- Identity -->
+          <section
+            class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start"
+          >
             <div
               class="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-sm order-2 lg:order-1 relative overflow-hidden"
             >
               @if (isSubmitting()) {
-                <div class="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500/20 overflow-hidden">
+                <div
+                  class="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500/20 overflow-hidden"
+                >
                   <div class="h-full bg-indigo-500 animate-progress-fast"></div>
                 </div>
               }
+
               <div class="flex justify-between items-center mb-8 gap-2">
                 <h2
                   class="text-[9px] md:text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] whitespace-nowrap"
                 >
                   Identity
                 </h2>
+
                 <div class="flex gap-2">
                   @if (!isEditingNames()) {
                     <button
@@ -110,6 +110,7 @@ import { Loader } from '../loader/loader';
                     >
                       Cancel
                     </button>
+
                     <button
                       (click)="updateNames()"
                       [disabled]="isSubmitting()"
@@ -120,14 +121,18 @@ import { Loader } from '../loader/loader';
                   }
                 </div>
               </div>
+
               <div
                 class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8"
                 [class.opacity-50]="isSubmitting()"
               >
                 <div class="space-y-2">
-                  <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase"
-                    >First Name</label
+                  <label
+                    class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase"
                   >
+                    First Name
+                  </label>
+
                   @if (isEditingNames()) {
                     <input
                       [(ngModel)]="firstName"
@@ -142,10 +147,14 @@ import { Loader } from '../loader/loader';
                     </div>
                   }
                 </div>
+
                 <div class="space-y-2">
-                  <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase"
-                    >Last Name</label
+                  <label
+                    class="text-[9px] font-bold text-slate-500 tracking-widest ml-1 uppercase"
                   >
+                    Last Name
+                  </label>
+
                   @if (isEditingNames()) {
                     <input
                       [(ngModel)]="lastName"
@@ -162,23 +171,32 @@ import { Loader } from '../loader/loader';
                 </div>
               </div>
             </div>
+
             <div class="lg:col-span-4 order-1 lg:order-2 px-1">
-              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">Identity Details</h3>
+              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">
+                Identity Details
+              </h3>
+
               <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
                 Modify your recorded name for official documentation purposes.
               </p>
             </div>
           </section>
 
-          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-center">
+          <!-- Communication -->
+          <section
+            class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-center"
+          >
             <div
               class="lg:col-span-8 bg-white/5 border border-white/5 rounded-2xl p-6 flex flex-row items-center justify-between gap-4 order-2 lg:order-1 min-w-0 transition-all"
             >
               <div class="space-y-1 min-w-0 flex-1">
                 <span
                   class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block ml-1"
-                  >Email Address</span
                 >
+                  Email Address
+                </span>
+
                 <p
                   class="text-sm font-bold text-slate-400 tracking-tight truncate pr-2"
                   [title]="email"
@@ -191,33 +209,46 @@ import { Loader } from '../loader/loader';
                 <div
                   class="shrink-0 flex items-center gap-2 px-2.5 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg"
                 >
-                  <div class="size-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                  <div
+                    class="size-1.5 rounded-full bg-green-500 animate-pulse"
+                  ></div>
+
                   <span
                     class="text-[8px] sm:text-[9px] font-black text-green-500 uppercase tracking-wider whitespace-nowrap"
-                    >Verified</span
                   >
+                    Verified
+                  </span>
                 </div>
               } @else {
                 <div
                   class="shrink-0 flex items-center gap-2 px-2.5 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg"
                 >
                   <div class="size-1.5 rounded-full bg-amber-500"></div>
+
                   <span
                     class="text-[8px] sm:text-[9px] font-black text-amber-500 uppercase tracking-wider whitespace-nowrap"
-                    >Unverified</span
                   >
+                    Unverified
+                  </span>
                 </div>
               }
             </div>
+
             <div class="lg:col-span-4 order-1 lg:order-2 px-1">
-              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">Communication</h3>
+              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">
+                Communication
+              </h3>
+
               <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
                 Primary contact for system alerts and security notifications.
               </p>
             </div>
           </section>
 
-          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
+          <!-- Security -->
+          <section
+            class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start"
+          >
             <div
               class="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-sm order-2 lg:order-1 relative overflow-hidden"
             >
@@ -227,6 +258,7 @@ import { Loader } from '../loader/loader';
                 >
                   Security
                 </h2>
+
                 @if (!isChangingPassword()) {
                   <button
                     (click)="isChangingPassword.set(true)"
@@ -236,8 +268,11 @@ import { Loader } from '../loader/loader';
                   </button>
                 }
               </div>
+
               @if (isChangingPassword()) {
-                <div class="space-y-6 animate-in slide-in-from-left-4 duration-300">
+                <div
+                  class="space-y-6 animate-in slide-in-from-left-4 duration-300"
+                >
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <input
                       type="password"
@@ -245,6 +280,7 @@ import { Loader } from '../loader/loader';
                       class="w-full bg-black/40 border border-purple-500/30 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500 transition-colors"
                       placeholder="New Password"
                     />
+
                     <input
                       type="password"
                       [(ngModel)]="confirmPassword"
@@ -252,13 +288,17 @@ import { Loader } from '../loader/loader';
                       placeholder="Confirm"
                     />
                   </div>
-                  <div class="flex justify-end gap-4 pt-4 border-t border-white/5">
+
+                  <div
+                    class="flex justify-end gap-4 pt-4 border-t border-white/5"
+                  >
                     <button
                       (click)="cancelPasswordChange()"
                       class="text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors"
                     >
                       Cancel
                     </button>
+
                     <button
                       (click)="updatePassword()"
                       class="px-4 py-1.5 bg-purple-600 rounded-lg text-[9px] font-black text-white uppercase tracking-widest shadow-lg shadow-purple-500/20 hover:bg-purple-500 transition-all"
@@ -275,8 +315,12 @@ import { Loader } from '../loader/loader';
                 </div>
               }
             </div>
+
             <div class="lg:col-span-4 order-1 lg:order-2 px-1">
-              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">Credentials</h3>
+              <h3 class="text-xs font-bold text-white mb-2 tracking-tight">
+                Credentials
+              </h3>
+
               <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
                 Update your password to keep your account secure.
               </p>
@@ -286,12 +330,14 @@ import { Loader } from '../loader/loader';
       }
     </div>
   `,
+
   styles: [
     `
       @keyframes shimmer-anim {
         0% {
           transform: translateX(-100%);
         }
+
         100% {
           transform: translateX(100%);
         }
@@ -306,6 +352,7 @@ import { Loader } from '../loader/loader';
         0% {
           transform: translateX(-100%);
         }
+
         100% {
           transform: translateX(100%);
         }
@@ -318,9 +365,9 @@ export class ProfileComponent implements OnInit {
   private readonly keycloak = inject(Keycloak);
 
   loading = signal(true);
-  isSubmitting = signal(false);
-  errorMessage = signal<string | null>(null);
+  profileLoadError = signal(false);
 
+  isSubmitting = signal(false);
   isEditingNames = signal(false);
   isChangingPassword = signal(false);
   isEmailVerified = signal(false);
@@ -331,76 +378,115 @@ export class ProfileComponent implements OnInit {
   newPassword = '';
   confirmPassword = '';
 
-  private originalData = { firstName: '', lastName: '' };
+  private originalData = {
+    firstName: '',
+    lastName: '',
+  };
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadUserProfile();
   }
 
-  loadUserProfile() {
+  loadUserProfile(): void {
     this.loading.set(true);
-    this.errorMessage.set(null);
+    this.profileLoadError.set(false);
+
     this.identityService
       .getUserProfile()
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => this.loading.set(false))
+      )
       .subscribe({
         next: (user) => {
           this.firstName = user.firstName;
           this.lastName = user.lastName;
           this.email = user.email;
-          this.originalData = { firstName: user.firstName, lastName: user.lastName };
+
+          this.originalData = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+          };
+
           const verified = this.keycloak.tokenParsed?.['email_verified'];
           this.isEmailVerified.set(!!verified);
         },
-        error: () => this.errorMessage.set('Identity Sync Failed'),
-      });
-  }
 
-  updateNames() {
-    if (!this.firstName.trim() || !this.lastName.trim()) return;
-    this.isSubmitting.set(true);
-    this.errorMessage.set(null);
-    this.identityService
-      .updateName({ firstName: this.firstName, lastName: this.lastName })
-      .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe({
-        next: () => {
-          this.originalData = { firstName: this.firstName, lastName: this.lastName };
-          this.isEditingNames.set(false);
-          this.errorMessage.set('Identity Synced Successfully');
+        error: () => {
+          this.profileLoadError.set(true);
         },
-        error: () => this.errorMessage.set('Update Encountered an Error'),
       });
   }
 
-  updatePassword() {
-    if (!this.newPassword || this.newPassword !== this.confirmPassword) {
-      this.errorMessage.set('Passwords do not match');
+  updateNames(): void {
+    if (!this.firstName.trim() || !this.lastName.trim()) {
       return;
     }
+
     this.isSubmitting.set(true);
-    this.errorMessage.set(null);
+
     this.identityService
-      .updatePassword({ password: this.newPassword })
-      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .updateName({
+        firstName: this.firstName,
+        lastName: this.lastName,
+      })
+      .pipe(
+        finalize(() => this.isSubmitting.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.originalData = {
+            firstName: this.firstName,
+            lastName: this.lastName,
+          };
+
+          this.isEditingNames.set(false);
+        },
+
+        error: () => {
+          // Global error interceptor handles the notification.
+        },
+      });
+  }
+
+  updatePassword(): void {
+    if (!this.newPassword || this.newPassword !== this.confirmPassword) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+
+    this.identityService
+      .updatePassword({
+        password: this.newPassword,
+      })
+      .pipe(
+        finalize(() => this.isSubmitting.set(false))
+      )
       .subscribe({
         next: () => {
           this.cancelPasswordChange();
-          this.errorMessage.set('Security Credentials Updated');
-          // Logout to force re-authentication with new password
-          this.keycloak.logout().then((r) => console.log('Logged out after password change', r));
+
+          // Logout to force re-authentication with the new password.
+          this.keycloak
+            .logout()
+            .then((r) =>
+              console.log('Logged out after password change', r)
+            );
         },
-        error: () => this.errorMessage.set('Password Update Failed'),
+
+        error: () => {
+          // Global error interceptor handles the notification.
+        },
       });
   }
 
-  cancelNameEdit() {
+  cancelNameEdit(): void {
     this.firstName = this.originalData.firstName;
     this.lastName = this.originalData.lastName;
     this.isEditingNames.set(false);
   }
 
-  cancelPasswordChange() {
+  cancelPasswordChange(): void {
     this.isChangingPassword.set(false);
     this.newPassword = '';
     this.confirmPassword = '';
