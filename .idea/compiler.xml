@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="resource-service" />
         <module name="eureka-server" />
         <module name="infrastructure" />
         <module name="configuration-server" />
@@ -21,17 +22,6 @@
         </processorPath>
         <module name="enrollment-service" />
       </profile>
-      <profile name="Annotation profile for identity-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="course-service" />
-        <module name="identity-service" />
-      </profile>
       <profile name="Annotation profile for talemai-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -42,6 +32,17 @@
         <module name="rating-service" />
         <module name="api-gateway" />
         <module name="talemai-service" />
+      </profile>
+      <profile name="Annotation profile for identity-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="course-service" />
+        <module name="identity-service" />
       </profile>
     </annotationProcessing>
   </component>
@@ -54,6 +55,7 @@
       <module name="eureka-server" options="-parameters" />
       <module name="identity-service" options="-parameters" />
       <module name="rating-service" options="-parameters" />
+      <module name="resource-service" options="-parameters" />
       <module name="talemai-service" options="-parameters" />
     </option>
   </component>

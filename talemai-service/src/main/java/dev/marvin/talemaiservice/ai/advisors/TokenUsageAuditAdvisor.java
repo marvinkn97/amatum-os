@@ -1,4 +1,4 @@
-package dev.marvin.talemaiservice.advisors;
+package dev.marvin.talemaiservice.ai.advisors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

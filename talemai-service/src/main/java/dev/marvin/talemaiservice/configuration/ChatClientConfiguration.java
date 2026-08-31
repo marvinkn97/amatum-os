@@ -1,6 +1,6 @@
 package dev.marvin.talemaiservice.configuration;
 
-import dev.marvin.talemaiservice.advisors.TokenUsageAuditAdvisor;
+import dev.marvin.talemaiservice.ai.advisors.TokenUsageAuditAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.context.annotation.Bean;
