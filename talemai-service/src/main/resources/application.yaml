@@ -6,6 +6,16 @@ spring:
     virtual:
       enabled: true
 
+  cloud:
+    function:
+      definition: fileSupplier|documentReader|splitter|vectorStoreConsumer
+
+file:
+  supplier:
+    directory: "/var/dropoff"
+    filename-regex: .*.(pdf|docx|txt)
+
+
 logging:
   level:
     root: info

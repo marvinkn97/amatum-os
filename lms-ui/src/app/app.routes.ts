@@ -17,6 +17,7 @@ import { EnrollmentsComponent } from './pages/learner/enrollments/enrollments';
 import { ManagerMembers } from './pages/manager/members/members';
 import { ProfileComponent } from './components/profile/profile';
 import { RoleSelectionComponent } from './components/role-selection/role-selection';
+import { Organization } from './pages/manager/organization/organization';
 
 export const routes: Routes = [
   {
@@ -79,6 +80,11 @@ export const routes: Routes = [
       { path: '', component: ManagerDashboard, pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
       { path: 'courses', component: ManagerCourses },
+      {
+        path: 'organization',
+        component: Organization,
+        children: [],
+      },
       { path: 'members', component: ManagerMembers },
       { path: 'courses/studio', component: CourseBuilder },
       { path: 'courses/studio/:id', component: CourseBuilder },

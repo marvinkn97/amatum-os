@@ -539,7 +539,7 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
     }
     this.searchDebounceTimer = setTimeout(() => {
       this.resetAndReload();
-    }, 300);
+    }, 1000);
   }
 
   handleEnter(event: Event) {

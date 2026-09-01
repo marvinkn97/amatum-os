@@ -28,7 +28,7 @@ import { ErrorStateComponent } from '../error-state/error-state';
 
       @if (loading()) {
         <app-loader type="spinner" />
-      } @else if (profileLoadError()) {
+      } @else if (loadingError()) {
         <app-error-state
           title="Profile Unavailable"
           message="We couldn't load your profile information right now."
@@ -305,7 +305,7 @@ export class ProfileComponent implements OnInit {
   private readonly keycloak = inject(Keycloak);
 
   loading = signal(true);
-  profileLoadError = signal(false);
+  loadingError = signal(false);
 
   isSubmitting = signal(false);
   isEditingNames = signal(false);
@@ -329,7 +329,7 @@ export class ProfileComponent implements OnInit {
 
   loadUserProfile(): void {
     this.loading.set(true);
-    this.profileLoadError.set(false);
+    this.loadingError.set(false);
 
     this.identityService
       .getUserProfile()
@@ -350,7 +350,7 @@ export class ProfileComponent implements OnInit {
         },
 
         error: () => {
-          this.profileLoadError.set(true);
+          this.loadingError.set(true);
         },
       });
   }
