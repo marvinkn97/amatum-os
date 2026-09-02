@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IdentityService } from '../../services/identity.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-onboarding',
@@ -26,33 +27,150 @@ import { IdentityService } from '../../services/identity.service';
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <button
-            (click)="selectRole('learner')"
-            [disabled]="loading"
-            class="group p-10 rounded-4xl bg-linear-to-b from-white/5 to-transparent border border-white/5 text-left transition-all hover:border-indigo-500/40 hover:scale-[1.02] cursor-pointer disabled:opacity-50 disabled:cursor-wait"
-          >
-            <div
-              class="size-14 rounded-xl bg-indigo-600 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/30"
-            >
-              @if (loading && currentRole === 'learner') {
-                <svg class="animate-spin size-7 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              } @else {
+          @if (!hasRole('learner') && !hasRole('manager')) {
+            <!-- Both buttons shown -->
+            @if (!hasRole('learner')) {
+              <button
+                (click)="selectRole('learner')"
+                [disabled]="loading"
+                class="group p-10 rounded-4xl bg-linear-to-b from-white/5 to-transparent border border-white/5 text-left transition-all hover:border-indigo-500/40 hover:scale-[1.02] cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+              >
+                <div
+                  class="size-14 rounded-xl bg-indigo-600 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/30"
+                >
+                  @if (loading && currentRole === 'learner') {
+                    <svg class="animate-spin size-7 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  } @else {
+                    <svg
+                      class="size-7 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 3L2 8l10 5 10-5-10-5z"
+                      />
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6 10v4c0 2 3 3 6 3s6-1 6-3v-4"
+                      />
+                    </svg>
+                  }
+                </div>
+
+                <h2 class="text-md font-bold mb-3 text-white">
+                  {{ loading && currentRole === 'learner' ? 'Setting up...' : "I'm here to learn" }}
+                </h2>
+
+                <p class="text-slate-400 leading-relaxed">
+                  Access the global marketplace, track your progress, and earn verified
+                  certifications.
+                </p>
+
+                <div class="mt-8 flex items-center text-sm font-semibold text-indigo-400">
+                  {{ loading && currentRole === 'learner' ? 'Please wait' : 'Start learning →' }}
+                </div>
+              </button>
+            }
+
+            @if (!hasRole('manager')) {
+              <button
+                (click)="selectRole('manager')"
+                [disabled]="loading"
+                class="group p-10 rounded-4xl bg-linear-to-b from-indigo-500/10 to-transparent border border-indigo-500/10 text-left transition-all hover:border-indigo-500/40 hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+              >
+                <div
+                  class="size-14 rounded-xl bg-purple-600 flex items-center justify-center mb-6 shadow-lg shadow-purple-500/30"
+                >
+                  @if (loading && currentRole === 'manager' && !showOrgDialog) {
+                    <svg class="animate-spin size-7 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  } @else {
+                    <svg
+                      class="size-7 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3 21h18M5 21V7l7-4 7 4v14"
+                      />
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"
+                      />
+                    </svg>
+                  }
+                </div>
+
+                <h2 class="text-md font-bold mb-3 text-white">
+                  {{
+                    loading && currentRole === 'manager' && !showOrgDialog
+                      ? 'Opening...'
+                      : "I'm here to build"
+                  }}
+                </h2>
+
+                <p class="text-slate-400 leading-relaxed">
+                  Launch a private academy for your organization. Create and manage secure internal
+                  training.
+                </p>
+
+                <div class="mt-8 flex items-center text-sm font-semibold text-indigo-400">
+                  {{
+                    loading && currentRole === 'manager' && !showOrgDialog
+                      ? 'Please wait'
+                      : 'Create workspace →'
+                  }}
+                </div>
+              </button>
+            }
+          } @else {
+            <div class="col-span-2 text-center py-12">
+              <p class="text-slate-400 mb-6">You're all set up!</p>
+              <button
+                (click)="goBack()"
+                class="px-6 py-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-700/50 hover:border-slate-600 transition-all duration-300 flex items-center gap-3 mx-auto"
+              >
                 <svg
-                  class="size-7 text-white"
+                  class="size-5 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -61,99 +179,13 @@ import { IdentityService } from '../../services/identity.service';
                     stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    d="M12 3L2 8l10 5 10-5-10-5z"
-                  />
-                  <path
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M6 10v4c0 2 3 3 6 3s6-1 6-3v-4"
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-              }
+                <span class="text-white">Go back</span>
+              </button>
             </div>
-
-            <h2 class="text-md font-bold mb-3 text-white">
-              {{ loading && currentRole === 'learner' ? 'Setting up...' : "I'm here to learn" }}
-            </h2>
-
-            <p class="text-slate-400 leading-relaxed">
-              Access the global marketplace, track your progress, and earn verified certifications.
-            </p>
-
-            <div class="mt-8 flex items-center text-sm font-semibold text-indigo-400">
-              {{ loading && currentRole === 'learner' ? 'Please wait' : 'Start learning →' }}
-            </div>
-          </button>
-
-          <button
-            (click)="selectRole('manager')"
-            [disabled]="loading"
-            class="group p-10 rounded-4xl bg-linear-to-b from-indigo-500/10 to-transparent border border-indigo-500/10 text-left transition-all hover:border-indigo-500/40 hover:scale-[1.02] cursor-pointer disabled:opacity-50"
-          >
-            <div
-              class="size-14 rounded-xl bg-purple-600 flex items-center justify-center mb-6 shadow-lg shadow-purple-500/30"
-            >
-              @if (loading && currentRole === 'manager' && !showOrgDialog) {
-                <svg class="animate-spin size-7 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              } @else {
-                <svg
-                  class="size-7 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3 21h18M5 21V7l7-4 7 4v14"
-                  />
-                  <path
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"
-                  />
-                </svg>
-              }
-            </div>
-
-            <h2 class="text-md font-bold mb-3 text-white">
-              {{
-                loading && currentRole === 'manager' && !showOrgDialog
-                  ? 'Opening...'
-                  : "I'm here to build"
-              }}
-            </h2>
-
-            <p class="text-slate-400 leading-relaxed">
-              Launch a private academy for your organization. Create and manage secure internal
-              training.
-            </p>
-
-            <div class="mt-8 flex items-center text-sm font-semibold text-indigo-400">
-              {{
-                loading && currentRole === 'manager' && !showOrgDialog
-                  ? 'Please wait'
-                  : 'Create workspace →'
-              }}
-            </div>
-          </button>
+          }
         </div>
       </div>
     </div>
@@ -262,6 +294,7 @@ import { IdentityService } from '../../services/identity.service';
 })
 export class Onboarding {
   private readonly identityService = inject(IdentityService);
+  private readonly authService = inject(AuthService);
 
   loading = false;
   currentRole: 'learner' | 'manager' | null = null;
@@ -331,5 +364,13 @@ export class Onboarding {
   private showError(message: string) {
     this.errorMessage.set(message);
     setTimeout(() => this.errorMessage.set(null), 6000);
+  }
+
+  hasRole(role: string): boolean {
+    return this.authService.hasRole(role);
+  }
+
+  goBack() {
+    window.location.href = '/';
   }
 }

@@ -41,6 +41,7 @@
     "ngx-file-drop": "^16.0.0",
     "ngx-markdown": "^21.3.0",
     "ngx-quill": "^30.0.1",
+    "ngx-sonner": "^3.1.0",
     "postcss": "^8.5.6",
     "prismjs": "^1.30.0",
     "quill": "^2.0.2",
