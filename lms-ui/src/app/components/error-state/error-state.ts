@@ -39,7 +39,7 @@ import { Component, input, output } from '@angular/core';
         <button
           type="button"
           (click)="retry.emit()"
-          class="mt-4 px-8 py-2.5 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-400 transition-all shadow-lg shadow-red-500/20"
+          class="mt-4 px-8 py-2.5 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-400 transition-all shadow-lg shadow-red-500/20 cursor-pointer"
         >
           Retry
         </button>

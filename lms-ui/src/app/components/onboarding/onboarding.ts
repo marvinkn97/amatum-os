@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IdentityService } from '../../services/identity.service';
 import { AuthService } from '../../services/auth.service';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-onboarding',
@@ -16,16 +17,18 @@ import { AuthService } from '../../services/auth.service';
       <div class="absolute size-150 bg-indigo-600/10 blur-[120px] rounded-full"></div>
 
       <div class="relative z-10 max-w-5xl w-full text-center">
-        <div class="mb-16 space-y-4">
-          <h1 class="text-4xl md:text-5xl font-bold text-white max-w-xl mx-auto tracking-tight">
-            Choose your
-            <span class="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-indigo-400"
-              >role</span
-            >
-          </h1>
-          <p class="text-slate-400 max-w-md mx-auto">Select how you want to use the platform.</p>
-        </div>
-
+        @if (!(authService.isLearner() && authService.isManager())) {
+          <div class="mb-16 space-y-4">
+            <h1 class="text-4xl md:text-5xl font-bold text-white max-w-xl mx-auto tracking-tight">
+              Choose your
+              <span
+                class="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-indigo-400"
+                >role</span
+              >
+            </h1>
+            <p class="text-slate-400 max-w-md mx-auto">Select how you want to use the platform.</p>
+          </div>
+        }
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           @if (!authService.isLearner()) {
             <button
@@ -162,10 +165,13 @@ import { AuthService } from '../../services/auth.service';
           }
           @if (authService.isLearner() && authService.isManager()) {
             <div class="col-span-2 text-center py-12">
-              <p class="text-slate-400 mb-6">You're all set up!</p>
+              <h2 class="text-2xl font-bold text-white mb-2">You have full access</h2>
+              <p class="text-slate-400 mb-8">
+                Both learner and manager roles are already assigned to your account.
+              </p>
               <button
                 (click)="goBack()"
-                class="px-6 py-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-700/50 hover:border-slate-600 transition-all duration-300 flex items-center gap-3 mx-auto"
+                class="px-6 py-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-700/50 hover:border-slate-600 transition-all duration-300 flex items-center gap-3 mx-auto cursor-pointer"
               >
                 <svg
                   class="size-5 text-slate-400"
@@ -292,7 +298,8 @@ import { AuthService } from '../../services/auth.service';
 })
 export class Onboarding {
   private readonly identityService = inject(IdentityService);
-  authService = inject(AuthService);
+  protected authService = inject(AuthService);
+  private location = inject(Location);
 
   loading = false;
   currentRole: 'learner' | 'manager' | null = null;
@@ -365,6 +372,6 @@ export class Onboarding {
   }
 
   goBack() {
-    window.location.href = '/';
+    this.location.back();
   }
 }
