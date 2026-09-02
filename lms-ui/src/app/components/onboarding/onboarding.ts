@@ -27,7 +27,7 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          @if (!hasRole('learner')) {
+          @if (!authService.isLearner()) {
             <button
               (click)="selectRole('learner')"
               [disabled]="loading"
@@ -90,7 +90,7 @@ import { AuthService } from '../../services/auth.service';
             </button>
           }
 
-          @if (!hasRole('manager')) {
+          @if (!authService.isManager()) {
             <button
               (click)="selectRole('manager')"
               [disabled]="loading"
@@ -160,7 +160,7 @@ import { AuthService } from '../../services/auth.service';
               </div>
             </button>
           }
-          @if (hasRole('learner') && hasRole('manager')) {
+          @if (authService.isLearner() && authService.isManager()) {
             <div class="col-span-2 text-center py-12">
               <p class="text-slate-400 mb-6">You're all set up!</p>
               <button
@@ -292,7 +292,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class Onboarding {
   private readonly identityService = inject(IdentityService);
-  private readonly authService = inject(AuthService);
+  authService = inject(AuthService);
 
   loading = false;
   currentRole: 'learner' | 'manager' | null = null;
@@ -362,10 +362,6 @@ export class Onboarding {
   private showError(message: string) {
     this.errorMessage.set(message);
     setTimeout(() => this.errorMessage.set(null), 6000);
-  }
-
-  hasRole(role: string): boolean {
-    return this.authService.hasRole(role);
   }
 
   goBack() {
