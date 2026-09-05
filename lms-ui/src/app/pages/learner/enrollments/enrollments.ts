@@ -15,9 +15,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 import { EnrollmentService } from '../../../services/enrollment.service';
-import { NotificationService } from '../../../services/notification.service';
 import { TenantService } from '../../../services/tenant.service';
 import { Loader } from '../../../components/loader/loader';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-enrollments',
@@ -173,7 +173,6 @@ import { Loader } from '../../../components/loader/loader';
 export class EnrollmentsComponent implements OnInit, AfterViewInit {
   private enrollmentService = inject(EnrollmentService);
   private scroller = inject(ViewportScroller);
-  private notificationService = inject(NotificationService);
   private tenantService = inject(TenantService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
@@ -244,7 +243,7 @@ export class EnrollmentsComponent implements OnInit, AfterViewInit {
       error: () => {
         this.hasNextPage.set(false);
         if (reset) this.enrollments.set([]);
-        this.notificationService.error('Failed to load your courses. Please try again later.');
+        toast.error('Failed to load your courses. Please try again later.');
       },
     });
   }

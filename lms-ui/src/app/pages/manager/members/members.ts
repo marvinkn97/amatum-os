@@ -3,20 +3,19 @@ import {
   signal,
   effect,
   inject,
-  OnInit,
   ElementRef,
   ViewChild,
   untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NotificationService } from '../../../services/notification.service';
 import {
   IdentityResponse,
   IdentityService,
   OrganizationInvitationResponse,
 } from '../../../services/identity.service';
 import { TenantService } from '../../../services/tenant.service';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-manager-members',
@@ -206,7 +205,6 @@ import { TenantService } from '../../../services/tenant.service';
   `,
 })
 export class ManagerMembers {
-  private notificationService = inject(NotificationService);
   private identityService = inject(IdentityService);
   private tenantService = inject(TenantService);
 
@@ -265,7 +263,7 @@ export class ManagerMembers {
           },
           error: () => {
             this.isLoading.set(false);
-            this.notificationService.error('Failed to load members.');
+            toast.error('Failed to load members.');
           },
         });
         break;
@@ -277,7 +275,7 @@ export class ManagerMembers {
           },
           error: () => {
             this.isLoading.set(false);
-            this.notificationService.error('Failed to load invitations.');
+            toast.error('Failed to load invitations.');
           },
         });
         break;
@@ -293,7 +291,7 @@ export class ManagerMembers {
       })
       .subscribe({
         next: () => {
-          this.notificationService.success('Invite sent!');
+          toast.success('Invite sent!');
           this.inviteModal.nativeElement.close();
           this.resetAndReload();
         },

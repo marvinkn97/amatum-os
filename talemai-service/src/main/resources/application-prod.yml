@@ -29,3 +29,8 @@ keycloak:
 logging:
   level:
     root: info
+
+firecrawl:
+  api-key: {FIRECRAWL_API_KEY}
+  search:
+    max-results: 5

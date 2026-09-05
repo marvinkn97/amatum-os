@@ -4,8 +4,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CourseService, CourseResponse } from '../../../services/course.service';
 import { filter, finalize, map, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { NotificationService } from '../../../services/notification.service';
 import { Loader } from '../../../components/loader/loader';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-explore-course',
@@ -218,7 +218,6 @@ export class ExploreCourse implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
-  private notificationService = inject(NotificationService);
 
   course = signal<CourseResponse | null>(null);
   isLoading = signal(true);
@@ -252,7 +251,7 @@ export class ExploreCourse implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Fetch failed:', err);
           this.isLoading.set(false);
-          this.notificationService.error('Failed to load course');
+          toast.error('Failed to load course');
         },
       });
   }

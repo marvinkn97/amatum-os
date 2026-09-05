@@ -19,8 +19,8 @@ import {
 } from '../../../services/enrollment.service';
 import { TenantService } from '../../../services/tenant.service';
 import { Router } from '@angular/router';
-import { NotificationService } from '../../../services/notification.service';
 import { Loader } from "../../../components/loader/loader";
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-learner-dashboard',
@@ -168,7 +168,6 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
   private enrollmentService = inject(EnrollmentService);
   private tenantService = inject(TenantService);
   private router = inject(Router);
-  private notificationService = inject(NotificationService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
 
@@ -234,7 +233,7 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
         next: (data) => this.counters.set(data),
         error: (err) => {
           console.error('Failed to update counter snapshot analytics', err)
-          this.notificationService.error('Failed to load dashboard data. Please try again later.');
+          toast.error('Failed to load dashboard data. Please try again later.');
         },
       });
   }
@@ -261,7 +260,7 @@ export class LearnerDashboardComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notificationService.error('Failed to load active courses. Please try again later.');
+          toast.error('Failed to load active courses. Please try again later.');
           console.error('Failed to load active courses', err);
           this.hasNextPage.set(false);
           if (reset) this.enrollments.set([]);

@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { TalemaiService } from '../../../services/talemai.service';
 import { MarkdownComponent } from 'ngx-markdown';
 import { ChatService } from '../../../services/chat.service';
-import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -268,7 +268,6 @@ export class AiAssistant {
 
   private readonly talemaiService = inject(TalemaiService);
   private readonly chatService = inject(ChatService);
-  private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthService);
 
   readonly userQuery = signal('');
@@ -383,7 +382,7 @@ export class AiAssistant {
           return messages;
         });
 
-        this.notificationService.error(
+        toast.error(
           "I'm sorry, I hit a snag and couldn't process that. Please try again.",
         );
 

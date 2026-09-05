@@ -165,7 +165,13 @@ import { Location } from '@angular/common';
           }
           @if (authService.isLearner() && authService.isManager()) {
             <div class="col-span-2 text-center py-12">
-              <h2 class="text-2xl font-bold text-white mb-2">You have full access</h2>
+              <h1 class="text-4xl md:text-5xl font-bold text-white max-w-xl mx-auto tracking-tight">
+                <span
+                  class="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-indigo-400"
+                  >Roles</span
+                >
+                already configured >
+              </h1>
               <p class="text-slate-400 mb-8">
                 Both learner and manager roles are already assigned to your account.
               </p>
@@ -174,7 +180,7 @@ import { Location } from '@angular/common';
                 class="px-6 py-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-700/50 hover:border-slate-600 transition-all duration-300 flex items-center gap-3 mx-auto cursor-pointer"
               >
                 <svg
-                  class="size-5 text-slate-400"
+                  class="size-4 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -186,7 +192,7 @@ import { Location } from '@angular/common';
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                <span class="text-white">Go back</span>
+                <span class="text-white text-md">Go back</span>
               </button>
             </div>
           }

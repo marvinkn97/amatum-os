@@ -33,7 +33,7 @@ import { MuxService } from '../../../services/mux.service';
 import { S3Service } from '../../../services/s3.service';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import Keycloak from 'keycloak-js';
-import { NotificationService } from '../../../services/notification.service';
+import { toast } from 'ngx-sonner';
 
 type StudioView = 'COURSE_IDENTITY' | 'MODULE_STRUCTURE' | 'LESSON_EDITOR' | 'QUIZ_EDITOR';
 
@@ -2659,7 +2659,6 @@ export class CourseBuilder implements OnInit {
   muxService = inject(MuxService);
   s3Service = inject(S3Service);
   private readonly keycloak = inject(Keycloak);
-  private notificationService = inject(NotificationService);
 
   activeView = signal<StudioView>('COURSE_IDENTITY');
 
@@ -2765,7 +2764,7 @@ export class CourseBuilder implements OnInit {
           this.syncSignals(response);
         },
         error: () => {
-          this.notificationService.error('Could not find the requested course');
+          toast.error('Could not find the requested course');
           this.router.navigate(['/manager/courses']);
         },
       });
@@ -2773,7 +2772,7 @@ export class CourseBuilder implements OnInit {
 
   private syncSignals(response: CourseResponse | null) {
     if (!response) {
-      this.notificationService.error('Failed to load course data');
+      toast.error('Failed to load course data');
       return;
     }
 
@@ -2894,35 +2893,35 @@ export class CourseBuilder implements OnInit {
 
     // Title validation
     if (!data.title || data.title.trim().length === 0) {
-      this.notificationService.error('Course title is required');
+      toast.error('Course title is required');
       this.showValidationErrors = true;
       return false;
     }
 
     // Category validation
     if (!data.categoryId || data.categoryId.trim().length === 0) {
-      this.notificationService.error('Please select a category');
+      toast.error('Please select a category');
       this.showValidationErrors = true;
       return false;
     }
 
     // Description validation
     if (!data.description || data.description.length < 20) {
-      this.notificationService.error('Description must be at least 20 characters');
+      toast.error('Description must be at least 20 characters');
       this.showValidationErrors = true;
       return false;
     }
 
     // Tags validation
     if (data.tags.length === 0) {
-      this.notificationService.error('Please add at least one tag');
+      toast.error('Please add at least one tag');
       this.showValidationErrors = true;
       return false;
     }
 
     // Price validation for premium courses
     if (data.tier === 'PREMIUM' && (!data.price || data.price <= 0)) {
-      this.notificationService.error('Paid courses require a price greater than 0');
+      toast.error('Paid courses require a price greater than 0');
       this.showValidationErrors = true;
       return false;
     }
@@ -2975,19 +2974,17 @@ export class CourseBuilder implements OnInit {
 
         if (!isExisting) {
           // Friendly toast after creation, then redirect
-          this.notificationService.success(
-            'Draft created successfully! Time to build your modules.',
-          );
+          toast.success('Draft created successfully! Time to build your modules.');
           setTimeout(() => {
             this.router.navigate(['/manager/courses/studio', response.id], { replaceUrl: true });
           }, 100); // short delay to allow toast to appear
         } else {
-          this.notificationService.success('Your changes have been saved successfully.');
+          toast.success('Your changes have been saved successfully.');
         }
       },
       error: (err) => {
         const message = err.error?.detail || 'Failed to save course.';
-        this.notificationService.error(`${message}`);
+        toast.error(`${message}`);
       },
     });
   }
@@ -3040,7 +3037,7 @@ export class CourseBuilder implements OnInit {
 
   addModule() {
     if (!this.courseId()) {
-      this.notificationService.info('Please save course info first');
+      toast.info('Please save course info first');
       return;
     }
 
@@ -3070,11 +3067,11 @@ export class CourseBuilder implements OnInit {
           this.selectedModuleId.set(savedModule.id);
           this.isCreatingNew = false;
 
-          this.notificationService.success('Your changes have been saved successfully.');
+          toast.success('Your changes have been saved successfully.');
         },
         error: (err) => {
           const message = err.error?.detail || 'Failed to save module.';
-          this.notificationService.error(`${message}`);
+          toast.error(`${message}`);
         },
       });
     } else {
@@ -3104,7 +3101,7 @@ export class CourseBuilder implements OnInit {
             };
           });
 
-          this.notificationService.success('Module details updated');
+          toast.success('Module details updated');
         },
       });
     }
@@ -3197,7 +3194,7 @@ export class CourseBuilder implements OnInit {
     } catch (error) {
       this.isSyncingToCloud.set(false);
       console.error('Upload failed', error);
-      this.notificationService.error('Upload failed');
+      toast.error('Upload failed');
     }
   }
 
@@ -3226,10 +3223,10 @@ export class CourseBuilder implements OnInit {
         console.log('No assetId or uploadId found to delete.');
       }
 
-      this.notificationService.info('Video removed from cloud');
+      toast.info('Video removed from cloud');
     } catch (error) {
       console.error('Failed to delete from Mux:', error);
-      this.notificationService.error('Failed to delete video from cloud, but UI cleared');
+      toast.error('Failed to delete video from cloud, but UI cleared');
     } finally {
       // Always reset UI state even if delete failed
       this.isDeleting.set(false);
@@ -3289,7 +3286,7 @@ export class CourseBuilder implements OnInit {
       );
     } catch (error) {
       console.error('Material sync failed:', error);
-      this.notificationService.error('Upload failed');
+      toast.error('Upload failed');
     } finally {
       // CONCEPT 6: Finalize State
       this.loadingStates.delete(resource);
@@ -3305,7 +3302,7 @@ export class CourseBuilder implements OnInit {
     );
 
     if (hasPendingUpload) {
-      this.notificationService.info(
+      toast.info(
         'Please confirm or cancel the current upload before adding another',
       );
       return;
@@ -3336,14 +3333,14 @@ export class CourseBuilder implements OnInit {
       // 2. Cloud Cleanup (if it exists in RustFS)
       if (resource.objectKey) {
         await firstValueFrom(this.s3Service.deleteFile(resource.objectKey));
-        this.notificationService.info('Material purged from cloud');
+        toast.info('Material purged from cloud');
       }
 
       // 3. UI Cleanup
       this.editingResources.update((prev) => prev.filter((_, i) => i !== index));
     } catch (error) {
       console.error('Purge failed', error);
-      this.notificationService.error('Could not clear cloud storage');
+      toast.error('Could not clear cloud storage');
     } finally {
       // 4. Always unmark (though if removed from array, the element disappears anyway)
       this.deletingStates.delete(resource);
@@ -3360,7 +3357,7 @@ export class CourseBuilder implements OnInit {
     const isValidType = allowedExtensions.some((ext) => fileName.endsWith(ext));
 
     if (!isValidType || file.size > 500 * 1024 * 1024) {
-      this.notificationService.info('Invalid file or file too large (Max 10MB)');
+      toast.info('Invalid file or file too large (Max 10MB)');
       return;
     }
 
@@ -3430,13 +3427,13 @@ export class CourseBuilder implements OnInit {
   publishCourse() {
     const courseId = this.courseId();
     if (!courseId) {
-      this.notificationService.error('Please save the course first');
+      toast.error('Please save the course first');
       return;
     }
 
     if (!this.isReadyToPublish()) {
       this.showValidationErrors = true;
-      this.notificationService.info(
+      toast.info(
         'Please complete all required fields before publishing the course',
       );
       return;
@@ -3466,14 +3463,14 @@ export class CourseBuilder implements OnInit {
             );
           }
 
-          this.notificationService.success('Course published successfully! It is now live.');
+          toast.success('Course published successfully! It is now live.');
 
           // Optional: Refresh the top nav button state
           this.isReadyToPublish(); // just to re-evaluate
         },
         error: (err: any) => {
           const message = err?.error?.detail || 'Failed to publish course. Please try again.';
-          this.notificationService.error(message);
+          toast.error(message);
           console.error('Publish course error:', err);
         },
       });
@@ -3503,7 +3500,7 @@ export class CourseBuilder implements OnInit {
     // Call the single API endpoint
     this.courseService.reorderModuleSequence(courseId!, reorderPayload).subscribe({
       next: () => {
-        this.notificationService.success('Curriculum structure saved successfully');
+        toast.success('Curriculum structure saved successfully');
         // Update local state if the backend returns the new sorted list
 
         // 2. IMPORTANT: Update the internal sequence property of each module
@@ -3527,7 +3524,7 @@ export class CourseBuilder implements OnInit {
       },
       error: (err) => {
         console.log('Reorder failed. Error:', err);
-        this.notificationService.error('Failed to reorder module sequence');
+        toast.error('Failed to reorder module sequence');
       },
     });
   }
@@ -3541,7 +3538,7 @@ export class CourseBuilder implements OnInit {
       const restored = [...backup.modules].sort((a, b) => a.sequence - b.sequence);
 
       this.modules.set(restored);
-      this.notificationService.info('Reverted to last saved order');
+      toast.info('Reverted to last saved order');
     }
   }
 
@@ -3552,13 +3549,13 @@ export class CourseBuilder implements OnInit {
   publishModule(): void {
     const moduleId = this.selectedModuleId();
     if (!moduleId || moduleId === 'NEW') {
-      this.notificationService.error('Please save the module first');
+      toast.error('Please save the module first');
       return;
     }
 
     const selectedModule = this.getSelectedModule();
     if (!selectedModule?.isReadyToPublish) {
-      this.notificationService.error('Module is not ready to publish yet');
+      toast.error('Module is not ready to publish yet');
       return;
     }
 
@@ -3587,11 +3584,11 @@ export class CourseBuilder implements OnInit {
             };
           });
 
-          this.notificationService.success('Module published successfully!');
+          toast.success('Module published successfully!');
           this.selectModule(updatedModule); // Refresh view
         },
         error: (err) => {
-          this.notificationService.error(err?.error?.detail || 'Failed to publish module');
+          toast.error(err?.error?.detail || 'Failed to publish module');
         },
       });
   }
@@ -3600,7 +3597,7 @@ export class CourseBuilder implements OnInit {
   confirmDeleteModule(): void {
     const moduleId = this.selectedModuleId();
     if (!moduleId || moduleId === 'NEW') {
-      this.notificationService.error('Cannot delete an unsaved module');
+      toast.error('Cannot delete an unsaved module');
       return;
     }
 
@@ -3648,10 +3645,10 @@ export class CourseBuilder implements OnInit {
             this.setView('COURSE_IDENTITY');
           }
 
-          this.notificationService.success(`Module "${module.title}" and all its content deleted`);
+          toast.success(`Module "${module.title}" and all its content deleted`);
         },
         error: (err) => {
-          this.notificationService.error(err?.error?.detail || 'Failed to delete module');
+          toast.error(err?.error?.detail || 'Failed to delete module');
         },
       });
   }
@@ -3669,7 +3666,7 @@ export class CourseBuilder implements OnInit {
 
   addStep(moduleId: string, type: 'LESSON' | 'QUIZ') {
     if (!moduleId) {
-      this.notificationService.info('Please select a valid module');
+      toast.info('Please select a valid module');
       return;
     }
 
@@ -3825,9 +3822,9 @@ export class CourseBuilder implements OnInit {
           );
 
           this.setView('MODULE_STRUCTURE', this.selectedModuleId()); // Refresh the view to reflect changes
-          this.notificationService.success('Step and cloud assets purged.');
+          toast.success('Step and cloud assets purged.');
         },
-        error: () => this.notificationService.error('Cleanup failed.'),
+        error: () => toast.error('Cleanup failed.'),
       });
   }
 
@@ -3848,7 +3845,7 @@ export class CourseBuilder implements OnInit {
 
     this.moduleService.reOrderStepSequence(moduleId, payload).subscribe({
       next: () => {
-        this.notificationService.success('Step sequence updated successfully');
+        toast.success('Step sequence updated successfully');
 
         // 3. Update the internal .sequence property of each step
         const updatedSteps = currentSteps.map((step, index) => ({
@@ -3875,7 +3872,7 @@ export class CourseBuilder implements OnInit {
         });
       },
       error: (err) => {
-        this.notificationService.error(err.error?.detail || 'Failed to reorder steps');
+        toast.error(err.error?.detail || 'Failed to reorder steps');
       },
     });
   }
@@ -3900,7 +3897,7 @@ export class CourseBuilder implements OnInit {
         list.map((m) => (m.id === moduleId ? { ...m, learningSteps: originalStepOrder } : m)),
       );
 
-      this.notificationService.info('Steps reverted to last saved order');
+      toast.info('Steps reverted to last saved order');
     }
   }
 
@@ -4020,12 +4017,12 @@ export class CourseBuilder implements OnInit {
   publishStep() {
     const step = this.getSelectedStep();
     if (!step) {
-      this.notificationService.error('No step selected');
+      toast.error('No step selected');
       return;
     }
 
     if (!step.isReadyToPublish) {
-      this.notificationService.error('This step is not ready to publish yet.');
+      toast.error('This step is not ready to publish yet.');
       return;
     }
 
@@ -4033,7 +4030,7 @@ export class CourseBuilder implements OnInit {
 
     this.learningStepService.publishLearningStep(step.id).subscribe({
       next: (updatedStep: LearningStepResponse) => {
-        this.notificationService.success('Step published successfully!');
+        toast.success('Step published successfully!');
         this.isPublishing.set(false);
 
         // Update modules list
@@ -4060,7 +4057,7 @@ export class CourseBuilder implements OnInit {
       },
       error: (err: any) => {
         this.isPublishing.set(false);
-        this.notificationService.error(err?.error?.detail || 'Failed to publish step');
+        toast.error(err?.error?.detail || 'Failed to publish step');
       },
     });
   }
@@ -4070,7 +4067,7 @@ export class CourseBuilder implements OnInit {
 
     // === NEW: BLOCK SAVE DURING UPLOADS ===
     if (this.hasPendingUploads()) {
-      this.notificationService.info(
+      toast.info(
         'Please wait for all uploads (video and materials) to complete before saving.',
       );
       return;
@@ -4091,7 +4088,7 @@ export class CourseBuilder implements OnInit {
 
     // === GUARD: Module Existence ===
     if (!moduleId) {
-      this.notificationService.error('Please select a module before saving the step.');
+      toast.error('Please select a module before saving the step.');
       this.isSaving.set(false);
       return;
     }
@@ -4099,7 +4096,7 @@ export class CourseBuilder implements OnInit {
     // === COMMON VALIDATION ===
     if (!title) {
       this.showValidationErrors = true;
-      this.notificationService.error('Title is required.');
+      toast.error('Title is required.');
       this.isSaving.set(false);
       return;
     }
@@ -4109,7 +4106,7 @@ export class CourseBuilder implements OnInit {
     if (type === 'LESSON') {
       // Cloud Sync Guard
       if (this.muxService.isUploading?.() || this.loadingStates.size > 0) {
-        this.notificationService.info('Please wait for media uploads to finish.');
+        toast.info('Please wait for media uploads to finish.');
         this.isSaving.set(false);
         return;
       }
@@ -4124,7 +4121,7 @@ export class CourseBuilder implements OnInit {
       const hasValidMaterials = isMaterials && currentResources.length > 0;
 
       if (!hasValidVideo && !hasValidContent && !hasValidMaterials) {
-        this.notificationService.error('A lesson must have at least one content section.');
+        toast.error('A lesson must have at least one content section.');
         this.isSaving.set(false);
         return;
       }
@@ -4132,7 +4129,7 @@ export class CourseBuilder implements OnInit {
       if (isMaterials) {
         const hasInvalid = currentResources.some((r) => !r.objectKey);
         if (hasInvalid) {
-          this.notificationService.error(
+          toast.error(
             'Some materials are missing upload data. Please re-upload them.',
           );
           this.isSaving.set(false);
@@ -4148,7 +4145,7 @@ export class CourseBuilder implements OnInit {
           if (this.currentUploadId()) {
             videoUploadIdToSend = this.currentUploadId()!;
           } else if (this.selectedVideoFile()) {
-            this.notificationService.error('Please upload the new video first before saving.');
+            toast.error('Please upload the new video first before saving.');
             this.isSaving.set(false);
             return;
           }
@@ -4204,7 +4201,7 @@ export class CourseBuilder implements OnInit {
 
       // 1. Basic Validation
       if (!quizQuestions || quizQuestions.length === 0) {
-        this.notificationService.error('A quiz must have at least one question.');
+        toast.error('A quiz must have at least one question.');
         this.isSaving.set(false);
         return;
       }
@@ -4216,14 +4213,14 @@ export class CourseBuilder implements OnInit {
 
         // Ensure question has text
         if (!q.questionText?.trim()) {
-          this.notificationService.error(`Question ${index + 1} text is required.`);
+          toast.error(`Question ${index + 1} text is required.`);
           this.isSaving.set(false);
           return;
         }
 
         // Must have at least one correct answer
         if (correctCount === 0) {
-          this.notificationService.error(
+          toast.error(
             `"${questionLabel}" must have at least one correct answer.`,
           );
           this.isSaving.set(false);
@@ -4233,7 +4230,7 @@ export class CourseBuilder implements OnInit {
         // STRICT MULTI-ANSWER VALIDATION
         // If toggle is OFF (Single Choice), but user selected > 1 answer
         if (!q.hasMultipleAnswers && correctCount > 1) {
-          this.notificationService.error(
+          toast.error(
             `"${questionLabel}" is set to single choice, but you've selected ${correctCount} correct answers.`,
           );
           this.isSaving.set(false);
@@ -4285,7 +4282,7 @@ export class CourseBuilder implements OnInit {
 
     operation$.pipe(finalize(() => this.isSaving.set(false))).subscribe({
       next: (res: LearningStepResponse) => {
-        this.notificationService.success(`${type} ${isEdit ? 'updated' : 'created'} successfully`);
+        toast.success(`${type} ${isEdit ? 'updated' : 'created'} successfully`);
 
         // Update modules list + backup (your existing logic)
         this.modules.update((currentModules) =>
@@ -4349,7 +4346,7 @@ export class CourseBuilder implements OnInit {
         }
       },
       error: (err: any) => {
-        this.notificationService.error(
+        toast.error(
           err?.error?.detail || `Failed to ${isEdit ? 'update' : 'create'} step.`,
         );
         console.error(err);

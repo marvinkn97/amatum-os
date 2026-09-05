@@ -17,11 +17,11 @@ import {
   QuizAttemptResponse,
 } from '../../../services/enrollment.service';
 import { finalize, map, Subject, takeUntil, filter, repeat, take, timeout } from 'rxjs';
-import { NotificationService } from '../../../services/notification.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LearningStepResponse } from '../../../services/learning-step.service';
 import { FormsModule } from '@angular/forms';
 import { RatingRequest, RatingService } from '../../../services/rating.service';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-enrollment-view',
@@ -1264,7 +1264,6 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private enrollmentService = inject(EnrollmentService);
-  private notificationService = inject(NotificationService);
   public sanitizer = inject(DomSanitizer);
   private ratingService = inject(RatingService);
 
@@ -1373,7 +1372,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
             this.expandRelevantModule(data);
           }
         },
-        error: () => this.notificationService.error('Failed to load course'),
+        error: () => toast.error('Failed to load course'),
       });
   }
   selectStep(step: LearningStepResponse) {
@@ -1467,7 +1466,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
 
     this.enrollmentService.markStepComplete(currentEnrollment.id, currentStep.id).subscribe({
       next: () => {
-        this.notificationService.success('Step marked as completed');
+        toast.success('Step marked as completed');
 
         this.enrollmentService
           .getEnrollmentById(currentEnrollment.id)
@@ -1488,7 +1487,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isProcessing.set(false); // Reset on error
-        this.notificationService.error(err?.error?.detail || 'Failed to mark step as completed');
+        toast.error(err?.error?.detail || 'Failed to mark step as completed');
         console.error(err);
       },
     });
@@ -1523,14 +1522,14 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
           this.showResultsModal.set(true);
 
           if (response.passed) {
-            this.notificationService.success('Quiz Passed!');
+            toast.success('Quiz Passed!');
             this.loadEnrollment(currentEnrollment.id);
           } else {
-            this.notificationService.error('Quiz Failed. Review your answers and try again.');
+            toast.error('Quiz Failed. Review your answers and try again.');
           }
         },
         error: (err) => {
-          this.notificationService.error(err?.error?.detail || 'Failed to submit quiz');
+          toast.error(err?.error?.detail || 'Failed to submit quiz');
           console.error('Quiz error:', err);
         },
       });
@@ -1600,7 +1599,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
       error: (err: any) => {
         this.isProcessing.set(false);
         console.error('Certificate issuance failed', err);
-        this.notificationService.error('Failed to claim certificate');
+        toast.error('Failed to claim certificate');
       },
     });
   }
@@ -1665,7 +1664,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
 
     const enrollment = this.enrollment();
     if (!enrollment) {
-      this.notificationService.info('Enrollment data not available');
+      toast.info('Enrollment data not available');
       return;
     }
 
@@ -1681,7 +1680,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
     this.ratingService.submitRating(request).subscribe({
       next: () => {
         this.closeRatingModal();
-        this.notificationService.success('Thank you for your feedback!');
+        toast.success('Thank you for your feedback!');
 
         this.enrollmentService
           .getEnrollmentById(enrollment.id)
@@ -1704,7 +1703,7 @@ export class EnrollmentViewComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         console.error('Rating submission failed:', err);
-        this.notificationService.error('Failed to submit your rating');
+        toast.error('Failed to submit your rating');
         this.isSubmitting.set(false);
       },
     });

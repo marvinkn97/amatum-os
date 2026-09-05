@@ -10,6 +10,7 @@ public class RestClientConfiguration {
 
     @Bean
     RestClientCustomizer logbookCustomizer(LogbookClientHttpRequestInterceptor interceptor) {
+
         return restClient -> restClient.requestInterceptor(interceptor);
     }
 }

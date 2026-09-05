@@ -18,7 +18,6 @@ import { finalize } from 'rxjs';
 import { CourseService } from '../../../services/course.service';
 import { CategoryService } from '../../../services/category.service';
 import { TenantService } from '../../../services/tenant.service';
-import { NotificationService } from '../../../services/notification.service';
 import { Loader } from '../../../components/loader/loader';
 
 interface ChatMessage {
@@ -406,7 +405,6 @@ export class CourseCatalogueComponent implements OnInit, AfterViewInit {
   private categoryService = inject(CategoryService);
   private scroller = inject(ViewportScroller);
   private tenantService = inject(TenantService);
-  private notificationService = inject(NotificationService);
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
 

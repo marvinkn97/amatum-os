@@ -3,23 +3,22 @@ import {
   HttpInterceptorFn,
 } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { toast } from 'ngx-sonner';
 import { catchError, throwError } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const notification = inject(NotificationService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       switch (error.status) {
         case 0:
-          notification.error(
+          toast.error(
             'Unable to reach the server. Please check your connection and try again.'
           );
           break;
 
         case 429:
-          notification.warning(
+          toast.warning(
             'Too many requests. Please try again in a moment.'
           );
           break;
@@ -28,7 +27,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 502:
         case 503:
         case 504:
-          notification.error(
+          toast.error(
             'Something went wrong on our side. Please try again later.'
           );
           break;
